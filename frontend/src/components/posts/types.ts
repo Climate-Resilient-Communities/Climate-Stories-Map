@@ -12,7 +12,8 @@ export interface Post {
   title: string;
   content: PostContent;
   location: Location;
-  tags: string[];
+  tag: string;
+  optionalTags: string[];
   created_at: string;
 }
 
