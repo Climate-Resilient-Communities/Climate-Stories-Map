@@ -11,7 +11,7 @@ import os
 from admin.auth import init_auth
 from admin import init_admin
 
-app = Flask(__name__, template_folder="templates", static_folder="static", static_url_path="")
+app = Flask(__name__, template_folder="templates", static_folder="static", static_url_path="/")
 CORS(app)
 init_swagger(app)
 
