@@ -11,7 +11,7 @@ import os
 from admin.auth import init_auth
 from admin import init_admin
 
-app = Flask(__name__, template_folder="templates", static_folder="static", static_url_path="/")
+app = Flask(__name__, static_folder="static", static_url_path="/")
 CORS(app)
 init_swagger(app)
 
@@ -39,15 +39,15 @@ user_collection = mongo.db.users
 auth = init_auth(app, user_collection)
 init_admin(app, collection, auth['admin_required'])
 
-@app.route('/', defaults={'path': ''})
-@app.route('/<path:path>')
-def serve(path):
-    if path.startswith("api/"):
-        return "Not found", 404
-    if os.path.exists(os.path.join(app.static_folder, 'build', path)):
-        return send_from_directory(os.path.join(app.static_folder, 'build'), path)
-    return send_from_directory(os.path.join(app.static_folder, 'build'), 'index.html')
+# Route to serve the React app
+@app.route('/')
+def index():
+    return send_from_directory(os.path.join(app.root_path, 'static'), 'index.html')
 
+# Route to serve static files (JS, CSS, images, etc.)
+@app.route('/<path:path>')
+def static_files(path):
+    return send_from_directory(os.path.join(app.root_path, 'static'), path)
 
 # Use the login_required decorator where needed
 @app.route('/protected')
