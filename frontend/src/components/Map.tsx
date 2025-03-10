@@ -145,18 +145,29 @@ const CustomMap: React.FC<MapProps> = ({ posts, onMapClick }) => {
           </>
         )}</div>)}
 
-        {posts.map((post) => (
-          <Marker
-            key={post._id}
-            longitude={post.location.coordinates[0]}
-            latitude={post.location.coordinates[1]}
-            anchor="bottom"
-            onClick={e => {
-              e.originalEvent.stopPropagation();
-              setPopupInfo(post);
-            }}
-          />
-        ))}
+        {posts.map((post) => {
+          // Determine marker color based on tags
+          let color ="rgb(74, 163, 192)"; // Default color for neutral
+          if (post.tags.some(tag => ['negative', 'bad', 'problem', 'issue', 'concern'].includes(tag.toLowerCase()))) {
+            color = "rgb(225, 81, 81)";
+          } else if (post.tags.some(tag => ['positive', 'good', 'great', 'excellent', 'happy'].includes(tag.toLowerCase()))) {
+            color = "rgb(104, 244, 132)";
+          }
+          
+          return (
+            <Marker
+              key={post._id}
+              longitude={post.location.coordinates[0]}
+              latitude={post.location.coordinates[1]}
+              anchor="bottom"
+              color={color}
+              onClick={e => {
+                e.originalEvent.stopPropagation();
+                setPopupInfo(post);
+              }}
+            />
+          );
+        })}
 
         {popupInfo && (
           <Popup
