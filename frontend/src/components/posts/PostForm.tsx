@@ -21,11 +21,13 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
     };
   }, []);
 
+  // Updated formData to include mandatory Tag
   const [formData, setFormData] = useState<PostFormData>({
     title: '',
     content: { description: '' },
     location: { type: 'Point', coordinates: initialCoordinates },
-    tags: [],
+    tag: '-', // Default to "-", but will validate to Positive/Neutral/Negative on submit
+    optionalTags: [],
     captchaToken: '',
   });
 
@@ -50,9 +52,7 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
     onClose();
   }, [onClose]);
 
-  
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     const updateNestedField = (fieldPath: (string | number)[], value: any) => {
       setFormData(prevData => {
@@ -79,10 +79,16 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
       case 'latitude':
         updateNestedField(['location', 'coordinates', 1], value === '' ? 0 : parseFloat(value) || 0);
         break;
-      case 'tags':
+      case 'optionalTags':
         setFormData(prevData => ({
           ...prevData,
-          tags: value.split(',').map(tag => tag.trim()),
+          optionalTags: value.split(',').map(optionalTags => optionalTags.trim()),
+        }));
+        break;
+      case 'tag':
+        setFormData(prevData => ({
+          ...prevData,
+          tag: value as '-' | 'Positive' | 'Neutral' | 'Negative',
         }));
         break;
       default:
@@ -92,14 +98,18 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Validate that tag is one of the allowed values
+    if (formData.tag === '-') {
+      alert('Please select a valid tag (Positive, Neutral, or Negative).');
+      return;
+    }
+    
     if (formData.captchaToken) {
       onSubmit(formData);
     } else {
       alert('Please complete the hCaptcha.');
     }
   };
-
-  
 
   const handleVerificationSuccess = React.useCallback((token: string) => {
     setFormData(prevData => ({
@@ -126,29 +136,36 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
         onChange={handleChange}
         required
       />
-      <input
-        type="text"
-        name="longitude"
-        placeholder="Longitude"
-        value={formData.location.coordinates[0]}
-        onChange={handleChange}
-        required
-      />
-      <input
-        type="text"
-        name="latitude"
-        placeholder="Latitude"
-        value={formData.location.coordinates[1]}
-        onChange={handleChange}
-        required
-      />
-      <input
-        type="text"
-        name="tags"
-        placeholder="Tags (comma separated)"
-        value={formData.tags}
-        onChange={handleChange}
-      />
+      
+      {/* Tag selector (mandatory) */}
+      <div className="form-group">
+        <label htmlFor="tag">Tag (Required): </label>
+        <select
+          id="tag"
+          name="tag"
+          value={formData.tag}
+          onChange={handleChange}
+          required
+        >
+          <option value="-">-</option>
+          <option value="Positive">Positive</option>
+          <option value="Neutral">Neutral</option>
+          <option value="Negative">Negative</option>
+        </select>
+      </div>
+
+      {/* Optional user tags */}
+      <div className="form-group">
+        <label htmlFor="optionalTags">Additional Tags (Optional):</label>
+        <input
+          type="text"
+          id="optionalTags"
+          name="optionalTags"
+          placeholder="Enter optional tags (comma separated)"
+          value={formData.optionalTags}
+          onChange={handleChange}
+        />
+      </div>
 
       {isActive && (
         <HCaptcha

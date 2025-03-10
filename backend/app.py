@@ -4,14 +4,14 @@ from flask import Flask, jsonify, request, session, send_from_directory
 from swagger import init_swagger
 from flask_pymongo import PyMongo
 from bson.objectid import ObjectId
-from marshmallow import Schema, fields, ValidationError
+from marshmallow import Schema, fields, ValidationError, validate
 from flask_cors import CORS
 import os
 
 from admin.auth import init_auth
 from admin import init_admin
 
-app = Flask(__name__, template_folder="templates", static_folder="static", static_url_path="")
+app = Flask(__name__, template_folder="templates", static_folder="static", static_url_path="/")
 CORS(app)
 init_swagger(app)
 
@@ -39,20 +39,15 @@ user_collection = mongo.db.users
 auth = init_auth(app, user_collection)
 init_admin(app, collection, auth['admin_required'])
 
-# Serve the React app - this will serve the index.html for any path not caught by other routes
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
-    # Don't interfere with API routes - they should be handled by their respective handlers
-    if path.startswith('api/'):
-        # Let Flask continue to other routes
+    if path.startswith("api/"):
         return "Not found", 404
-    # Serve static files if they exist
-    elif os.path.exists(os.path.join(app.static_folder, path)):
-        return send_from_directory(app.static_folder, path)
-    # For all other routes, serve the React app's index.html
-    else:
-        return send_from_directory(app.static_folder, 'index.html')
+    if os.path.exists(os.path.join(app.static_folder, 'build', path)):
+        return send_from_directory(os.path.join(app.static_folder, 'build'), path)
+    return send_from_directory(os.path.join(app.static_folder, 'build'), 'index.html')
+
 
 # Use the login_required decorator where needed
 @app.route('/protected')
@@ -65,7 +60,8 @@ class PostSchema(Schema):
     title = fields.Str(required=True)
     content = fields.Dict(required=True)
     location = fields.Dict(required=True)
-    tags = fields.List(fields.Str(), required=True)
+    tag = fields.Str(required=True, validate=validate.OneOf(['Positive', 'Neutral', 'Negative']))
+    optionalTags = fields.List(fields.Str(), required=False, missing=[]) # Make optional for backward compatibility
     created_at = fields.DateTime()
     status = fields.Str(required=False, default='pending')
     captchaToken = fields.Str(required=True)
@@ -102,7 +98,6 @@ def create():
     try:
         # Validate and deserialize the request JSON
         data = post_schema.load(request.json)
-        data = request.json
         hcaptcha_response = data.get('captchaToken')
 
         if not hcaptcha_response:
@@ -207,6 +202,8 @@ def update_post(id):
         if not ObjectId.is_valid(id):
             return jsonify({'error': 'Invalid post ID'}), 400
         
+        # Validate and deserialize the request JSON
+        data = post_schema.load(request.json)
         hcaptcha_response = data.get('captchaToken')
 
         if not hcaptcha_response:
@@ -221,8 +218,6 @@ def update_post(id):
             }
         )
 
-        # Validate and deserialize the request JSON
-        data = post_schema.load(request.json)
         data['updated_at'] = datetime.datetime.now(datetime.timezone.utc)  # Add updated_at timestamp
 
         # Find the post and update it

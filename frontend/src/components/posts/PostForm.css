@@ -57,3 +57,14 @@
   justify-content: space-between;
   margin-top: 10px;
 }
+
+/* Style select to match button theme */
+.post-form select {
+  background-color: #f8f9fa;
+  color: black;
+  border-radius: 4px;
+  border: 2px solid #569BC4;
+  cursor: pointer;
+  padding: 5px 5px;
+  font-size: 16px;
+}
