@@ -68,7 +68,7 @@ class PostSchema(Schema):
 
 # Define a schema for tag validation
 class TagSchema(Schema):
-    tag = fields.Str(required=False, validate=validate.OneOf(['Positive', 'Neutral', 'Negative']))
+    tag = fields.Str(required=False, allow_none=True, validate=validate.OneOf(['Positive', 'Neutral', 'Negative']))
     optionalTags = fields.List(fields.Str(), required=False, missing=[])
 
 # Initialize the schema instance
@@ -223,7 +223,7 @@ def update_post(id):
         
         # Validate and deserialize the request JSON
         data = post_schema.load(request.json)
-        hcaptcha_response = data.get('captchaToken')
+        hcaptcha_response = data.pop('captchaToken')
 
         if not hcaptcha_response:
             return jsonify({'success': False, 'message': 'CAPTCHA token missing'}), 400

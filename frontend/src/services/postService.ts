@@ -8,7 +8,7 @@ export const fetchPosts = async (tag?: string, optionalTags?: string[]): Promise
   let url = API_URL;
   const params: Record<string, string | string[]> = {};
   
-  if (tag) {
+  if (tag && tag.trim() !== '') {
     params.tag = tag;
   }
   
