@@ -185,7 +185,7 @@ def get_posts():
             # Only optional tags are provided
             query['optional_tags'] = {'$all': optional_tags}
         
-        posts = list(collection.find(query, {'_id': 0}))
+        posts = list(collection.find(query))
         return jsonify(posts), 200
 
     except ValidationError as err:
