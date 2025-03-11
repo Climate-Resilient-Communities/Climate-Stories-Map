@@ -62,12 +62,14 @@ class PostSchema(Schema):
     location = fields.Dict(required=True)
     tag = fields.Str(required=True, validate=validate.OneOf(['Positive', 'Neutral', 'Negative']))
     optionalTags = fields.List(fields.Str(), required=False, missing=[]) # Make optional for backward compatibility
-    created_at = fields.DateTime()
+    captchaToken = fields.Str(required=True) # Add captcha token to schema
+    createdAt = fields.DateTime()
     status = fields.Str(required=False, default='pending')
 
 # Define a schema for tag validation
 class TagSchema(Schema):
-    tags = fields.List(fields.Str(), required=False, allow_none=True)
+    tag = fields.Str(required=True, validate=validate.OneOf(['Positive', 'Neutral', 'Negative']))
+    optionalTags = fields.List(fields.Str(), required=False, missing=[])
 
 # Initialize the schema instance
 post_schema = PostSchema()
@@ -155,7 +157,7 @@ def get_posts():
         #document['_id'] = str(document['_id'])  # Convert ObjectId to string
     try:
         # Validate query parameters for tags
-        raw_tags = request.args.getlist('tags')  # This returns a list directly
+        raw_tags = request.args.getlist('optionalTags')  # This returns a list directly
         
         # Validate and load the tags
         args = tag_schema.load({'tags': raw_tags})  # Pass as a dictionary
@@ -219,6 +221,10 @@ def update_post(id):
         )
 
         data['updated_at'] = datetime.datetime.now(datetime.timezone.utc)  # Add updated_at timestamp
+        
+        # Handle optional tags conversion 
+        if 'optionalTags' in data:
+            data['optional_tags'] = data.pop('optionalTags', [])
 
         # Find the post and update it
         result = collection.update_one(

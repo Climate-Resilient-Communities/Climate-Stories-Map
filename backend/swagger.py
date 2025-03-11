@@ -23,12 +23,20 @@ def init_swagger(app):
                         "type": "object",
                         "description": "Location information",
                     },
-                    "tags": {
+                    "tag": {
+                        "type": "string",
+                        "description": "Primary tag of the post (Positive, Neutral, or Negative)",
+                    },
+                    "optionalTags": {
                         "type": "array",
                         "items": {
                             "type": "string",
                         },
-                        "description": "List of tags associated with the post",
+                        "description": "Optional list of additional tags associated with the post",
+                    },
+                    "captchaToken": {
+                        "type": "string",
+                        "description": "CAPTCHA verification token",
                     },
                 },
             }

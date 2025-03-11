@@ -6,7 +6,12 @@ class PostForm(form.Form):
     content_image = fields.StringField('Image URL', [validators.Optional()])  # Renamed field
     location_latitude = fields.FloatField('Latitude')  # Renamed field
     location_longitude = fields.FloatField('Longitude')  # Renamed field
-    tags = fields.StringField('Tags')
+    tag = fields.SelectField('Tag', choices=[
+        ('Positive', 'Positive'),
+        ('Neutral', 'Neutral'),
+        ('Negative', 'Negative')
+    ])
+    optionalTags = fields.StringField('Optional Tags')
     status = fields.SelectField('Status', choices=[
         ('pending', 'Pending'),
         ('approved', 'Approved'),
