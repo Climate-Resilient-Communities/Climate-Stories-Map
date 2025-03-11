@@ -64,7 +64,6 @@ class PostSchema(Schema):
     optionalTags = fields.List(fields.Str(), required=False, missing=[]) # Make optional for backward compatibility
     created_at = fields.DateTime()
     status = fields.Str(required=False, default='pending')
-    captchaToken = fields.Str(required=True)
 
 # Define a schema for tag validation
 class TagSchema(Schema):
@@ -119,7 +118,12 @@ def create():
 
         data['created_at'] = datetime.datetime.now(datetime.timezone.utc)  # Add created_at timestamp
         data['status'] = 'pending'  # Set initial status to pending
-
+        data['optional_tags'] = data.pop('optionalTags', [])  # Handle optional tags
+        
+        # Remove captchaToken before storing in MongoDB
+        if 'captchaToken' in data:
+            data.pop('captchaToken')
+            
         # Insert the sanitized data into the collection
         result = collection.insert_one(data)
         

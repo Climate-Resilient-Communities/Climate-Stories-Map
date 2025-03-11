@@ -148,9 +148,9 @@ const CustomMap: React.FC<MapProps> = ({ posts, onMapClick }) => {
         {posts.map((post) => {
           // Determine marker color based on tags
           let color ="rgb(74, 163, 192)"; // Default color for neutral
-          if (post.tags.some(tag => ['negative', 'bad', 'problem', 'issue', 'concern'].includes(tag.toLowerCase()))) {
+          if (post.tag === 'Negative') {
             color = "rgb(225, 81, 81)";
-          } else if (post.tags.some(tag => ['positive', 'good', 'great', 'excellent', 'happy'].includes(tag.toLowerCase()))) {
+          } else if (post.tag === 'Positive') {
             color = "rgb(104, 244, 132)";
           }
           
@@ -180,9 +180,11 @@ const CustomMap: React.FC<MapProps> = ({ posts, onMapClick }) => {
             <br />
             {popupInfo.content.description}
             <br />
-            <small>{new Date(popupInfo.created_at).toLocaleDateString()}</small>
+            <small>{new Date(popupInfo.createdAt).toLocaleDateString()}</small>
             <br />
-            {popupInfo.tags.map(tag => `#${tag}`).join(' ')}
+            <small>{popupInfo.tag}</small>
+            <br />
+            {popupInfo.optionalTags.map(tag => `#${tag}`).join(' ')}
           </Popup>
         )}
       </Map>

@@ -12,8 +12,9 @@ export interface Post {
   title: string;
   content: PostContent;
   location: Location;
-  tags: string[];
-  created_at: string;
+  tag: string;
+  optionalTags: string[];
+  createdAt: string;
 }
 
 export interface PostFormData {
