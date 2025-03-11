@@ -4,8 +4,19 @@ import { transformKeysToCamel } from '../utils/caseTransformers';
 
 const API_URL = import.meta.env.VITE_POST_API_URL;
 
-export const fetchPosts = async (): Promise<Post[]> => {
-  const response = await axios.get(API_URL);
+export const fetchPosts = async (tag?: string, optionalTags?: string[]): Promise<Post[]> => {
+  let url = API_URL;
+  const params: Record<string, string | string[]> = {};
+  
+  if (tag) {
+    params.tag = tag;
+  }
+  
+  if (optionalTags && optionalTags.length > 0) {
+    params.optionalTags = optionalTags;
+  }
+  
+  const response = await axios.get(url, { params });
   return transformKeysToCamel(response.data);
 };
 

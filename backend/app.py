@@ -68,7 +68,7 @@ class PostSchema(Schema):
 
 # Define a schema for tag validation
 class TagSchema(Schema):
-    tag = fields.Str(required=True, validate=validate.OneOf(['Positive', 'Neutral', 'Negative']))
+    tag = fields.Str(required=False, validate=validate.OneOf(['Positive', 'Neutral', 'Negative']))
     optionalTags = fields.List(fields.Str(), required=False, missing=[])
 
 # Initialize the schema instance
@@ -138,7 +138,12 @@ def get_posts():
     Get all posts with optional tag filters
     ---
     parameters:
-      - name: tags
+      - name: tag
+        in: query
+        type: string
+        required: false
+        description: Single tag to filter posts
+      - name: optionalTags
         in: query
         type: array
         items:
@@ -152,21 +157,33 @@ def get_posts():
       400:
         description: input validation error
     """
-    #documents = list(collection.find())
-    #for document in documents:
-        #document['_id'] = str(document['_id'])  # Convert ObjectId to string
     try:
-        # Validate query parameters for tags
-        raw_tags = request.args.getlist('optionalTags')  # This returns a list directly
+        # Get single tag if provided
+        tag = request.args.get('tag')
         
-        # Validate and load the tags
-        args = tag_schema.load({'tags': raw_tags})  # Pass as a dictionary
-        tags = args.get('tags', [])
+        # Get optional tags list if provided
+        raw_optional_tags = request.args.getlist('optionalTags')  # This returns a list directly
+        
+        # Validate and load both tag and optional tags
+        args = tag_schema.load({'tag': tag, 'optionalTags': raw_optional_tags})  # Pass both as a dictionary
+        tag = args.get('tag')
+        optional_tags = args.get('optionalTags', [])
 
         query = {'status': 'approved'}  # Only return approved posts by default
-        if tags:
-            # Use $all to match all specified tags
-            query['tags'] = {'$all': tags}
+        
+        # Apply tag filters sequentially
+        if tag and optional_tags:
+            # Both tag and optional tags are provided
+            query['$and'] = [
+                {'tag': tag},
+                {'optional_tags': {'$all': optional_tags}}
+            ]
+        elif tag:
+            # Only single tag is provided
+            query['tag'] = tag
+        elif optional_tags:
+            # Only optional tags are provided
+            query['optional_tags'] = {'$all': optional_tags}
         
         posts = list(collection.find(query, {'_id': 0}))
         return jsonify(posts), 200
