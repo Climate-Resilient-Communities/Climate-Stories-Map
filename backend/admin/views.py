@@ -12,7 +12,7 @@ class PostView(ModelView):
         return redirect(url_for('login'))
 
     # List of columns to display
-    column_list = ('title', 'content_image_display', 'content_description', 'location', 'tags', 'created_at', 'status')
+    column_list = ('title', 'content_image_display', 'content_description', 'location', 'tag', 'optionalTags', 'created_at', 'status')
     
     # Rename columns for display
     column_labels = {
@@ -47,9 +47,11 @@ class PostView(ModelView):
         super(PostView, self).__init__(collection, name, category, endpoint, url, static_folder)
 
     def on_model_change(self, form, model, is_created):        
-        # Handle tags
-        if 'tags' in model and isinstance(model['tags'], str):
-            model['tags'] = [tag.strip() for tag in model['tags'].split(',')]
+        # Handle optionalTags - convert from string to list
+        if 'optionalTags' in model and isinstance(model['optionalTags'], str):
+            model['optional_tags'] = [tag_item.strip() for tag_item in model['optionalTags'].split(',')]
+            # Remove optionalTags after converting to snake_case
+            del model['optionalTags']
         
         # Create content dictionary
         model['content'] = {
@@ -75,14 +77,17 @@ class PostView(ModelView):
     def on_form_prefill(self, form, id):
         model = self.get_one(id)
         
-        if 'tags' in model and isinstance(model['tags'], list):
-            form.tags.data = ', '.join(model['tags'])
+        # Handle optional_tags when loading form data
+        if 'optional_tags' in model and isinstance(model['optional_tags'], list):
+            form.optionalTags.data = ', '.join(model['optional_tags'])
         
-        if 'content' in model and isinstance(model['content'], dict):
-            form.content_description.data = model['content'].get('description', '')
-            form.content_image.data = model['content'].get('image', '')
+        # Handle content and location fields
+        if 'content' in model:
+            if 'description' in model['content']:
+                form.content_description.data = model['content']['description']
+            if 'image' in model['content']:
+                form.content_image.data = model['content']['image']
         
-        if 'location' in model and isinstance(model['location'], dict):
-            coordinates = model['location'].get('coordinates', [0, 0])
-            form.location_longitude.data = coordinates[0]
-            form.location_latitude.data = coordinates[1]
+        if 'location' in model and 'coordinates' in model['location']:
+            form.location_longitude.data = model['location']['coordinates'][0]
+            form.location_latitude.data = model['location']['coordinates'][1]
