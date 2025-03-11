@@ -16,7 +16,8 @@ const PostList: React.FC<PostListProps> = ({ posts }) => {
             <span>Description</span>
             <span>Longitude</span>
             <span>Latitude</span>
-            <span>Tags</span>
+            <span>Tag</span>
+            <span>Optional Tag(s)</span>
           </div>
           <div className="post-list">
             {posts.map((post) => (
@@ -25,7 +26,8 @@ const PostList: React.FC<PostListProps> = ({ posts }) => {
                 <div className="post-description">{post.content.description}</div>
                 <div className="post-longitude">{post.location.coordinates[0]}</div>
                 <div className="post-latitude">{post.location.coordinates[1]}</div>
-                <div className="post-tags">{post.tags.join(', ')}</div>
+                <div className="post-tag">{post.tag}</div>
+                <div className="post-opt-tags">{post.optionalTags.join(', ')}</div>
               </div>
             ))}
           </div>
