@@ -97,7 +97,7 @@ def create():
     try:
         # Validate and deserialize the request JSON
         data = post_schema.load(request.json)
-        hcaptcha_response = data.get('captchaToken')
+        hcaptcha_response = data.pop('captchaToken')
 
         if not hcaptcha_response:
             return jsonify({'success': False, 'message': 'CAPTCHA token missing'}), 400
@@ -119,10 +119,6 @@ def create():
         data['created_at'] = datetime.datetime.now(datetime.timezone.utc)  # Add created_at timestamp
         data['status'] = 'pending'  # Set initial status to pending
         data['optional_tags'] = data.pop('optionalTags', [])  # Handle optional tags
-        
-        # Remove captchaToken before storing in MongoDB
-        if 'captchaToken' in data:
-            data.pop('captchaToken')
             
         # Insert the sanitized data into the collection
         result = collection.insert_one(data)
