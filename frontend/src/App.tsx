@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import './App.css';
+import './components/Overlay.css';
 import MapWithForm from './components/MapWithForm';
 import Taskbar from './components/Taskbar';
 import { createPost, fetchPosts } from './services/postService';
@@ -71,6 +72,9 @@ const App: React.FC = () => {
   return (
     <Router>
       <div className="app-container">
+          {isWelcomePopupOpen && (
+            <div className="welcome-overlay" />
+          )}
           <Taskbar 
             onAboutClick={openAboutSection}
             onContactClick={openContactSection}
