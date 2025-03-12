@@ -31,6 +31,9 @@ export const transformKeysToCamel = <T extends object>(obj: T): any => {
   const result: Record<string, any> = {};
   
   Object.keys(obj).forEach(key => {
+    if(key === '_id') {
+      return result[key] = obj[key as keyof T];
+    }
     const camelKey = snakeToCamel(key);
     const value = obj[key as keyof T];
     

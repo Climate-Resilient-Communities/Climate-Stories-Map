@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Map, { Marker, Popup, NavigationControl, Source, Layer } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import './Map.css';
@@ -9,12 +9,18 @@ import { isPointInPolygon } from '../utils/map-utils';
 // Replace this with your actual Mapbox access token
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
+// Marker color constants
+const MARKER_COLOR_NEUTRAL = "rgb(74, 163, 192)";
+const MARKER_COLOR_NEGATIVE = "rgb(225, 81, 81)";
+const MARKER_COLOR_POSITIVE = "rgb(104, 244, 132)";
+
 interface MapProps {
   posts: Post[];
   onMapClick: (coordinates: [number, number], event: React.MouseEvent<HTMLDivElement>) => void;
+  selectedTags?: string[];
 }
 
-const CustomMap: React.FC<MapProps> = ({ posts, onMapClick }) => {
+const CustomMap: React.FC<MapProps> = ({ posts, onMapClick, selectedTags = [] }) => {
   const [canadaGeoJSON, setCanadaGeoJSON] = useState<any | null>(null);
   const [viewState, setViewState] = useState({
     longitude: -75.6972,
@@ -22,6 +28,40 @@ const CustomMap: React.FC<MapProps> = ({ posts, onMapClick }) => {
     zoom: 4
   });
   const [popupInfo, setPopupInfo] = useState<Post | null>(null);
+  
+  // Create a ref to store post IDs and their colors
+  const colorMapRef = useRef<Record<string, string>>({});
+
+  // Function to determine marker color based on tag only (not affected by filters)
+  const getMarkerColorByTag = (post: Post): string => {
+    const { tag } = post;
+    
+    // Always use consistent coloring based on the post's tag
+    if (tag === 'Negative') {
+      return MARKER_COLOR_NEGATIVE;
+    } else if (tag === 'Positive') {
+      return MARKER_COLOR_POSITIVE;
+    }
+    return MARKER_COLOR_NEUTRAL; // Default color for neutral
+  };
+
+  // Initialize and update colors for all posts
+  useEffect(() => {
+    // For each post, either use its existing color or assign a new one based on its tag and filters
+    posts.forEach(post => {
+      // Always update the color based on the post's tag and selected tags
+      colorMapRef.current[post._id] = getMarkerColorByTag(post);
+    });
+    
+    // This prevents the color map from growing indefinitely by removing entries for posts
+    // that are no longer in the current filtered set
+    const currentPostIds = new Set(posts.map(post => post._id));
+    Object.keys(colorMapRef.current).forEach(postId => {
+      if (!currentPostIds.has(postId)) {
+        delete colorMapRef.current[postId];
+      }
+    });
+  }, [posts]);
 
   useEffect(() => {
     fetch('/canada.geojson')
@@ -146,12 +186,14 @@ const CustomMap: React.FC<MapProps> = ({ posts, onMapClick }) => {
         )}</div>)}
 
         {posts.map((post) => {
-          // Determine marker color based on tags
-          let color ="rgb(74, 163, 192)"; // Default color for neutral
-          if (post.tag === 'Negative') {
-            color = "rgb(225, 81, 81)";
-          } else if (post.tag === 'Positive') {
-            color = "rgb(104, 244, 132)";
+          // Use the stored color from colorMapRef if available, otherwise calculate it
+          // This ensures colors stay consistent when filtering
+          let color = colorMapRef.current[post._id];
+          
+          // If color is not in the map (should not happen, but as fallback)
+          if (!color) {
+            // Get color using the reusable function
+            color = getMarkerColorByTag(post);
           }
           
           return (
