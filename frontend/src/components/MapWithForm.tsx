@@ -88,7 +88,7 @@ const MapWithForm: React.FC<MapWithFormProps> = ({ posts, onPostSubmit }) => {
           position: 'absolute', 
           top: '50px', 
           left: '10px', 
-          zIndex: 1000,
+          zIndex: 998,
           width: '300px' 
         }}>
           <TagFilter 
