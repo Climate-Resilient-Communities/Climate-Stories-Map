@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import Map, { Marker, Popup, NavigationControl, Source, Layer } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import './Map.css';
-import './Popup.css';
+import './MapPopup.css';
 import { Post } from './posts/types';
 import { isPointInPolygon } from '../utils/map-utils';
 
@@ -20,7 +20,7 @@ interface MapProps {
   selectedTags?: string[];
 }
 
-const CustomMap: React.FC<MapProps> = ({ posts, onMapClick, selectedTags = [] }) => {
+const CRCMap: React.FC<MapProps> = ({ posts, onMapClick }) => {
   const [canadaGeoJSON, setCanadaGeoJSON] = useState<any | null>(null);
   const [viewState, setViewState] = useState({
     longitude: -75.6972,
@@ -218,15 +218,26 @@ const CustomMap: React.FC<MapProps> = ({ posts, onMapClick, selectedTags = [] })
             anchor="bottom"
             onClose={() => setPopupInfo(null)}
           >
-            <b>{popupInfo.title}</b>
-            <br />
-            {popupInfo.content.description}
-            <br />
-            <small>{new Date(popupInfo.createdAt).toLocaleDateString()}</small>
-            <br />
-            <small>{popupInfo.tag}</small>
-            <br />
-            {popupInfo.optionalTags.map(tag => `#${tag}`).join(' ')}
+            <div className="map-popup-content">
+              <b>{popupInfo.title}</b>
+              <p>{popupInfo.content.description}</p>
+              <div className="map-popup-footer">
+                <div>
+                  {popupInfo.tag && popupInfo.tag !== '-' && popupInfo.tag.trim() !== '' && (
+                    <span className={`map-popup-tag ${popupInfo.tag}`}>{popupInfo.tag}</span>
+                  )}
+                  {popupInfo.optionalTags && popupInfo.optionalTags.length > 0 && popupInfo.optionalTags
+                    .filter(tag => tag && tag.trim() !== '')
+                    .map(tag => (
+                      <span key={tag} className="map-popup-tag">#{tag}</span>
+                    ))
+                  }
+                </div>
+              </div>
+              <div className="map-popup-date">
+                {new Date(popupInfo.createdAt).toLocaleDateString()}
+              </div>
+            </div>
           </Popup>
         )}
       </Map>
@@ -234,4 +245,4 @@ const CustomMap: React.FC<MapProps> = ({ posts, onMapClick, selectedTags = [] })
   );
 };
 
-export default CustomMap;
+export default CRCMap;

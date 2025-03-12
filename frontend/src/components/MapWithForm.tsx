@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Map from './Map';
+import CRCMap from './Map';
 import PostForm from './posts/PostForm';
 import TagFilter from './posts/TagFilter';
 import './MapWithForm.css';
@@ -18,6 +18,10 @@ const MapWithForm: React.FC<MapWithFormProps> = ({ posts, onPostSubmit }) => {
   const [coordinates, setCoordinates] = useState<[number, number] | undefined>(undefined);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isFilterVisible, setIsFilterVisible] = useState(false);
+
+  const toggleFilterVisibility = () => {
+    setIsFilterVisible(prevState => !prevState);
+  };
 
   const handleMapClick = (coords: [number, number]) => {
     setCoordinates(coords);
@@ -59,7 +63,7 @@ const MapWithForm: React.FC<MapWithFormProps> = ({ posts, onPostSubmit }) => {
     <div className="map-container">
       <button 
         className="filter-toggle-button" 
-        onClick={() => setIsFilterVisible(!isFilterVisible)}
+        onClick={toggleFilterVisibility}
         style={{ 
           position: 'absolute', 
           top: '60px', 
@@ -95,7 +99,7 @@ const MapWithForm: React.FC<MapWithFormProps> = ({ posts, onPostSubmit }) => {
         </div>
       )}
       
-      <Map onMapClick={handleMapClick} posts={filteredPosts} selectedTags={selectedTags} />
+      <CRCMap onMapClick={handleMapClick} posts={filteredPosts} selectedTags={selectedTags} />
       <Modal isOpen={isModalOpen} onClose={handleClose}>
           <PostForm onSubmit={handleSubmit} onClose={handleClose} initialCoordinates={coordinates}/>
       </Modal>
