@@ -14,13 +14,18 @@ const CustomPopup: React.FC<CustomPopupProps> = ({ post }) => (
     <small className="popup-date">
       {new Date(post.createdAt).toLocaleDateString()}
     </small>
-    <div className="popup-tag">
+    {post.tag && post.tag !== '-' && post.tag.trim() !== '' && (
+      <div className="popup-tag">
         <span key={post.tag} className="popup-tag">#{post.tag}</span>
-    </div>
+      </div>
+    )}
     <div className="popup-opt-tags">
-      {post.optionalTags.length > 0 && post.optionalTags.map(tag => (
-        <span key={tag} className="popup-tag">#{tag}</span>
-      ))}
+      {post.optionalTags && post.optionalTags.length > 0 && post.optionalTags
+        .filter(tag => tag && tag.trim() !== '')
+        .map(tag => (
+          <span key={tag} className="popup-tag">#{tag}</span>
+        ))
+      }
     </div>
   </div>
 );

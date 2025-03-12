@@ -185,7 +185,10 @@ def get_posts():
             # Only optional tags are provided
             query['optional_tags'] = {'$all': optional_tags}
         
-        posts = list(collection.find(query, {'_id': 0}))
+        posts = list(collection.find(query))
+        # Convert ObjectId to string to make it JSON serializable
+        for post in posts:
+            post['_id'] = str(post['_id'])
         return jsonify(posts), 200
 
     except ValidationError as err:
