@@ -8,6 +8,8 @@ interface TagFilterProps {
 }
 
 const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect }) => {
+  const [tagFilter, setTagFilter] = React.useState('');
+
   // Extract unique tags from posts (both main tags and optional tags)
   const getAllTags = () => {
     const tagSet = new Set<string>();
@@ -28,6 +30,9 @@ const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect 
   };
 
   const allTags = getAllTags();
+  const filteredTags = allTags.filter(tag => 
+    tag.toLowerCase().includes(tagFilter.toLowerCase())
+  );
 
   const handleTagToggle = (tag: string) => {
     if (selectedTags.includes(tag)) {
@@ -46,13 +51,20 @@ const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect 
   return (
     <div className="tag-filter">
       <h3>Filter by Tags</h3>
+      <input
+        type="text"
+        placeholder="Search tags..."
+        value={tagFilter}
+        onChange={(e) => setTagFilter(e.target.value)}
+        className="tag-search"
+      />
       <div className="filter-description">
         {selectedTags.length > 0 ? 
           'Showing posts with selected tags' : 
           'Showing all posts (no filters applied)'}
       </div>
       <div className="tag-buttons">
-        {allTags.map(tag => (
+        {filteredTags.map(tag => (
           <button
             key={tag}
             className={`tag-button ${selectedTags.includes(tag) ? 'selected' : ''}`}

@@ -11,6 +11,15 @@
 
 .tag-filter h3 {
   margin-top: 0;
+
+.tag-search {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
   margin-bottom: 10px;
   font-size: 1.2em;
   color: #333;
