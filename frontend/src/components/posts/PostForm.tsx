@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import HCaptcha from '@hcaptcha/react-hcaptcha';
 import { PostFormData } from './types';
 import './PostForm.css';
+import NotificationPopup from '../NotificationPopup';
 
 interface PostFormProps {
   onSubmit: (formData: PostFormData) => void;
@@ -14,12 +15,17 @@ const CAPTCHA_SITE_KEY = import.meta.env.VITE_CAPTCHA_SITE_KEY || "10000000-ffff
 const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinates = [0, 0] }) => {
   const captchaRef = React.useRef<HCaptcha>(null);
   const [isActive, setIsActive] = useState(true);
+  const [showNotification, setShowNotification] = useState(false);
   
   React.useEffect(() => {
     return () => {
       setIsActive(false);
     };
   }, []);
+  
+  const handleCloseNotification = () => {
+    setShowNotification(false);
+  };
 
   // Updated formData to include mandatory Tag
   const [formData, setFormData] = useState<PostFormData>({
@@ -103,9 +109,9 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
       alert('Please select a valid tag (Positive, Neutral, or Negative).');
       return;
     }
-    
     if (formData.captchaToken) {
       onSubmit(formData);
+      setShowNotification(true);
     } else {
       alert('Please complete the hCaptcha.');
     }
@@ -119,7 +125,13 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
   }, []);
 
   return (
-    <form className="post-form" onSubmit={handleSubmit}>
+    <>
+      <NotificationPopup 
+        message="Your post has been submitted for review with our moderators!" 
+        isVisible={showNotification} 
+        onClose={handleCloseNotification} 
+      />
+      <form className="post-form" onSubmit={handleSubmit}> 
       <h2 className="post-form-title">Share Your Climate Story</h2>
       <input
         type="text"
@@ -182,6 +194,7 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
         <button type="button" onClick={handleModalClose}>Cancel</button>
       </div>
     </form>
+    </>
   );
 };
 
