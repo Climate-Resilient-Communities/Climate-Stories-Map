@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
+import { MAIN_TAGS } from '../../utils/tag-constants';
 import HCaptcha from '@hcaptcha/react-hcaptcha';
 import { PostFormData } from './types';
 import './PostForm.css';
-import { useNotification } from './NotificationContext';
+  import { useNotification } from '../common/NotificationContext';
 
 interface PostFormProps {
   onSubmit: (formData: PostFormData) => void;
@@ -103,23 +104,23 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.tag === '-') {
-      alert('Please select a valid tag (Positive, Neutral, or Negative).');
+      showNotification('Please select a valid tag (Positive, Neutral, or Negative).', true);
       return;
     }
     if (formData.captchaToken) {
       try {
         await onSubmit(formData);
-        showNotification();
+        showNotification('Your post has been submitted for review with our moderators!');
         setTimeout(() => {
           onClose();
         }, 100);
       } catch (error) {
         console.error('Error submitting post:', error);
-        alert('There was an error submitting your post. Please try again.');
+        showNotification('There was an error submitting your post. Please try again.', true);
         return;
       }
     } else {
-      alert('Please complete the hCaptcha.');
+      showNotification('Please complete the hCaptcha.', true);
     }
   };
 
@@ -160,9 +161,9 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
           required
         >
           <option value="-">-</option>
-          <option value="Positive">Positive</option>
-          <option value="Neutral">Neutral</option>
-          <option value="Negative">Negative</option>
+          {MAIN_TAGS.map((tag) => (
+            <option key={tag} value={tag}>{tag}</option>
+          ))}
         </select>
       </div>
       <div className="form-group">
@@ -192,6 +193,7 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
         <button type="button" onClick={handleModalClose}>Cancel</button>
       </div>
     </form>
+    
     </>
   );
 };

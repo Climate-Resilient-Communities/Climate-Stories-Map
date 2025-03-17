@@ -1,20 +1,24 @@
 import React, { createContext, useContext, useState } from 'react';
-import NotificationPopup from '../NotificationPopup';
+import NotificationPopup from './NotificationPopup';
 
 interface NotificationContextType {
-  showNotification: () => void;
+  showNotification: (message: string, isError?: boolean) => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
 export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
   const [isVisible, setIsVisible] = useState(false);
+  const [message, setMessage] = useState('');
+  const [isError, setIsError] = useState(false);
 
   const handleClose = () => {
     setIsVisible(false);
   };
 
-  const showNotification = () => {
+  const showNotification = (msg: string, error: boolean = false) => {
+    setMessage(msg);
+    setIsError(error);
     setIsVisible(true);
   };
 
@@ -22,9 +26,10 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
     <NotificationContext.Provider value={{ showNotification }}>
       {children}
       <NotificationPopup 
-        message="Your post has been submitted for review with our moderators!"
+        message={message}
         isVisible={isVisible}
         onClose={handleClose}
+        isError={isError}
       />
     </NotificationContext.Provider>
   );
