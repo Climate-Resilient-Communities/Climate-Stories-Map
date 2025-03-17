@@ -1,24 +1,42 @@
-.notification-popup {
+#notification-portal {
   position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #4CAF50;
-  color: white;
-  padding: 16px;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
-  text-align: center;
-  min-width: 300px;
-  animation: flash 1.5s infinite alternate;
+  top: 0;
+  right: 0;
+  z-index: 9999;
+  pointer-events: none;
 }
 
-@keyframes flash {
-  from {
-    opacity: 1;
+.notification-popup {
+  position: fixed;
+  bottom: 25px;
+  right: 20px;
+  background-color: #54bb52;
+  color: white;
+  padding: 16px 24px;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transform: translateX(120%);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 200px;
+  text-align: center;
+  pointer-events: auto;
+}
+
+.notification-popup.visible {
+  transform: translateX(0);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: all;
+}
+
+@keyframes slideIn {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
   }
-  to {
-    opacity: 0.7;
+  100% {
+    transform: translateX(0);
+    opacity: 1;
   }
 }

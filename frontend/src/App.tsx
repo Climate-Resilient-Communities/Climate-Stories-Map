@@ -1,5 +1,7 @@
 // App.tsx
 import { useCallback, useEffect, useState } from 'react';
+import { NotificationProvider } from './components/posts/NotificationContext';
+
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import './App.css';
 import './components/Overlay.css';
@@ -38,12 +40,16 @@ const App: React.FC = () => {
     //}
   }, [loadPosts]);
     
-  const handlePostSubmit = async (formData: any) => {
+  const handlePostSubmit = async (formData: any): Promise<void> => {
     try {
       await createPost(formData);
-      loadPosts(); // Reload posts after a new post is created
+      // Delay the posts reload to ensure smooth notification
+      setTimeout(() => {
+        loadPosts();
+      }, 500);
     } catch (error) {
       console.error('Error creating post:', error);
+      throw error; // Propagate error to form component
     }
   };
   
@@ -70,8 +76,9 @@ const App: React.FC = () => {
   };
 
   return (
-    <Router>
-      <div className="app-container">
+    <NotificationProvider>
+      <Router>
+        <div className="app-container">
           {isWelcomePopupOpen && (
             <div className="welcome-overlay" />
           )}
@@ -80,34 +87,35 @@ const App: React.FC = () => {
             onContactClick={openContactSection}
             onFaqClick={openFaqSection}
           />
-        <main className="app-main">
-          <WelcomePopup 
-            isOpen={isWelcomePopupOpen}
-            onClose={() => setIsWelcomePopupOpen(false)}
-          />
-          <InformationPopup
-            isOpen={isInfoPopupOpen}
-            onClose={closeInfoPopup}
-            activeSection={activeSection}
-            onSectionChange={handleSectionChange}
-          />
-          <Routes>
-            <Route
-              path="/posts"
-              element={
-                <Home
-                  posts={posts}
-                  isModalOpen={isModalOpen}
-                  setIsModalOpen={setIsModalOpen}
-                  onPostSubmit={handlePostSubmit}
-                />
-              }
+          <main className="app-main">
+            <WelcomePopup 
+              isOpen={isWelcomePopupOpen}
+              onClose={() => setIsWelcomePopupOpen(false)}
             />
-            <Route path="/" element={<MapWithForm posts={posts} onPostSubmit={handlePostSubmit}/>} />
-          </Routes>
-        </main>
-      </div>
-    </Router>
+            <InformationPopup
+              isOpen={isInfoPopupOpen}
+              onClose={closeInfoPopup}
+              activeSection={activeSection}
+              onSectionChange={handleSectionChange}
+            />
+            <Routes>
+              <Route
+                path="/posts"
+                element={
+                  <Home
+                    posts={posts}
+                    isModalOpen={isModalOpen}
+                    setIsModalOpen={setIsModalOpen}
+                    onPostSubmit={handlePostSubmit}
+                  />
+                }
+              />
+              <Route path="/" element={<MapWithForm posts={posts} onPostSubmit={handlePostSubmit}/>} />
+            </Routes>
+          </main>
+        </div>
+      </Router>
+    </NotificationProvider>
   );
 };
 
