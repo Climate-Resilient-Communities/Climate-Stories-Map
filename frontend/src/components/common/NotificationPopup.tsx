@@ -6,14 +6,15 @@ interface NotificationPopupProps {
   message: string;
   isVisible: boolean;
   onClose: () => void;
+  isError?: boolean;
 }
 
-const NotificationPopup: React.FC<NotificationPopupProps> = ({ message, isVisible, onClose }) => {
+const NotificationPopup: React.FC<NotificationPopupProps> = ({ message, isVisible, onClose, isError }) => {
   useEffect(() => {
     if (isVisible) {
       const timer = setTimeout(() => {
         onClose();
-      }, 5000); // Show for 5 seconds to ensure visibility
+      }, 2000); // Show for 5 seconds to ensure visibility
 
       return () => clearTimeout(timer);
     }
@@ -29,7 +30,7 @@ const NotificationPopup: React.FC<NotificationPopupProps> = ({ message, isVisibl
 
   return createPortal(
     <div 
-      className={`notification-popup ${isVisible ? 'visible' : ''}`}
+      className={`notification-popup ${isVisible ? 'visible' : ''} ${isError ? 'error' : ''}`}
       role="alert"
     >
       {message}

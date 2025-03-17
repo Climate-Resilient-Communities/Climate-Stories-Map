@@ -1,6 +1,6 @@
 // App.tsx
 import { useCallback, useEffect, useState } from 'react';
-import { NotificationProvider } from './components/posts/NotificationContext';
+import { NotificationProvider } from './components/common/NotificationContext';
 
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import './App.css';

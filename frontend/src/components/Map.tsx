@@ -5,14 +5,18 @@ import './Map.css';
 import './MapPopup.css';
 import { Post } from './posts/types';
 import { isPointInPolygon } from '../utils/map-utils';
+import NotificationPopup from './common/NotificationPopup';
+import { useNotification } from './common/NotificationContext';
 
 // Replace this with your actual Mapbox access token
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
 // Marker color constants
-const MARKER_COLOR_NEUTRAL = "rgb(74, 163, 192)";
-const MARKER_COLOR_NEGATIVE = "rgb(225, 81, 81)";
-const MARKER_COLOR_POSITIVE = "rgb(104, 244, 132)";
+const MARKER_COLORS = {
+  'Neutral': "rgb(74, 163, 192)",
+  'Negative': "rgb(225, 81, 81)",
+  'Positive': "rgb(104, 244, 132)"
+} as const;
 
 interface MapProps {
   posts: Post[];
@@ -23,33 +27,41 @@ interface MapProps {
 const CRCMap: React.FC<MapProps> = ({ posts, onMapClick }) => {
   const [canadaGeoJSON, setCanadaGeoJSON] = useState<any | null>(null);
   const [viewState, setViewState] = useState({
-    longitude: -75.6972,
-    latitude: 45.4215,
+    longitude: -96.8283,  // Center of Canada
+    latitude: 62.3947,
     zoom: 4
   });
+  const { showNotification } = useNotification();
+
+  useEffect(() => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { longitude, latitude } = position.coords;
+          setViewState(prev => ({
+            ...prev,
+            longitude,
+            latitude,
+            zoom: 10
+          }));
+        },
+        (error) => {
+          console.log("Geolocation error or permission denied:", error);
+        }
+      );
+    }
+  }, []);
   const [popupInfo, setPopupInfo] = useState<Post | null>(null);
   
-  // Create a ref to store post IDs and their colors
   const colorMapRef = useRef<Record<string, string>>({});
 
-  // Function to determine marker color based on tag only (not affected by filters)
   const getMarkerColorByTag = (post: Post): string => {
     const { tag } = post;
-    
-    // Always use consistent coloring based on the post's tag
-    if (tag === 'Negative') {
-      return MARKER_COLOR_NEGATIVE;
-    } else if (tag === 'Positive') {
-      return MARKER_COLOR_POSITIVE;
-    }
-    return MARKER_COLOR_NEUTRAL; // Default color for neutral
+    return MARKER_COLORS[tag as keyof typeof MARKER_COLORS] || MARKER_COLORS['Neutral'];
   };
 
-  // Initialize and update colors for all posts
   useEffect(() => {
-    // For each post, either use its existing color or assign a new one based on its tag and filters
     posts.forEach(post => {
-      // Always update the color based on the post's tag and selected tags
       colorMapRef.current[post._id] = getMarkerColorByTag(post);
     });
     
@@ -81,7 +93,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick }) => {
         const roundedLat = parseFloat(coordinates[1].toFixed(5));
         onMapClick([roundedLng, roundedLat], event.originalEvent);
       } else {
-        alert("You can only click within Canada!");
+        showNotification('You can only click within Canada!', true);
       }
     }
   };
@@ -103,96 +115,13 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick }) => {
         ]}
       >
         <NavigationControl />
-        
-        { false && (<div>
-        {canadaGeoJSON && (
-          <>
-            {/* Grey background for world */}
-            <Source id="world-grey" type="geojson" data={{
-              type: 'FeatureCollection',
-              features: [
-                {
-                  properties: {},
-                  type: 'Feature',
-                  geometry: {
-                    type: 'Polygon',
-                    coordinates: [[
-                      [-180, 90],
-                      [180, 90],
-                      [180, -90],
-                      [-180, -90],
-                      [-180, 90]
-                    ]]
-                  }
-                }
-              ]
-            }}>
-              <Layer
-                id="world-grey-background"
-                type="fill"
-                paint={{
-                  'fill-color': '#808080',
-                  'fill-opacity': 1
-                }}
-              />
-            </Source>
-
-            {/* Mask to cut out Canada from the grey background */}
-            <Source id="canada-mask-source" type="geojson" data={{
-              type: 'FeatureCollection',
-              features: [
-                {
-                  properties: {},
-                  type: 'Feature',
-                  geometry: {
-                    type: 'Polygon',
-                    coordinates: [
-                      [
-                        [-180, 90],
-                        [180, 90],
-                        [180, -90],
-                        [-180, -90],
-                        [-180, 90]
-                      ],
-                      ...canadaGeoJSON.features.map((feature: any) => feature.geometry.coordinates).flat()
-                    ]
-                  }
-                }
-              ]
-            }}>
-              <Layer
-                id="canada-mask"
-                type="fill"
-                paint={{
-                  'fill-color': '#ffffff',
-                  'fill-opacity': 0
-                }}
-                beforeId="world-grey-background"
-              />
-            </Source>
-
-            {/* Canada border */}
-            <Source id="canada-source" type="geojson" data={canadaGeoJSON}>
-              <Layer
-                id="canada-border"
-                type="line"
-                paint={{
-                  'line-color': '#000000',
-                  'line-width': 2
-                }}
-              />
-            </Source>
-          </>
-        )}</div>)}
 
         {posts.map((post) => {
           // Use the stored color from colorMapRef if available, otherwise calculate it
           // This ensures colors stay consistent when filtering
           let color = colorMapRef.current[post._id];
           
-          // If color is not in the map (should not happen, but as fallback)
           if (!color) {
-            // Get color using the reusable function
             color = getMarkerColorByTag(post);
           }
           

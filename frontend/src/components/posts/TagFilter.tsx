@@ -1,5 +1,6 @@
 import React from 'react';
 import { Post } from './types';
+import { MAIN_TAGS } from '../../utils/tag-constants';
 
 interface TagFilterProps {
   posts: Post[];
@@ -23,7 +24,17 @@ const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect 
       });
     });
     
-    return Array.from(tagSet).sort();
+    
+    return Array.from(tagSet).sort((a, b) => {
+      const aIsMain = MAIN_TAGS.includes(a);
+      const bIsMain = MAIN_TAGS.includes(b);
+      if (aIsMain && !bIsMain) return -1;
+      if (!aIsMain && bIsMain) return 1;
+      if (aIsMain && bIsMain) {
+        return MAIN_TAGS.indexOf(a) - MAIN_TAGS.indexOf(b);
+      }
+      return a.localeCompare(b);
+    });
   };
 
   const allTags = getAllTags();

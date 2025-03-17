@@ -23,6 +23,10 @@
   pointer-events: auto;
 }
 
+.notification-popup.error {
+  background-color: #cb3443;
+}
+
 .notification-popup.visible {
   transform: translateX(0);
   opacity: 1;
