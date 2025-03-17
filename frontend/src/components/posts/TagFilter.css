@@ -5,7 +5,7 @@
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   margin-bottom: 15px;
   z-index: 900;
-  margin-top: 60px; /* Add space below the taskbar */
+  margin-top: 45px;
   position: relative;
 }
 
@@ -39,6 +39,27 @@
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.tag-buttons::-webkit-scrollbar {
+  width: 8px;
+}
+
+.tag-buttons::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.tag-buttons::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 4px;
+}
+
+.tag-buttons::-webkit-scrollbar-thumb:hover {
+  background: #ccc;
 }
 
 .tag-button {

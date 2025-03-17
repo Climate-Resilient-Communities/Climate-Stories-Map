@@ -10,17 +10,14 @@ interface TagFilterProps {
 const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect }) => {
   const [tagFilter, setTagFilter] = React.useState('');
 
-  // Extract unique tags from posts (both main tags and optional tags)
   const getAllTags = () => {
     const tagSet = new Set<string>();
     
     posts.forEach(post => {
-      // Add main tag
       if (post.tag) {
         tagSet.add(post.tag);
       }
       
-      // Add optional tags
       post.optionalTags.forEach(tag => {
         tagSet.add(tag);
       });
@@ -36,10 +33,8 @@ const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect 
 
   const handleTagToggle = (tag: string) => {
     if (selectedTags.includes(tag)) {
-      // Remove tag if already selected
       onTagSelect(selectedTags.filter(t => t !== tag));
     } else {
-      // Add tag if not selected
       onTagSelect([...selectedTags, tag]);
     }
   };

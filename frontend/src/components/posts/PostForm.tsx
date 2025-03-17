@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import HCaptcha from '@hcaptcha/react-hcaptcha';
 import { PostFormData } from './types';
 import './PostForm.css';
-import NotificationPopup from '../NotificationPopup';
+import { useNotification } from './NotificationContext';
 
 interface PostFormProps {
   onSubmit: (formData: PostFormData) => void;
@@ -15,7 +15,7 @@ const CAPTCHA_SITE_KEY = import.meta.env.VITE_CAPTCHA_SITE_KEY || "10000000-ffff
 const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinates = [0, 0] }) => {
   const captchaRef = React.useRef<HCaptcha>(null);
   const [isActive, setIsActive] = useState(true);
-  const [showNotification, setShowNotification] = useState(false);
+  const { showNotification } = useNotification();
   
   React.useEffect(() => {
     return () => {
@@ -23,9 +23,7 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
     };
   }, []);
   
-  const handleCloseNotification = () => {
-    setShowNotification(false);
-  };
+  
 
   // Updated formData to include mandatory Tag
   const [formData, setFormData] = useState<PostFormData>({
@@ -102,16 +100,24 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Validate that tag is one of the allowed values
     if (formData.tag === '-') {
       alert('Please select a valid tag (Positive, Neutral, or Negative).');
       return;
     }
     if (formData.captchaToken) {
-      onSubmit(formData);
-      setShowNotification(true);
+      try {
+        await onSubmit(formData);
+        showNotification();
+        setTimeout(() => {
+          onClose();
+        }, 100);
+      } catch (error) {
+        console.error('Error submitting post:', error);
+        alert('There was an error submitting your post. Please try again.');
+        return;
+      }
     } else {
       alert('Please complete the hCaptcha.');
     }
@@ -126,11 +132,7 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
 
   return (
     <>
-      <NotificationPopup 
-        message="Your post has been submitted for review with our moderators!" 
-        isVisible={showNotification} 
-        onClose={handleCloseNotification} 
-      />
+      
       <form className="post-form" onSubmit={handleSubmit}> 
       <h2 className="post-form-title">Share Your Climate Story</h2>
       <input
@@ -147,9 +149,7 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
         value={formData.content.description}
         onChange={handleChange}
         required
-      />
-      
-      {/* Tag selector (mandatory) */}
+      />      
       <div className="form-group">
         <label htmlFor="tag">Tag (Required): </label>
         <select
@@ -165,8 +165,6 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
           <option value="Negative">Negative</option>
         </select>
       </div>
-
-      {/* Optional user tags */}
       <div className="form-group">
         <label htmlFor="optionalTags">Additional Tags (Optional):</label>
         <input

@@ -73,14 +73,14 @@ const MapWithForm: React.FC<MapWithFormProps> = ({ posts, onPostSubmit }) => {
           display: 'flex',
           alignItems: 'center',
           gap: '5px',
-          background: '#4285F4',
+          background: '#569BC4',
           color: 'white',
           border: 'none',
           borderRadius: '4px',
           cursor: 'pointer'
         }}
       >
-        <FaFilter /> {isFilterVisible ? 'Hide Filters' : 'Show Filters'}
+        <FaFilter />
       </button>
       
       {isFilterVisible && (
