@@ -7,6 +7,7 @@ import './posts/TagFilter.css';
 import Modal from './common/Modal';
 import { Post } from './posts/types';
 import { FaFilter } from 'react-icons/fa';
+import CreatePostButton from './posts/CreatePostButton';
 
 interface MapWithFormProps {
   posts: Post[];
@@ -18,6 +19,7 @@ const MapWithForm: React.FC<MapWithFormProps> = ({ posts, onPostSubmit }) => {
   const [coordinates, setCoordinates] = useState<[number, number] | undefined>(undefined);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isFilterVisible, setIsFilterVisible] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
   const toggleFilterVisibility = () => {
     setIsFilterVisible(prevState => !prevState);
@@ -25,7 +27,6 @@ const MapWithForm: React.FC<MapWithFormProps> = ({ posts, onPostSubmit }) => {
 
   const handleMapClick = (coords: [number, number]) => {
     setCoordinates(coords);
-    setIsModalOpen(true);
   };
 
   const handleClose = React.useCallback(() => {
@@ -64,6 +65,8 @@ const MapWithForm: React.FC<MapWithFormProps> = ({ posts, onPostSubmit }) => {
       <button 
         className="filter-toggle-button" 
         onClick={toggleFilterVisibility}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         style={{ 
           position: 'absolute', 
           top: '60px', 
@@ -77,10 +80,12 @@ const MapWithForm: React.FC<MapWithFormProps> = ({ posts, onPostSubmit }) => {
           color: 'white',
           border: 'none',
           borderRadius: '4px',
-          cursor: 'pointer'
+          cursor: 'pointer',
+          minWidth: isHovered ? 'auto' : '36px',
+          transition: 'min-width 0.2s ease-in-out'
         }}
       >
-        <FaFilter />
+        <FaFilter />{isHovered && ' Filter by Tags'}
       </button>
       
       {isFilterVisible && (
@@ -100,6 +105,10 @@ const MapWithForm: React.FC<MapWithFormProps> = ({ posts, onPostSubmit }) => {
       )}
       
       <CRCMap onMapClick={handleMapClick} posts={filteredPosts} selectedTags={selectedTags} />
+      <CreatePostButton 
+        onClick={() => setIsModalOpen(true)}
+        disabled={!coordinates}
+      />
       <Modal isOpen={isModalOpen} onClose={handleClose}>
           <PostForm onSubmit={handleSubmit} onClose={handleClose} initialCoordinates={coordinates}/>
       </Modal>
