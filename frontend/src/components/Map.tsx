@@ -52,6 +52,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick }) => {
     }
   }, []);
   const [popupInfo, setPopupInfo] = useState<Post | null>(null);
+  const [clickedLocation, setClickedLocation] = useState<[number, number] | null>(null);
   
   const colorMapRef = useRef<Record<string, string>>({});
 
@@ -82,6 +83,13 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick }) => {
       .catch((err) => console.error('Failed to load GeoJSON', err));
   }, []);
 
+  useEffect(() => {
+    // Clear the clicked location when coordinates are used in form submission
+    if (!onMapClick) {
+      setClickedLocation(null);
+    }
+  }, [onMapClick]);
+
   const handleClick = (event: any) => {
     const coordinates: [number, number] = [event.lngLat.lng, event.lngLat.lat];
     
@@ -91,6 +99,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick }) => {
       if (isInsideCanada) {
         const roundedLng = parseFloat(coordinates[0].toFixed(5));
         const roundedLat = parseFloat(coordinates[1].toFixed(5));
+        setClickedLocation([roundedLng, roundedLat]);
         onMapClick([roundedLng, roundedLat], event.originalEvent);
       } else {
         showNotification('You can only click within Canada!', true);
@@ -116,6 +125,15 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick }) => {
       >
         <NavigationControl />
 
+        {clickedLocation && (
+          <Marker
+            longitude={clickedLocation[0]}
+            latitude={clickedLocation[1]}
+            anchor="bottom"
+            color="rgb(68, 66, 66)"
+          />
+        )}
+        
         {posts.map((post) => {
           // Use the stored color from colorMapRef if available, otherwise calculate it
           // This ensures colors stay consistent when filtering
