@@ -16,7 +16,10 @@ const CreatePostButton: React.FC<CreatePostButtonProps> = ({ onClick, disabled }
       
     >
       <FaPlusCircle />
-      <span className="button-text">Create Post</span>
+      { disabled ?       
+        <span className="button-text">Kindly place marker on map</span> :       
+        <span className="button-text">Create Post</span>
+      }
     </button>
   );
 };
