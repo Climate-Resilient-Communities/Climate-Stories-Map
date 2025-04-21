@@ -1,5 +1,22 @@
 {% extends 'admin/model/list.html' %}
 
+{% block list_header scoped %}
+<div class="card">
+    <div class="card-header">
+        <h4>{{ admin_view.name }}</h4>
+    </div>
+    <div class="card-body">
+        {{ super() }}
+    </div>
+</div>
+{% endblock %}
+
 {% block list_row_actions %}
     {{ super() }}
+{% endblock %}
+
+{% block model_menu_bar %}
+<div class="filter-container">
+    {{ super() }}
+</div>
 {% endblock %}

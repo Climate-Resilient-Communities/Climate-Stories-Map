@@ -15,7 +15,7 @@ def init_admin(app, collection, admin_required):
     # Initialize admin with protected index view
     admin = Admin(
         app,
-        name='Post Moderation',
+        name='Climate Stories Map',
         template_mode='bootstrap4',
         base_template='admin/master.html',
         index_view=ProtectedAdminIndexView()
