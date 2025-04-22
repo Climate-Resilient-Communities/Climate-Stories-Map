@@ -244,14 +244,14 @@ body, html {
 {% endblock %}
 
 {% block access_control %}
-{% if session.get('user') %}
-<div class="navbar-text btn-group pull-right">
-    <a href="{{ url_for('logout') }}" class="btn btn-danger">Log Out</a>
-    <span class="navbar-text">
-        Logged in as: {{ session['user']['username'] }}
-    </span>
-</div>
-{% endif %}
+    {% if session.get('user') %}
+    <div class="navbar-text btn-group pull-right">
+        <a href="{{ url_for('logout') }}" class="btn btn-danger">Log Out</a>
+        <span class="navbar-text">
+            Logged in as: {{ session['user']['username'] }}
+        </span>
+    </div>
+    {% endif %}
 {% endblock %}
 
 

@@ -17,3 +17,10 @@ class PostForm(form.Form):
         ('approved', 'Approved'),
         ('rejected', 'Rejected')
     ])
+
+class UserForm(form.Form):
+    username = fields.StringField('Username', [validators.DataRequired(), validators.Length(min=3, max=50)])
+    password = fields.PasswordField('Password', [validators.DataRequired(), validators.Length(min=6)])
+    role = fields.SelectField('Role', choices=[('admin', 'Admin'), ('user', 'User')], validators=[validators.DataRequired()])
+    firstname = fields.StringField('First Name', [validators.DataRequired(), validators.Length(min=1, max=50)])
+    lastname = fields.StringField('Last Name', [validators.DataRequired(), validators.Length(min=1, max=50)])
