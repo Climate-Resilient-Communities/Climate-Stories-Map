@@ -14,6 +14,10 @@ class PostView(ModelView):
     def inaccessible_callback(self, name, **kwargs):
         return redirect(url_for('login'))
 
+    # Hide the "Posts" button in the navigation bar
+    def is_visible(self):
+        return False
+
     # List of columns to display
     column_list = ('title', 'content_image_display', 'content_description', 'location', 'tag', 'optionalTags', 'created_at', 'status')
     
@@ -158,6 +162,21 @@ class UserView(ModelView):
         'role': _role_formatter
     }
     
+    # Hash password before saving to database
+    def on_model_change(self, form, model, is_created):
+        # Import here to avoid circular imports
+        from werkzeug.security import generate_password_hash
+        from admin.auth import validate_password_complexity
+        
+        # Hash the password if it's provided
+        if 'password' in model and model['password']:
+            # Validate password complexity
+            is_valid, message = validate_password_complexity(model['password'])
+            if not is_valid:
+                raise ValueError(message)
+                
+            model['password'] = generate_password_hash(model['password'])
+    
     # Implement scaffold_filters method to fix NotImplementedError
     def scaffold_filters(self, name):
         """
@@ -174,6 +193,8 @@ class UserView(ModelView):
             return [FilterLike(name, name), FilterEqual(name, name), FilterNotEqual(name, name)]
         
         return []
+
+
 
 
 

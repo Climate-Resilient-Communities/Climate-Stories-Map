@@ -1,4 +1,31 @@
 from wtforms import form, fields, validators
+from wtforms.validators import ValidationError
+import re
+
+def password_complexity(form, field):
+    """
+    Validate password complexity:
+    - At least 8 characters
+    - At least one uppercase letter
+    - At least one lowercase letter
+    - At least one number
+    - At least one special character
+    """
+    password = field.data
+    if len(password) < 8:
+        raise ValidationError('Password must be at least 8 characters long')
+    
+    if not re.search(r'[A-Z]', password):
+        raise ValidationError('Password must contain at least one uppercase letter')
+    
+    if not re.search(r'[a-z]', password):
+        raise ValidationError('Password must contain at least one lowercase letter')
+    
+    if not re.search(r'[0-9]', password):
+        raise ValidationError('Password must contain at least one number')
+    
+    if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
+        raise ValidationError('Password must contain at least one special character')
 
 class PostForm(form.Form):
     title = fields.StringField('Title')
@@ -20,7 +47,11 @@ class PostForm(form.Form):
 
 class UserForm(form.Form):
     username = fields.StringField('Username', [validators.DataRequired(), validators.Length(min=3, max=50)])
-    password = fields.PasswordField('Password', [validators.DataRequired(), validators.Length(min=6)])
+    password = fields.PasswordField('Password', [
+        validators.DataRequired(), 
+        validators.Length(min=8),
+        password_complexity
+    ])
     role = fields.SelectField('Role', choices=[('admin', 'Admin'), ('user', 'User')], validators=[validators.DataRequired()])
     firstname = fields.StringField('First Name', [validators.DataRequired(), validators.Length(min=1, max=50)])
     lastname = fields.StringField('Last Name', [validators.DataRequired(), validators.Length(min=1, max=50)])
