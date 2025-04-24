@@ -89,7 +89,7 @@ const TermsOfUsePopUp: React.FC<TermsOfUsePopUpProps> = ({ isOpen, onClose }) =>
           </p>
           
           <h3>Contact Us</h3>
-          <p>If you have questions or concerns about these Terms, contact us at info@crcgreen.com.
+          <p>If you have questions or concerns about these Terms, contact us at <strong>info@crcgreen.com</strong><br/><br/>
           Thank you for contributing to the Climate Stories Map and helping build climate resilience through shared experiences!
           </p>
         </div>

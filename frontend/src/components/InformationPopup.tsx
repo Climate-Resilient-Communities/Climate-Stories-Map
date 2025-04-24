@@ -10,12 +10,16 @@ interface InformationPopupProps {
   isOpen: boolean;
   onClose: () => void;
   activeSection: ContentSection;
+  openTermsOfUse?: () => void;
+  openPrivacyPolicy?: () => void;
 }
 
 const InformationPopup: React.FC<InformationPopupProps> = ({ 
   isOpen, 
   onClose, 
-  activeSection 
+  activeSection,
+  openTermsOfUse,
+  openPrivacyPolicy
 }) => {
 
   // Function to render the appropriate content based on activeSection
@@ -30,7 +34,7 @@ const InformationPopup: React.FC<InformationPopupProps> = ({
             2. Share your story in the the box below.<br/>
             3. Click the Add button.<br/><br/>
             
-            By submitting I agree to the Terms of Use and Privacy Policy.</p>
+            By submitting I agree to the <a href="#" onClick={(e) => { e.preventDefault(); openTermsOfUse && openTermsOfUse(); }}>Terms of Use</a> and <a href="#" onClick={(e) => { e.preventDefault(); openPrivacyPolicy && openPrivacyPolicy(); }}>Privacy Policy</a>.</p>
           </div>
         );
       case 'about':
@@ -38,9 +42,9 @@ const InformationPopup: React.FC<InformationPopupProps> = ({
           <div className="popup-content-section">
             <h2>About</h2>
             <p>
-            The Climate Stories Map is a space for sharing personal experiences with climate change. Whether you’ve felt hopeful, frustrated, or inspired, your story matters. 
+            The Climate Stories Map is a space for sharing personal experiences with climate change. Whether you've felt hopeful, frustrated, or inspired, your story matters. 
             Drop a pin, share your thoughts, and connect with others who care about our planet. 
-            By sharing, you’re helping to build a collective understanding of what climate change really looks like in our communities.
+            By sharing, you're helping to build a collective understanding of what climate change really looks like in our communities.
             </p>
           </div>
         );
@@ -49,11 +53,11 @@ const InformationPopup: React.FC<InformationPopupProps> = ({
           <div className="popup-content-section">
             <h2>Moderation Guidelines</h2>
             <h3>Why We Moderate</h3>
-            <p>The Climate Stories Map is a space for sharing climate experiences and ideas. To keep it safe, respectful, and useful, we review all submissions before they go public. We’re not here to police anyone—we just want to keep this a positive, secure space for everyone. We get a lot of submissions, so there may be some delays. Thanks for your patience!</p>
-            <h3>What We Don’t Approve</h3>
+            <p>The Climate Stories Map is a space for sharing climate experiences and ideas. To keep it safe, respectful, and useful, we review all submissions before they go public. We're not here to police anyone—we just want to keep this a positive, secure space for everyone. We get a lot of submissions, so there may be some delays. Thanks for your patience!</p>
+            <h3>What We Don't Approve</h3>
             <strong>1. Personal Info </strong><br/>
             No full names, phone numbers, emails, social media handles, or exact home addresses.<br/>
-            Don’t post someone else’s info without their okay.<br/>
+            Don't post someone else's info without their okay.<br/>
             <strong>2. Hate Speech & Discrimination</strong><br/>
             No content that targets or threatens people based on race, ethnicity, nationality, ability, gender, sexuality, religion, or class.<br/>
             No promoting violence or discrimination.<br/>
@@ -67,11 +71,11 @@ const InformationPopup: React.FC<InformationPopupProps> = ({
             No ads, promotions, or sales pitches.<br/>
             No mass-posted or repetitive content.<br/>
             <strong>6. Copyright Violations</strong><br/>
-            Don’t post someone else’s work without credit or permission.<br/>
+            Don't post someone else's work without credit or permission.<br/>
             <strong>7. Malicious Content</strong><br/>
             No viruses, harmful links, or anything that disrupts the site.<br/><br/>
             <h3>Need Something Removed?</h3>
-            If you see something that breaks these rules or want your own post removed, email us at info@crcgreen.com. We’ll take a look as soon as we can.
+            If you see something that breaks these rules or want your own post removed, email us at info@crcgreen.com. We'll take a look as soon as we can.
           </div>
         );
       case 'contact':
@@ -89,12 +93,12 @@ const InformationPopup: React.FC<InformationPopupProps> = ({
           <div className="popup-content-section">
             <h2>Frequently Asked Questions</h2>
             <div className="faq-item">
-              <h3>Why can’t I see my post on the map?</h3>
-              <p>Every submission goes through a moderation process before it appears on the map. This helps us ensure content follows our guidelines and keeps the platform safe for everyone. We receive a lot of submissions, so it might take some time for yours to be reviewed. If it’s been more than a week and your post still isn’t visible, feel free to reach out to us at info@crcgreen.com.</p>
+              <h3>Why can't I see my post on the map?</h3>
+              <p>Every submission goes through a moderation process before it appears on the map. This helps us ensure content follows our guidelines and keeps the platform safe for everyone. We receive a lot of submissions, so it might take some time for yours to be reviewed. If it's been more than a week and your post still isn't visible, feel free to reach out to us at info@crcgreen.com.</p>
             </div>
             <div className="faq-item">
               <h3>Can I delete my post?</h3>
-              <p>Yes! If you want to remove your story, just email us at info@crcgreen.com with details about your post, and we’ll take it down as soon as possible.</p>
+              <p>Yes! If you want to remove your story, just email us at info@crcgreen.com with details about your post, and we'll take it down as soon as possible.</p>
             </div>
             <div className="faq-item">
               <h3>How can I become a moderator?</h3>

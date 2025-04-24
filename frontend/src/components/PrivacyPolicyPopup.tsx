@@ -111,12 +111,10 @@ const PrivacyPolicyPopup: React.FC<PrivacyPolicyPopupProps> = ({ isOpen, onClose
           
           <h2>Contact Us</h2>
           <p>
-            If you have any questions or concerns about this Privacy Policy, please contact us at info@crcgreen.com.
+            If you have any questions or concerns about this Privacy Policy, please contact us at <strong>info@crcgreen.com</strong>. <br/><br/>
+            Thank you for contributing to the Climate Stories Map and helping build a more resilient world through shared experiences!
           </p>
         </div>
-        <p>
-            Thank you for contributing to the Climate Stories Map and helping build a more resilient world through shared experiences!
-        </p>
         <div className="popup-footer">
           <button className="close-btn" onClick={onClose}>
             Close

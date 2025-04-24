@@ -103,6 +103,19 @@
   margin-bottom: 15px;
 }
 
+.popup-content-section p a {
+  color: #569BC4;
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.popup-content-section p a:hover {
+  color: #4a8ab0;
+  text-decoration: underline;
+}
+
 .contact-list {
   list-style: none;
   padding-left: 0;
@@ -165,3 +178,4 @@
     background-color: rgba(255, 255, 255, 0.05);
   }
 }
+

@@ -6,6 +6,8 @@ interface TaskbarProps {
   onContactClick?: () => void;
   onFaqClick?: () => void;
   onModClick?: () => void;
+  onPrivacyPolicyClick?: () => void;
+  onTermsOfUseClick?: () => void;
 }
 
 const Taskbar: React.FC<TaskbarProps> = ({ 
@@ -13,7 +15,9 @@ const Taskbar: React.FC<TaskbarProps> = ({
   onAboutClick, 
   onContactClick, 
   onFaqClick,
-  onModClick
+  onModClick,
+  onPrivacyPolicyClick,
+  onTermsOfUseClick
 }) => {
   return (
     <nav className="taskbar">
@@ -25,6 +29,8 @@ const Taskbar: React.FC<TaskbarProps> = ({
           <button className="taskbar-button" onClick={onContactClick}>Contact Us</button>
           <button className="taskbar-button" onClick={onFaqClick}>FAQs</button>
           <button className="taskbar-button" onClick={onModClick}>Moderation</button>
+          <button className="taskbar-button" onClick={onPrivacyPolicyClick}>Privacy Policy</button>
+          <button className="taskbar-button" onClick={onTermsOfUseClick}>Terms of Use</button>
         </div>
       </div>
     </nav>
