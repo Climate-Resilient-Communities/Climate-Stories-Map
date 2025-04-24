@@ -1,6 +1,6 @@
 // WelcomePopup.tsx
-import React from 'react';
-import Modal from './common/Modal';
+import React, { useState } from 'react';
+import WelcomeModal from './WelcomeModal';
 import './WelcomePopup.css';
 
 interface WelcomePopupProps {
@@ -9,8 +9,21 @@ interface WelcomePopupProps {
 }
 
 const WelcomePopup: React.FC<WelcomePopupProps> = ({ isOpen, onClose }) => {
+  const [isAgeConfirmed, setIsAgeConfirmed] = useState(false);
+  const [isPrivacyAgreed, setIsPrivacyAgreed] = useState(false);
+  
+  const handleAgeCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setIsAgeConfirmed(e.target.checked);
+  };
+  
+  const handlePrivacyCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setIsPrivacyAgreed(e.target.checked);
+  };
+  
+  const isGetStartedEnabled = isAgeConfirmed && isPrivacyAgreed;
+  
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <WelcomeModal isOpen={isOpen} onClose={onClose}>
       <div className="welcome-popup">
         <h1>Climate Stories Map</h1>
         <p>
@@ -27,11 +40,6 @@ const WelcomePopup: React.FC<WelcomePopupProps> = ({ isOpen, onClose }) => {
       <p>
       You must be at least 13 years old to use the Map.
       If you are under 18, ensure you have permission from a parent or guardian.
-      {/*
-      Pop-up window check box: data privacy consent
-      //Protective feature (< 13 y of age, guardian/parent permission if < 18 y)
-      //Verification tool (evaluation)
-      }*/}
       </p>
 
       <h3> Submitting Content </h3> 
@@ -49,7 +57,7 @@ const WelcomePopup: React.FC<WelcomePopupProps> = ({ isOpen, onClose }) => {
       Submit false, misleading, or harmful information.
       Engage in harassment, discrimination, or hate speech.
       Spam or use the Map for commercial purposes.
-      Attempt to hack, disrupt, or otherwise interfere with the Map’s operations.
+      Attempt to hack, disrupt, or otherwise interfere with the Map's operations.
       Collect or share personal information from other users.
       CRC reserves the right to remove content or restrict access to any user who violates these terms.
       </p>
@@ -89,11 +97,36 @@ const WelcomePopup: React.FC<WelcomePopupProps> = ({ isOpen, onClose }) => {
       <p>If you have questions or concerns about these Terms, contact us at info@crcgreen.com.
       Thank you for contributing to the Climate Stories Map and helping build climate resilience through shared experiences!
       </p>
-        <button className="welcome-btn" onClick={onClose}>
+      
+      <div className="checkbox-container">
+        <label className="checkbox-label">
+          <input 
+            type="checkbox" 
+            checked={isAgeConfirmed} 
+            onChange={handleAgeCheckboxChange} 
+          />
+          I confirm that I am at least 13 years old
+        </label>
+        
+        <label className="checkbox-label">
+          <input 
+            type="checkbox" 
+            checked={isPrivacyAgreed} 
+            onChange={handlePrivacyCheckboxChange} 
+          />
+          I have read and agree to the Privacy Policy
+        </label>
+      </div>
+      
+        <button 
+          className={`welcome-btn ${!isGetStartedEnabled ? 'welcome-btn-disabled' : ''}`} 
+          onClick={onClose}
+          disabled={!isGetStartedEnabled}
+        >
           Get Started
         </button>
       </div>
-    </Modal>
+    </WelcomeModal>
   );
 };
 
