@@ -4,60 +4,84 @@ import Modal from './common/Modal';
 import './InformationPopup.css';
 
 // Define types for our popup content sections
-export type ContentSection = 'about' | 'contact' | 'faq';
+export type ContentSection = 'story' | 'about' | 'contact' | 'faq' | 'moderation';
 
 interface InformationPopupProps {
   isOpen: boolean;
   onClose: () => void;
   activeSection: ContentSection;
-  onSectionChange: (section: ContentSection) => void;
 }
 
 const InformationPopup: React.FC<InformationPopupProps> = ({ 
   isOpen, 
   onClose, 
-  activeSection, 
-  onSectionChange 
+  activeSection 
 }) => {
 
   // Function to render the appropriate content based on activeSection
   const renderContent = () => {
     switch (activeSection) {
+      case 'story':
+        return (
+          <div className="popup-content-section">
+            <h2>Add Your Story</h2>
+            <p>
+            1. Click the location of your story on the map.<br/>
+            2. Share your story in the the box below.<br/>
+            3. Click the Add button.<br/><br/>
+            
+            By submitting I agree to the Terms of Use and Privacy Policy.</p>
+          </div>
+        );
       case 'about':
         return (
           <div className="popup-content-section">
-            <h2>About Us</h2>
+            <h2>About</h2>
             <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam imperdiet dapibus urna. 
-            Curabitur ullamcorper magna eu mi venenatis, sit amet tincidunt purus dapibus. 
-            Maecenas viverra rutrum turpis, vitae lacinia orci. Sed elementum, metus eleifend 
-            rutrum efficitur, dui velit aliquam risus, et pellentesque ligula nulla quis velit. 
-            Morbi in nisi ut tortor varius varius ac feugiat nibh. Nulla ante velit, egestas 
-            vitae efficitur ut, congue id quam. Nam quis diam eu neque faucibus volutpat. Integer 
-            consectetur ligula sed tellus accumsan, in sagittis justo vestibulum. Curabitur 
-            vulputate purus id volutpat tempor. Sed tellus erat, cursus ac arcu quis, imperdiet 
-            cursus est.
+            The Climate Stories Map is a space for sharing personal experiences with climate change. Whether you’ve felt hopeful, frustrated, or inspired, your story matters. 
+            Drop a pin, share your thoughts, and connect with others who care about our planet. 
+            By sharing, you’re helping to build a collective understanding of what climate change really looks like in our communities.
             </p>
-            <p>
-            Etiam finibus leo vel neque mollis efficitur. Vestibulum ac odio et nulla efficitur 
-            suscipit. Sed gravida gravida sollicitudin. Aliquam mollis diam in dui hendrerit, 
-            quis tristique urna maximus. Curabitur vestibulum nunc tortor, et gravida neque 
-            vulputate vitae. Sed condimentum vulputate elit, non fermentum dui commodo at. Proin 
-            maximus commodo magna a laoreet.
-            </p>
+          </div>
+        );
+      case 'moderation':
+        return (
+          <div className="popup-content-section">
+            <h2>Moderation Guidelines</h2>
+            <h3>Why We Moderate</h3>
+            <p>The Climate Stories Map is a space for sharing climate experiences and ideas. To keep it safe, respectful, and useful, we review all submissions before they go public. We’re not here to police anyone—we just want to keep this a positive, secure space for everyone. We get a lot of submissions, so there may be some delays. Thanks for your patience!</p>
+            <h3>What We Don’t Approve</h3>
+            <strong>1. Personal Info </strong><br/>
+            No full names, phone numbers, emails, social media handles, or exact home addresses.<br/>
+            Don’t post someone else’s info without their okay.<br/>
+            <strong>2. Hate Speech & Discrimination</strong><br/>
+            No content that targets or threatens people based on race, ethnicity, nationality, ability, gender, sexuality, religion, or class.<br/>
+            No promoting violence or discrimination.<br/>
+            <strong>3. Harassment & Threats</strong> <br/>
+            No bullying, intimidation, or threats.<br/>
+            No encouragement of self-harm or harm to others.<br/>
+            <strong>4. Defamation & Privacy Violations</strong><br/>
+            No false claims or personal attacks.<br/>
+            No exposing private details about others.<br/>
+            <strong>5. Spam & Ads</strong><br/>
+            No ads, promotions, or sales pitches.<br/>
+            No mass-posted or repetitive content.<br/>
+            <strong>6. Copyright Violations</strong><br/>
+            Don’t post someone else’s work without credit or permission.<br/>
+            <strong>7. Malicious Content</strong><br/>
+            No viruses, harmful links, or anything that disrupts the site.<br/><br/>
+            <h3>Need Something Removed?</h3>
+            If you see something that breaks these rules or want your own post removed, email us at info@crcgreen.com. We’ll take a look as soon as we can.
           </div>
         );
       case 'contact':
         return (
           <div className="popup-content-section">
             <h2>Contact Information</h2>
-            <p>Have questions or feedback? Reach out to us!</p>
-            <ul className="contact-list">
-              <li><strong>Email:</strong> test@email.com</li>
-              <li><strong>Phone:</strong> (555) 123-4567</li>
-              <li><strong>Address:</strong> Toronto</li>
-            </ul>
-            <p>We typically respond within 2 business days.</p>
+            <p>
+            If you have any questions or want to get in touch you can reach us at <strong>info@crcgreen.com.</strong> <br/>
+            Stay connected with us on Linkedin or Instagram!
+            </p>
           </div>
         );
       case 'faq':
@@ -65,48 +89,32 @@ const InformationPopup: React.FC<InformationPopupProps> = ({
           <div className="popup-content-section">
             <h2>Frequently Asked Questions</h2>
             <div className="faq-item">
-              <h3>How do I share my own climate story?</h3>
-              <p>Click a location in the map and fill out the form with your experience.</p>
+              <h3>Why can’t I see my post on the map?</h3>
+              <p>Every submission goes through a moderation process before it appears on the map. This helps us ensure content follows our guidelines and keeps the platform safe for everyone. We receive a lot of submissions, so it might take some time for yours to be reviewed. If it’s been more than a week and your post still isn’t visible, feel free to reach out to us at info@crcgreen.com.</p>
             </div>
             <div className="faq-item">
-              <h3>Are the stories verified?</h3>
-              <p>We do basic moderation, but stories represent personal experiences and perspectives.</p>
+              <h3>Can I delete my post?</h3>
+              <p>Yes! If you want to remove your story, just email us at info@crcgreen.com with details about your post, and we’ll take it down as soon as possible.</p>
             </div>
             <div className="faq-item">
-              <h3>Can I have my story deleted?</h3>
-              <p>Yes, just send us an e-mail</p>
+              <h3>How can I become a moderator?</h3>
+              <p>We love that you want to help! At the moment, our moderation team is small and run by volunteers. If you're interested in joining, reach out to info@crcgreen.com.</p>
+            </div>
+            <div className="faq-item">
+              <h3>Who made Climate Stories Map?</h3>
+              <p>The Climate Stories Map was created by Climate Resilient Communities, a non-profit based in Toronto, Ontario. We work to support communities in adapting to climate change and sharing their experiences. Learn more about us on our website or foll</p>
             </div>
           </div>
         );
       default:
-        return <div>Select a section</div>;
+        return <div></div>;
     }
   };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <div className="information-popup">
-        <div className="popup-navigation">
-          <button 
-            className={`nav-button ${activeSection === 'about' ? 'active' : ''}`}
-            onClick={() => onSectionChange('about')}
-          >
-            About Us
-          </button>
-          <button 
-            className={`nav-button ${activeSection === 'contact' ? 'active' : ''}`}
-            onClick={() => onSectionChange('contact')}
-          >
-            Contact Info
-          </button>
-          <button 
-            className={`nav-button ${activeSection === 'faq' ? 'active' : ''}`}
-            onClick={() => onSectionChange('faq')}
-          >
-            FAQs
-          </button>
-        </div>
-        
+
         {renderContent()}
         
         <div className="popup-footer">

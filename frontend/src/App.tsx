@@ -55,7 +55,12 @@ const App: React.FC = () => {
   
   // Handlers for the InformationPopup
   const closeInfoPopup = () => setIsInfoPopupOpen(false);
-  
+
+  const openStorySection = () => {
+    setActiveSection('story');
+    setIsInfoPopupOpen(true);
+  };
+
   const openAboutSection = () => {
     setActiveSection('about');
     setIsInfoPopupOpen(true);
@@ -70,9 +75,10 @@ const App: React.FC = () => {
     setActiveSection('faq');
     setIsInfoPopupOpen(true);
   };
-  
-  const handleSectionChange = (section: ContentSection) => {
-    setActiveSection(section);
+
+  const openModerationSection = () => {
+    setActiveSection('moderation');
+    setIsInfoPopupOpen(true);
   };
 
   return (
@@ -83,9 +89,11 @@ const App: React.FC = () => {
             <div className="welcome-overlay" />
           )}
           <Taskbar 
+            onStoryClick={openStorySection}
             onAboutClick={openAboutSection}
             onContactClick={openContactSection}
             onFaqClick={openFaqSection}
+            onModClick={openModerationSection}
           />
           <main className="app-main">
             <WelcomePopup 
@@ -96,7 +104,6 @@ const App: React.FC = () => {
               isOpen={isInfoPopupOpen}
               onClose={closeInfoPopup}
               activeSection={activeSection}
-              onSectionChange={handleSectionChange}
             />
             <Routes>
               <Route
