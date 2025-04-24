@@ -6,6 +6,41 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   max-width: 600px;
   width: 100%;
+  max-height: 80vh; /* Limit height to 80% of viewport height */
+  overflow-y: auto; /* Add vertical scrollbar when content overflows */
+  scrollbar-width: thin; /* For Firefox */
+  scrollbar-color: #569BC4 #f1f1f1; /* For Firefox */
+}
+
+/* Custom scrollbar styling for WebKit browsers (Chrome, Safari, Edge) */
+.welcome-popup::-webkit-scrollbar {
+  width: 8px;
+}
+
+.welcome-popup::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.welcome-popup::-webkit-scrollbar-thumb {
+  background: #569BC4;
+  border-radius: 4px;
+}
+
+.welcome-popup::-webkit-scrollbar-thumb:hover {
+  background: #4a8ab0;
+}
+
+.welcome-popup h1 {
+  color: #569BC4;
+  text-align: center;
+  font-size: 2.5em;
+  margin: 0 0 20px 0;
+  padding-bottom: 15px;
+  border-bottom: 3px solid #569BC4;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
 
 .welcome-popup h2 {

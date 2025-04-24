@@ -2,7 +2,7 @@ from flask_admin.contrib.pymongo import ModelView
 from flask_admin.contrib.pymongo.filters import FilterEqual, FilterNotEqual, FilterLike, FilterGreater, FilterSmaller
 from flask_admin.model.template import macro
 from markupsafe import Markup
-from .forms import PostForm, UserForm
+from .forms import PostForm, UserForm, EditUserForm
 from flask import session, redirect, url_for
 from wtforms import StringField, PasswordField, SelectField
 from wtforms.validators import DataRequired, Length, Email
@@ -129,8 +129,14 @@ class UserView(ModelView):
     def inaccessible_callback(self, name, **kwargs):
         return redirect(url_for('login'))
 
-    # Use the custom UserForm for creating and editing users
-    form = UserForm
+    # Use different forms for create and edit
+    def get_create_form(self):
+        from .forms import UserForm
+        return UserForm
+
+    def get_edit_form(self):
+        from .forms import EditUserForm
+        return EditUserForm
 
     # List of columns to display
     column_list = ('_id', 'firstname', 'lastname', 'username', 'role')
@@ -168,14 +174,31 @@ class UserView(ModelView):
         from werkzeug.security import generate_password_hash
         from admin.auth import validate_password_complexity
         
-        # Hash the password if it's provided
-        if 'password' in model and model['password']:
-            # Validate password complexity
-            is_valid, message = validate_password_complexity(model['password'])
-            if not is_valid:
-                raise ValueError(message)
-                
-            model['password'] = generate_password_hash(model['password'])
+        # Handle password differently for create vs update
+        if is_created:
+            # For new users, password is required
+            if 'password' in model and model['password']:
+                # Validate password complexity
+                is_valid, message = validate_password_complexity(model['password'])
+                if not is_valid:
+                    raise ValueError(message)
+                    
+                model['password'] = generate_password_hash(model['password'])
+            else:
+                raise ValueError("Password is required when creating a new user")
+        else:
+            # For existing users, only update password if provided
+            if 'password' in model and model['password']:
+                # Validate password complexity
+                is_valid, message = validate_password_complexity(model['password'])
+                if not is_valid:
+                    raise ValueError(message)
+                    
+                model['password'] = generate_password_hash(model['password'])
+            else:
+                # If password is empty or not provided, remove it from the model to avoid updating it
+                if 'password' in model:
+                    del model['password']
     
     # Implement scaffold_filters method to fix NotImplementedError
     def scaffold_filters(self, name):
@@ -193,6 +216,8 @@ class UserView(ModelView):
             return [FilterLike(name, name), FilterEqual(name, name), FilterNotEqual(name, name)]
         
         return []
+
+
 
 
 

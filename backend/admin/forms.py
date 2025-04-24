@@ -46,6 +46,7 @@ class PostForm(form.Form):
     ])
 
 class UserForm(form.Form):
+    """Form for creating new users with required password"""
     username = fields.StringField('Username', [validators.DataRequired(), validators.Length(min=3, max=50)])
     password = fields.PasswordField('Password', [
         validators.DataRequired(), 
@@ -55,3 +56,16 @@ class UserForm(form.Form):
     role = fields.SelectField('Role', choices=[('admin', 'Admin'), ('user', 'User')], validators=[validators.DataRequired()])
     firstname = fields.StringField('First Name', [validators.DataRequired(), validators.Length(min=1, max=50)])
     lastname = fields.StringField('Last Name', [validators.DataRequired(), validators.Length(min=1, max=50)])
+
+class EditUserForm(form.Form):
+    """Form for editing users with optional password"""
+    username = fields.StringField('Username', [validators.DataRequired(), validators.Length(min=3, max=50)])
+    password = fields.PasswordField('Password', [
+        validators.Optional(),  # Password is optional when editing
+        validators.Length(min=8),
+        password_complexity
+    ], description='Leave empty to keep current password')
+    role = fields.SelectField('Role', choices=[('admin', 'Admin'), ('user', 'User')], validators=[validators.DataRequired()])
+    firstname = fields.StringField('First Name', [validators.DataRequired(), validators.Length(min=1, max=50)])
+    lastname = fields.StringField('Last Name', [validators.DataRequired(), validators.Length(min=1, max=50)])
+
