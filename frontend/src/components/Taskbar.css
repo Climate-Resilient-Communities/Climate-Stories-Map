@@ -47,6 +47,8 @@
   display: flex;
   gap: 15px;
   flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .taskbar-button {
@@ -55,6 +57,7 @@
   padding: 5px 10px;
   border-radius: 4px;
   transition: background-color 0.2s;
+  white-space: nowrap;
 }
 
 /* Override the global hover effect for taskbar links */
@@ -77,4 +80,31 @@ button.taskbar-button {
 
 .taskbar-button:hover {
   background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Media query for smaller screens to ensure buttons fit */
+@media (max-width: 768px) {
+  .taskbar-buttons {
+    gap: 8px;
+  }
+  
+  .taskbar-button {
+    padding: 5px 6px;
+    font-size: 0.9em;
+  }
+}
+
+/* For very small screens, make the taskbar scrollable horizontally */
+@media (max-width: 600px) {
+  .taskbar {
+    height: auto;
+    max-height: 80px;
+    overflow-x: auto;
+  }
+  
+  .taskbar-content {
+    flex-wrap: nowrap;
+    width: max-content;
+    min-width: 100%;
+  }
 }

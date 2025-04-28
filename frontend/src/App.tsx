@@ -12,11 +12,15 @@ import { Post } from './components/posts/types';
 import Home from './components/Home';
 import WelcomePopup from './components/WelcomePopup';
 import InformationPopup, { ContentSection } from './components/InformationPopup';
+import TermsOfUsePopUp from './components/TermsOfUsePopUp';
+import PrivacyPolicyPopup from './components/PrivacyPolicyPopup';
 
 const App: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isWelcomePopupOpen, setIsWelcomePopupOpen] = useState(false);
   const [isInfoPopupOpen, setIsInfoPopupOpen] = useState(false);
+  const [isTermsOfUsePopupOpen, setIsTermsOfUsePopupOpen] = useState(false);
+  const [isPrivacyPolicyPopupOpen, setIsPrivacyPolicyPopupOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<ContentSection>('about');
   const [posts, setPosts] = useState<Post[]>([]);
 
@@ -55,7 +59,12 @@ const App: React.FC = () => {
   
   // Handlers for the InformationPopup
   const closeInfoPopup = () => setIsInfoPopupOpen(false);
-  
+
+  const openStorySection = () => {
+    setActiveSection('story');
+    setIsInfoPopupOpen(true);
+  };
+
   const openAboutSection = () => {
     setActiveSection('about');
     setIsInfoPopupOpen(true);
@@ -70,9 +79,27 @@ const App: React.FC = () => {
     setActiveSection('faq');
     setIsInfoPopupOpen(true);
   };
-  
-  const handleSectionChange = (section: ContentSection) => {
-    setActiveSection(section);
+
+  const openModerationSection = () => {
+    setActiveSection('moderation');
+    setIsInfoPopupOpen(true);
+  };
+
+  // Handlers for Terms of Use and Privacy Policy popups
+  const openTermsOfUsePopup = () => {
+    setIsTermsOfUsePopupOpen(true);
+  };
+
+  const closeTermsOfUsePopup = () => {
+    setIsTermsOfUsePopupOpen(false);
+  };
+
+  const openPrivacyPolicyPopup = () => {
+    setIsPrivacyPolicyPopupOpen(true);
+  };
+
+  const closePrivacyPolicyPopup = () => {
+    setIsPrivacyPolicyPopupOpen(false);
   };
 
   return (
@@ -83,9 +110,13 @@ const App: React.FC = () => {
             <div className="welcome-overlay" />
           )}
           <Taskbar 
+            onStoryClick={openStorySection}
             onAboutClick={openAboutSection}
             onContactClick={openContactSection}
             onFaqClick={openFaqSection}
+            onModClick={openModerationSection}
+            onPrivacyPolicyClick={openPrivacyPolicyPopup}
+            onTermsOfUseClick={openTermsOfUsePopup}
           />
           <main className="app-main">
             <WelcomePopup 
@@ -96,7 +127,16 @@ const App: React.FC = () => {
               isOpen={isInfoPopupOpen}
               onClose={closeInfoPopup}
               activeSection={activeSection}
-              onSectionChange={handleSectionChange}
+              openTermsOfUse={openTermsOfUsePopup}
+              openPrivacyPolicy={openPrivacyPolicyPopup}
+            />
+            <TermsOfUsePopUp
+              isOpen={isTermsOfUsePopupOpen}
+              onClose={closeTermsOfUsePopup}
+            />
+            <PrivacyPolicyPopup
+              isOpen={isPrivacyPolicyPopupOpen}
+              onClose={closePrivacyPolicyPopup}
             />
             <Routes>
               <Route

@@ -37,7 +37,7 @@ user_collection = mongo.db.users
 
 # Initialize authentication and admin logic
 auth = init_auth(app, user_collection)
-init_admin(app, collection, auth['admin_required'])
+init_admin(app, collection, user_collection, auth['admin_required'])
 
 # Route to serve the React app
 @app.route('/')

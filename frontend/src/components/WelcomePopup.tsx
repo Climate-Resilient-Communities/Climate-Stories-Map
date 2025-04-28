@@ -1,6 +1,8 @@
 // WelcomePopup.tsx
-import React from 'react';
-import Modal from './common/Modal';
+import React, { useState } from 'react';
+import WelcomeModal from './WelcomeModal';
+import PrivacyPolicyPopup from './PrivacyPolicyPopup';
+import TermsOfUsePopUp from './TermsOfUsePopUp';
 import './WelcomePopup.css';
 
 interface WelcomePopupProps {
@@ -9,24 +11,73 @@ interface WelcomePopupProps {
 }
 
 const WelcomePopup: React.FC<WelcomePopupProps> = ({ isOpen, onClose }) => {
+  const [isAgreedToAll, setIsAgreedToAll] = useState(false);
+  const [isPrivacyPolicyOpen, setIsPrivacyPolicyOpen] = useState(false);
+  const [isTermsOfUseOpen, setIsTermsOfUseOpen] = useState(false);
+  
+  const handleAgreementCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setIsAgreedToAll(e.target.checked);
+  };
+  
+  const openPrivacyPolicy = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsPrivacyPolicyOpen(true);
+  };
+  
+  const closePrivacyPolicy = () => {
+    setIsPrivacyPolicyOpen(false);
+  };
+  
+  const openTermsOfUse = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsTermsOfUseOpen(true);
+  };
+  
+  const closeTermsOfUse = () => {
+    setIsTermsOfUseOpen(false);
+  };
+  
+  const isGetStartedEnabled = isAgreedToAll;
+  
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <WelcomeModal isOpen={isOpen} onClose={onClose}>
       <div className="welcome-popup">
-        <h2>Welcome to Climate Stories!</h2>
+        <h1> Canadian Climate Stories Map</h1>
+        <h3><div style={{textAlign: 'center' }}>Welcome to the Canadian Climate Stories Map!</div></h3><br/>
         <p>
-          This is a platform where users can share their climate change experiences and stories.
-          You can explore stories from around the world on our interactive map, read detailed
-          accounts, and contribute your own climate story.
+          The Climate Stories Map is a space for sharing personal experiences with climate change. 
+          By sharing, you're helping to build a collective understanding of what climate change really looks like in our communities.        
         </p>
-        <p>
-          Browse through posts, create your own stories, and join our community
-          of climate-conscious individuals sharing their perspectives.
-        </p>
-        <button className="welcome-btn" onClick={onClose}>
+        
+      <div className="checkbox-container">
+        <div className="checkbox-row">
+          <label className="checkbox-label">
+            <input 
+              type="checkbox" 
+              checked={isAgreedToAll} 
+              onChange={handleAgreementCheckboxChange} 
+            />
+            <span>By clicking this, you agree to the following:</span>
+          </label>
+        </div>
+        <ul className="agreement-list">
+          <li>I certify that I meet the age requirements <i>(13+ or with parental/guardian consent if under 18)</i></li>
+          <li>I have read and agreed to the <a href="#" onClick={openPrivacyPolicy}>Privacy Policy</a></li>
+          <li>I have read and agreed to the <a href="#" onClick={openTermsOfUse}>Terms of Use</a></li>
+        </ul>
+      </div>
+      
+        <button 
+          className={`welcome-btn ${!isGetStartedEnabled ? 'welcome-btn-disabled' : ''}`} 
+          onClick={onClose}
+          disabled={!isGetStartedEnabled}
+        >
           Get Started
         </button>
       </div>
-    </Modal>
+      <PrivacyPolicyPopup isOpen={isPrivacyPolicyOpen} onClose={closePrivacyPolicy} />
+      <TermsOfUsePopUp isOpen={isTermsOfUseOpen} onClose={closeTermsOfUse} />
+    </WelcomeModal>
   );
 };
 

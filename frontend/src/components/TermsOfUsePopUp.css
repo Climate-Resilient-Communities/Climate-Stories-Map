@@ -1,0 +1,86 @@
+/* TermsOfUsePopUp.css */
+.terms-of-use-popup {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 800px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #569BC4 #f1f1f1;
+}
+
+.terms-of-use-popup::-webkit-scrollbar {
+  width: 8px;
+}
+
+.terms-of-use-popup::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.terms-of-use-popup::-webkit-scrollbar-thumb {
+  background: #569BC4;
+  border-radius: 4px;
+}
+
+.terms-of-use-popup::-webkit-scrollbar-thumb:hover {
+  background: #4a8ab0;
+}
+
+.terms-of-use-popup h1 {
+  color: #569BC4;
+  text-align: center;
+  font-size: 2em;
+  margin: 0 0 20px 0;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #569BC4;
+}
+
+.terms-of-use-popup h2 {
+  color: #569BC4;
+  margin-top: 20px;
+  font-size: 1.5em;
+}
+
+.terms-of-use-popup h3 {
+  color: #569BC4;
+  margin-top: 15px;
+  font-size: 1.2em;
+}
+
+.terms-of-use-popup p {
+  margin-bottom: 15px;
+  line-height: 1.6;
+}
+
+.terms-of-use-popup ul {
+  margin-bottom: 15px;
+  padding-left: 20px;
+}
+
+.terms-of-use-popup li {
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.popup-footer {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.close-btn {
+  background: #569BC4;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+.close-btn:hover {
+  background: #4a8ab0;
+}

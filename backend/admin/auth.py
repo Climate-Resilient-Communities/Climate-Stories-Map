@@ -1,10 +1,42 @@
 from flask import session, redirect, url_for, request, render_template
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
+import re
+
+def validate_password_complexity(password):
+    """
+    Validate password complexity:
+    - At least 8 characters
+    - At least one uppercase letter
+    - At least one lowercase letter
+    - At least one number
+    - At least one special character
+    """
+    if len(password) < 8:
+        return False, 'Password must be at least 8 characters long'
+    
+    if not re.search(r'[A-Z]', password):
+        return False, 'Password must contain at least one uppercase letter'
+    
+    if not re.search(r'[a-z]', password):
+        return False, 'Password must contain at least one lowercase letter'
+    
+    if not re.search(r'[0-9]', password):
+        return False, 'Password must contain at least one number'
+    
+    if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
+        return False, 'Password must contain at least one special character'
+    
+    return True, 'Password meets complexity requirements'
 
 def init_auth(app, user_collection):
     # User creation helper
     def create_user(username, password, role):
+        # Validate password complexity
+        is_valid, message = validate_password_complexity(password)
+        if not is_valid:
+            raise ValueError(message)
+            
         hashed_password = generate_password_hash(password)
         user_collection.insert_one({'username': username, 'password': hashed_password, 'role': role})
 
