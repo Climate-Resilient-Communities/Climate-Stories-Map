@@ -45,10 +45,23 @@ class PostView(ModelView):
     # Format the description display
     def _description_formatter(view, context, model, name):
         return model.get('content', {}).get('description', '')
+        
+    # Format the tag display
+    def _tag_formatter(view, context, model, name):
+        return model.get('tag', '')
+        
+    # Format the optional tags display
+    def _optional_tags_formatter(view, context, model, name):
+        optional_tags = model.get('optional_tags', [])
+        if isinstance(optional_tags, list):
+            return ', '.join(optional_tags)
+        return str(optional_tags)
 
     column_formatters = {
         'content_image_display': _image_formatter,
-        'content_description': _description_formatter
+        'content_description': _description_formatter,
+        'tag': _tag_formatter,
+        'optionalTags': _optional_tags_formatter
     }
 
     def __init__(self, collection, name=None, category=None, endpoint=None, url=None, static_folder=None):
