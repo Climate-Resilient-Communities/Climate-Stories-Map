@@ -10,12 +10,14 @@ class PostView(ModelView):
         return 'user' in session and session['user'].get('role') in ['admin', 'moderator']
 
     def inaccessible_callback(self, name, **kwargs):
+        from flask import redirect, url_for, flash
+        flash("You do not have permission to access this page.", "danger")
         return redirect(url_for('login'))
 
     # Show the "Posts" button in the navigation bar for logged-in users
     def is_visible(self):
         # Show for admin and moderator users
-        return False#'user' in session and session['user'].get('role') in ['admin', 'moderator']
+        return False #'user' in session and session['user'].get('role') in ['admin', 'moderator']
 
     # List of columns to display
     column_list = ('title', 'content_image_display', 'content_description', 'location', 'tag', 'optionalTags', 'created_at', 'status')

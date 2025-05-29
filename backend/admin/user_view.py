@@ -13,6 +13,8 @@ class UserView(ModelView):
         return 'user' in session and session['user'].get('role') == 'admin'
 
     def inaccessible_callback(self, name, **kwargs):
+        from flask import redirect, url_for, flash
+        flash("You do not have permission to access this page.", "danger")
         return redirect(url_for('login'))
 
     # Show the "Users" button in the navigation bar only for admin users
