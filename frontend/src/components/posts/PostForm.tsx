@@ -3,7 +3,7 @@ import { MAIN_TAGS } from '../../utils/tag-constants';
 import HCaptcha from '@hcaptcha/react-hcaptcha';
 import { PostFormData } from './types';
 import './PostForm.css';
-  import { useNotification } from '../common/NotificationContext';
+import { useNotification } from '../common/NotificationContext';
 
 interface PostFormProps {
   onSubmit: (formData: PostFormData) => void;
@@ -24,8 +24,6 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
     };
   }, []);
   
-  
-
   // Updated formData to include mandatory Tag
   const [formData, setFormData] = useState<PostFormData>({
     title: '',
@@ -87,7 +85,11 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
       case 'optionalTags':
         setFormData(prevData => ({
           ...prevData,
-          optionalTags: value.split(',').map(tag => tag.trim()).filter(tag => tag !== ''),
+          optionalTags: value.split(',')
+            .map(tag => tag.trim())
+            .filter(tag => tag !== '')
+            // Ensure we keep the full sentence intact and capitalize first letter
+            .map(tag => tag.charAt(0).toUpperCase() + tag.slice(1)),
         }));
         break;
       case 'tag':
@@ -133,7 +135,6 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
 
   return (
     <>
-      
       <form className="post-form" onSubmit={handleSubmit}> 
       <h2 className="post-form-title">Share Your Climate Story</h2>
       <input
@@ -193,7 +194,6 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
         <button type="button" onClick={handleModalClose}>Cancel</button>
       </div>
     </form>
-    
     </>
   );
 };
