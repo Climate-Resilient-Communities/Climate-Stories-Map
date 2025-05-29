@@ -65,6 +65,15 @@ def init_auth(app, user_collection):
             return f(*args, **kwargs)
         return decorated_function
 
+    # Moderator required decorator
+    def moderator_required(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if 'user' not in session or session['user']['role'] not in ['admin', 'moderator']:
+                return redirect(url_for('login'))
+            return f(*args, **kwargs)
+        return decorated_function
+
     @app.route('/login', methods=['GET', 'POST'])
     def login():
         if request.method == 'POST':
@@ -86,5 +95,6 @@ def init_auth(app, user_collection):
     return {
         'login_required': login_required,
         'admin_required': admin_required,
+        'moderator_required': moderator_required,
         'create_user': create_user
     }

@@ -6,15 +6,16 @@ from flask import session, redirect, url_for
 
 class PostView(ModelView):
     def is_accessible(self):
-        # Allow access to both admin and regular logged-in users
-        return 'user' in session
+        # Allow access to admin and moderator users
+        return 'user' in session and session['user'].get('role') in ['admin', 'moderator']
 
     def inaccessible_callback(self, name, **kwargs):
         return redirect(url_for('login'))
 
     # Show the "Posts" button in the navigation bar for logged-in users
     def is_visible(self):
-        return 'user' in session
+        # Show for admin and moderator users
+        return False#'user' in session and session['user'].get('role') in ['admin', 'moderator']
 
     # List of columns to display
     column_list = ('title', 'content_image_display', 'content_description', 'location', 'tag', 'optionalTags', 'created_at', 'status')
