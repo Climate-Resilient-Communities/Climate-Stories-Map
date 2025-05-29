@@ -6,7 +6,8 @@ from .views import PostView, UserView
 def init_admin(app, collection, user_collection, admin_required):
     class ProtectedAdminIndexView(AdminIndexView):
         def is_accessible(self):
-            return 'user' in session and session['user'].get('role') == 'admin'
+            # Allow access to any logged-in user
+            return 'user' in session
 
         def inaccessible_callback(self, name, **kwargs):
             return redirect(url_for('login'))
