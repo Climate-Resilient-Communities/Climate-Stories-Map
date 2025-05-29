@@ -38,7 +38,7 @@ class PostForm(form.Form):
         ('Neutral', 'Neutral'),
         ('Negative', 'Negative')
     ])
-    optionalTags = fields.StringField('Optional Tags')
+    optionalTags = fields.StringField('Optional Tags', description='Comma-separated list of tags. Sentences are allowed within each tag.')
     status = fields.SelectField('Status', choices=[
         ('pending', 'Pending'),
         ('approved', 'Approved'),

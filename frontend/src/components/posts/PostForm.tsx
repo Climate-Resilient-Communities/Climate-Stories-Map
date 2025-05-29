@@ -87,7 +87,7 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
       case 'optionalTags':
         setFormData(prevData => ({
           ...prevData,
-          optionalTags: value.split(',').map(optionalTags => optionalTags.trim()),
+          optionalTags: value.split(',').map(tag => tag.trim()).filter(tag => tag !== ''),
         }));
         break;
       case 'tag':
@@ -172,7 +172,7 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
           type="text"
           id="optionalTags"
           name="optionalTags"
-          placeholder="Enter optional tags (comma separated)"
+          placeholder="Enter optional tags (comma separated, sentences allowed)"
           value={formData.optionalTags}
           onChange={handleChange}
         />
