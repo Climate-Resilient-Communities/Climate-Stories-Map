@@ -9,7 +9,7 @@ from wtforms.validators import DataRequired, Length, Email
 
 class PostView(ModelView):
     def is_accessible(self):
-        return 'user' in session and session['user'].get('role') == 'admin'
+        return 'user' in session and session['user'].get('role') == 'admin' or session['user'].get('role') == 'moderator'
 
     def inaccessible_callback(self, name, **kwargs):
         return redirect(url_for('login'))

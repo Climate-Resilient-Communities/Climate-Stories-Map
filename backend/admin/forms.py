@@ -53,7 +53,7 @@ class UserForm(form.Form):
         validators.Length(min=8),
         password_complexity
     ])
-    role = fields.SelectField('Role', choices=[('admin', 'Admin'), ('user', 'User')], validators=[validators.DataRequired()])
+    role = fields.SelectField('Role', choices=[('admin', 'Admin'), ('moderator', 'Moderator')], validators=[validators.DataRequired()])
     firstname = fields.StringField('First Name', [validators.DataRequired(), validators.Length(min=1, max=50)])
     lastname = fields.StringField('Last Name', [validators.DataRequired(), validators.Length(min=1, max=50)])
 
@@ -65,7 +65,7 @@ class EditUserForm(form.Form):
         validators.Length(min=8),
         password_complexity
     ], description='Leave empty to keep current password')
-    role = fields.SelectField('Role', choices=[('admin', 'Admin'), ('user', 'User')], validators=[validators.DataRequired()])
+    role = fields.SelectField('Role', choices=[('admin', 'Admin'), ('moderator', 'Moderator')], validators=[validators.DataRequired()])
     firstname = fields.StringField('First Name', [validators.DataRequired(), validators.Length(min=1, max=50)])
     lastname = fields.StringField('Last Name', [validators.DataRequired(), validators.Length(min=1, max=50)])
 
