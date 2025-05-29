@@ -83,13 +83,10 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
         updateNestedField(['location', 'coordinates', 1], value === '' ? 0 : parseFloat(value) || 0);
         break;
       case 'optionalTags':
+        // Allow spaces and commas in tags
         setFormData(prevData => ({
           ...prevData,
-          optionalTags: value.split(',')
-            .map(tag => tag.trim())
-            .filter(tag => tag !== '')
-            // Ensure we keep the full sentence intact and capitalize first letter
-            .map(tag => tag.charAt(0).toUpperCase() + tag.slice(1)),
+          optionalTags: value ? [value] : [],
         }));
         break;
       case 'tag':
@@ -173,7 +170,7 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
           type="text"
           id="optionalTags"
           name="optionalTags"
-          placeholder="Enter optional tags (comma separated, sentences allowed)"
+          placeholder="Enter optional tag (sentence tags allowed)"
           value={formData.optionalTags}
           onChange={handleChange}
         />
