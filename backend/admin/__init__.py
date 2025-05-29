@@ -3,11 +3,11 @@ from flask_admin.base import AdminIndexView, expose
 from flask import session, redirect, url_for
 from .views import PostView, UserView
 
-def init_admin(app, collection, user_collection, admin_required):
+def init_admin(app, collection, user_collection, admin_required, moderator_required=None):
     class ProtectedAdminIndexView(AdminIndexView):
         def is_accessible(self):
-            # Allow access to any logged-in user
-            return 'user' in session
+            # Allow access to admin and moderator users
+            return 'user' in session and session['user'].get('role') in ['admin', 'moderator']
 
         def inaccessible_callback(self, name, **kwargs):
             return redirect(url_for('login'))
