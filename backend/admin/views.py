@@ -56,7 +56,7 @@ class PostView(ModelView):
     def on_model_change(self, form, model, is_created):        
         # Handle optionalTags - convert from string to list
         if 'optionalTags' in model and isinstance(model['optionalTags'], str):
-            model['optional_tags'] = [tag_item.strip() for tag_item in model['optionalTags'].split(',')]
+            model['optional_tags'] = [tag_item.strip() for tag_item in model['optionalTags'].split(',') if tag_item.strip()]
             # Remove optionalTags after converting to snake_case
             del model['optionalTags']
         
