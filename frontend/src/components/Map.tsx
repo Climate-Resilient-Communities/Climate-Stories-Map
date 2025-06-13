@@ -21,10 +21,11 @@ const MARKER_COLORS = {
 interface MapProps {
   posts: Post[];
   onMapClick: (coordinates: [number, number], event: React.MouseEvent<HTMLDivElement>) => void;
+  onMapRightClick?: () => void;
   selectedTags?: string[];
 }
 
-const CRCMap: React.FC<MapProps> = ({ posts, onMapClick }) => {
+const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick }) => {
   const [canadaGeoJSON, setCanadaGeoJSON] = useState<any | null>(null);
   const [viewState, setViewState] = useState({
     longitude: -96.8283,  // Center of Canada
@@ -116,6 +117,13 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick }) => {
         mapStyle="mapbox://styles/mapbox/streets-v12"
         mapboxAccessToken={MAPBOX_TOKEN}
         onClick={handleClick}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          if (onMapRightClick) {
+            onMapRightClick();
+            setClickedLocation(null);
+          }
+        }}
         minZoom={4}
         maxZoom={20}
         maxBounds={[

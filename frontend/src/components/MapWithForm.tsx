@@ -104,7 +104,12 @@ const MapWithForm: React.FC<MapWithFormProps> = ({ posts, onPostSubmit }) => {
         </div>
       )}
       
-      <CRCMap onMapClick={handleMapClick} posts={filteredPosts} selectedTags={selectedTags} />
+      <CRCMap 
+        onMapClick={handleMapClick} 
+        onMapRightClick={() => setCoordinates(undefined)} 
+        posts={filteredPosts} 
+        selectedTags={selectedTags} 
+      />
       <CreatePostButton 
         onClick={() => setIsModalOpen(true)}
         disabled={!coordinates}
