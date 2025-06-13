@@ -7,7 +7,7 @@ interface WelcomePopupProps {
   isOpen: boolean;
   onClose: () => void;
 }
-  
+const WelcomePopup: React.FC<WelcomePopupProps> = ({ isOpen, onClose }) => {  
   return (
     <WelcomeModal isOpen={isOpen} onClose={onClose}>
       <div className="welcome-popup">
