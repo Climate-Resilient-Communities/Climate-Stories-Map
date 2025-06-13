@@ -4,6 +4,8 @@ import HCaptcha from '@hcaptcha/react-hcaptcha';
 import { PostFormData } from './types';
 import './PostForm.css';
 import { useNotification } from '../common/NotificationContext';
+import PrivacyPolicyPopup from '../PrivacyPolicyPopup';
+import TermsOfUsePopUp from '../TermsOfUsePopUp';
 
 interface PostFormProps {
   onSubmit: (formData: PostFormData) => void;
@@ -17,6 +19,31 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
   const captchaRef = React.useRef<HCaptcha>(null);
   const [isActive, setIsActive] = useState(true);
   const { showNotification } = useNotification();
+  const [isAgreedToAll, setIsAgreedToAll] = useState(false);
+  const [isPrivacyPolicyOpen, setIsPrivacyPolicyOpen] = useState(false);
+  const [isTermsOfUseOpen, setIsTermsOfUseOpen] = useState(false);
+
+  const handleAgreementCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setIsAgreedToAll(e.target.checked);
+  };
+  
+  const openPrivacyPolicy = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsPrivacyPolicyOpen(true);
+  };
+  
+  const closePrivacyPolicy = () => {
+    setIsPrivacyPolicyOpen(false);
+  };
+  
+  const openTermsOfUse = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsTermsOfUseOpen(true);
+  };
+  
+  const closeTermsOfUse = () => {
+    setIsTermsOfUseOpen(false);
+  };
   
   React.useEffect(() => {
     return () => {
@@ -102,6 +129,10 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isAgreedToAll) {
+      showNotification('Please agree to the Privacy Policy and Terms of Use before submitting.', true);
+      return;
+    }
     if (formData.tag === '-') {
       showNotification('Please select a valid tag (Positive, Neutral, or Negative).', true);
       return;
@@ -176,6 +207,24 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
         />
       </div>
 
+      <div className="checkbox-container">
+        <div className="checkbox-row">
+          <label className="checkbox-label">
+            <input 
+              type="checkbox" 
+              checked={isAgreedToAll} 
+              onChange={handleAgreementCheckboxChange} 
+            />
+            <span>By submitting this post, you agree to the following:</span>
+          </label>
+        </div>
+        <ul className="agreement-list">
+          <li>I certify that I meet the age requirements <i>(13+ or with parental/guardian consent if under 18)</i></li>
+          <li>I have read and agreed to the <a href="#" onClick={openPrivacyPolicy}>Privacy Policy</a></li>
+          <li>I have read and agreed to the <a href="#" onClick={openTermsOfUse}>Terms of Use</a></li>
+        </ul>
+      </div>
+
       {isActive && (
         <HCaptcha
           ref={captchaRef}
@@ -191,6 +240,8 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
         <button type="button" onClick={handleModalClose}>Cancel</button>
       </div>
     </form>
+    <PrivacyPolicyPopup isOpen={isPrivacyPolicyOpen} onClose={closePrivacyPolicy} />
+    <TermsOfUsePopUp isOpen={isTermsOfUseOpen} onClose={closeTermsOfUse} />
     </>
   );
 };
