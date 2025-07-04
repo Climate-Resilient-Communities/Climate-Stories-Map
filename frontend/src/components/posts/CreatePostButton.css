@@ -1,18 +1,20 @@
 .create-post-button {
-  position: absolute;
-  top: 110px;
-  left: 10px;
-  z-index: 999;
-  padding: 8px;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
+  padding: 8px 12px;
   background: #569BC4;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s ease;
+  white-space: nowrap;
+  font-size: 14px;
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1000;
 }
 
 .create-post-button:disabled {
@@ -21,14 +23,18 @@
   opacity: 0.7;
 }
 
-.create-post-button:hover {
+.create-post-button:hover:not(:disabled) {
   background: #4a89b0;
 }
 
 .create-post-button .button-text {
-  display: none;
+  display: inline;
+  margin-left: 4px;
 }
 
-.create-post-button:hover .button-text {
-  display: inline;
+@media screen and (max-width: 768px) {
+  .create-post-button {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
 }

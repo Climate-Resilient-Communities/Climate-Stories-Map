@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import './Taskbar.css';
 
 interface TaskbarProps {
@@ -19,21 +20,31 @@ const Taskbar: React.FC<TaskbarProps> = ({
   onPrivacyPolicyClick,
   onTermsOfUseClick
 }) => {
+  const [isVisible, setIsVisible] = useState(true);
   return (
-    <nav className="taskbar">
-      <div className="taskbar-content">
-        <a className="taskbar-title">Climate Stories Map</a>
-        <div className="taskbar-buttons">
-        <button className="taskbar-button" onClick={onStoryClick}>How To Use</button>
-          <button className="taskbar-button" onClick={onAboutClick}>About</button>
-          <button className="taskbar-button" onClick={onContactClick}>Contact Us</button>
-          <button className="taskbar-button" onClick={onFaqClick}>FAQs</button>
-          <button className="taskbar-button" onClick={onModClick}>Moderation</button>
-          <button className="taskbar-button" onClick={onPrivacyPolicyClick}>Privacy Policy</button>
-          <button className="taskbar-button" onClick={onTermsOfUseClick}>Terms of Use</button>
+    <>
+      <button 
+        className={`taskbar-toggle-button ${isVisible ? 'expanded' : 'collapsed'}`}
+        onClick={() => setIsVisible(!isVisible)}
+        aria-label={isVisible ? 'Hide taskbar' : 'Show taskbar'}
+      >
+        {isVisible ? '◀' : '▶'}
+      </button>
+      <nav className={`taskbar ${isVisible ? 'visible' : 'hidden'}`}>
+        <div className="taskbar-content">
+          <a className="taskbar-title">Climate Stories Map</a>
+          <div className="taskbar-buttons">
+            <button className="taskbar-button" onClick={onStoryClick}>How To Use</button>
+            <button className="taskbar-button" onClick={onAboutClick}>About</button>
+            <button className="taskbar-button" onClick={onContactClick}>Contact Us</button>
+            <button className="taskbar-button" onClick={onFaqClick}>FAQs</button>
+            <button className="taskbar-button" onClick={onModClick}>Moderation</button>
+            <button className="taskbar-button" onClick={onPrivacyPolicyClick}>Privacy Policy</button>
+            <button className="taskbar-button" onClick={onTermsOfUseClick}>Terms of Use</button>
+          </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+    </>
   );
 };
 

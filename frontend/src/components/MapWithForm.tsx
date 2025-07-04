@@ -4,6 +4,7 @@ import PostForm from './posts/PostForm';
 import TagFilter from './posts/TagFilter';
 import './MapWithForm.css';
 import './posts/TagFilter.css';
+import './FilterButton.css';
 import Modal from './common/Modal';
 import { Post } from './posts/types';
 import { FaFilter } from 'react-icons/fa';
@@ -62,40 +63,24 @@ const MapWithForm: React.FC<MapWithFormProps> = ({ posts, onPostSubmit }) => {
 
   return (  
     <div className="map-container">
+      <CreatePostButton 
+        onClick={() => setIsModalOpen(true)}
+        disabled={!coordinates}
+      />
       <button 
         className="filter-toggle-button" 
         onClick={toggleFilterVisibility}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         style={{ 
-          position: 'absolute', 
-          top: '60px', 
-          left: '10px', 
-          zIndex: 999,
-          padding: '8px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '5px',
-          background: '#569BC4',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer',
-          minWidth: isHovered ? 'auto' : '36px',
-          transition: 'min-width 0.2s ease-in-out'
+          minWidth: isHovered ? 'auto' : '36px'
         }}
       >
         <FaFilter />{isHovered && ' Filter by Tags'}
       </button>
       
       {isFilterVisible && (
-        <div className="filter-overlay" style={{ 
-          position: 'absolute', 
-          top: '50px', 
-          left: '10px', 
-          zIndex: 998,
-          width: '300px' 
-        }}>
+        <div className="filter-overlay">
           <TagFilter 
             posts={posts} 
             selectedTags={selectedTags} 
@@ -109,10 +94,6 @@ const MapWithForm: React.FC<MapWithFormProps> = ({ posts, onPostSubmit }) => {
         onMapRightClick={() => setCoordinates(undefined)} 
         posts={filteredPosts} 
         selectedTags={selectedTags} 
-      />
-      <CreatePostButton 
-        onClick={() => setIsModalOpen(true)}
-        disabled={!coordinates}
       />
       <Modal isOpen={isModalOpen} onClose={handleClose}>
           <PostForm onSubmit={handleSubmit} onClose={handleClose} initialCoordinates={coordinates}/>
