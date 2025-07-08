@@ -8,7 +8,7 @@
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s ease-in-out;
   white-space: nowrap;
   font-size: 14px;
   position: absolute;
@@ -32,9 +32,39 @@
   margin-left: 4px;
 }
 
-@media screen and (max-width: 768px) {
+/* Desktop/Browser default - taskbar on the left */
+@media screen and (min-width: 769px) {
   .create-post-button {
+    left: 260px; /* 250px taskbar width + 10px margin */
+  }
+  
+  .create-post-button.taskbar-hidden {
+    left: 10px;
+  }
+}
+
+/* Mobile portrait mode */
+@media screen and (max-width: 768px) and (orientation: portrait) {
+  .create-post-button {
+    top: 64px; /* 54px taskbar height + 10px margin */
     padding: 6px 10px;
     font-size: 13px;
+  }
+
+  .create-post-button.taskbar-hidden {
+    top: 10px;
+  }
+}
+
+/* Mobile landscape mode */
+@media screen and (max-width: 768px) and (orientation: landscape) {
+  .create-post-button {
+    left: 210px; /* 200px taskbar width + 10px margin */
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+
+  .create-post-button.taskbar-hidden {
+    left: 10px;
   }
 }

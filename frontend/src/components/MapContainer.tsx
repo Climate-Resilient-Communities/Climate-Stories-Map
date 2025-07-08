@@ -13,6 +13,7 @@ interface MapContainerProps {
   onTagSelect: (selectedTags: string[]) => void;
   onCreatePost: () => void;
   createPostDisabled?: boolean;
+  taskbarVisible?: boolean;
 }
 
 const MapContainer: React.FC<MapContainerProps> = ({
@@ -22,10 +23,11 @@ const MapContainer: React.FC<MapContainerProps> = ({
   selectedTags,
   onTagSelect,
   onCreatePost,
-  createPostDisabled
+  createPostDisabled,
+  taskbarVisible = true
 }) => {
   return (
-    <div className="map-layout">
+    <div className={`map-layout ${taskbarVisible ? '' : 'taskbar-hidden'}`}>
       <div className="map-controls">
         <CreatePostButton
           onClick={onCreatePost}

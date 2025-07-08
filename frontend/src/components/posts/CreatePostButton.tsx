@@ -5,15 +5,15 @@ import './CreatePostButton.css';
 interface CreatePostButtonProps {
   onClick: () => void;
   disabled?: boolean;
+  taskbarVisible?: boolean;
 }
 
-const CreatePostButton: React.FC<CreatePostButtonProps> = ({ onClick, disabled }) => {
+const CreatePostButton: React.FC<CreatePostButtonProps> = ({ onClick, disabled, taskbarVisible = true }) => {
   return (
     <button 
-      className="create-post-button" 
+      className={`create-post-button ${!taskbarVisible ? 'taskbar-hidden' : ''}`}
       onClick={onClick}
       disabled={disabled}
-      
     >
       <FaPlusCircle />
       { disabled ?       

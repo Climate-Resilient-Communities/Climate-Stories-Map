@@ -16,7 +16,7 @@
 
 .taskbar-toggle-button {
   position: fixed;
-  z-index: 1001;
+  z-index: 1002;
   background: #569BC4;
   color: white;
   border: none;
@@ -24,7 +24,7 @@
   cursor: pointer;
   font-size: 16px;
   border-radius: 0 4px 4px 0;
-  transition: transform 0.3s ease-in-out;
+  transition: all 0.3s ease-in-out;
   box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
 }
 

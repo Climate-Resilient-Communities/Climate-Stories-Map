@@ -6,6 +6,48 @@
   bottom: 0;
   width: 100%;
   height: 100%;
+  transition: width 0.3s ease-in-out, left 0.3s ease-in-out;
+  will-change: width, left;
+}
+
+.map-container.taskbar-hidden {
+  left: 0;
+  width: 100%;
+  transition-timing-function: ease-in-out;
+}
+
+/* Mobile portrait mode */
+@media screen and (max-width: 768px) and (orientation: portrait) {
+  .map-container {
+    left: 0;
+    width: 100%;
+    top: 0;
+    height: 100%;
+    transition: all 0.3s ease-in-out;
+    will-change: top, height;
+  }
+
+  .map-container.taskbar-hidden {
+    top: 0;
+    height: 100%;
+    transition-timing-function: ease-in-out;
+  }
+}
+
+/* Mobile landscape mode */
+@media screen and (max-width: 768px) and (orientation: landscape) {
+  .map-container {
+    left: 0;
+    width: 100%;
+    transition: width 0.3s ease-in-out, left 0.3s ease-in-out;
+    will-change: width, left;
+  }
+
+  .map-container.taskbar-hidden {
+    left: 0;
+    width: 100%;
+    transition-timing-function: ease-in-out;
+  }
 }
 
 .mapboxgl-popup-content {

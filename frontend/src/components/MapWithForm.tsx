@@ -13,9 +13,10 @@ import CreatePostButton from './posts/CreatePostButton';
 interface MapWithFormProps {
   posts: Post[];
   onPostSubmit: (formData: any) => void;
+  taskbarVisible?: boolean;
 }
 
-const MapWithForm: React.FC<MapWithFormProps> = ({ posts, onPostSubmit }) => {
+const MapWithForm: React.FC<MapWithFormProps> = ({ posts, onPostSubmit, taskbarVisible = true }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [coordinates, setCoordinates] = useState<[number, number] | undefined>(undefined);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -66,9 +67,10 @@ const MapWithForm: React.FC<MapWithFormProps> = ({ posts, onPostSubmit }) => {
       <CreatePostButton 
         onClick={() => setIsModalOpen(true)}
         disabled={!coordinates}
+        taskbarVisible={taskbarVisible}
       />
       <button 
-        className="filter-toggle-button" 
+        className={`filter-toggle-button ${!taskbarVisible ? 'taskbar-hidden' : ''}`}
         onClick={toggleFilterVisibility}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -80,7 +82,7 @@ const MapWithForm: React.FC<MapWithFormProps> = ({ posts, onPostSubmit }) => {
       </button>
       
       {isFilterVisible && (
-        <div className="filter-overlay">
+        <div className={`filter-overlay ${!taskbarVisible ? 'taskbar-hidden' : ''}`}>
           <TagFilter 
             posts={posts} 
             selectedTags={selectedTags} 
@@ -93,7 +95,8 @@ const MapWithForm: React.FC<MapWithFormProps> = ({ posts, onPostSubmit }) => {
         onMapClick={handleMapClick} 
         onMapRightClick={() => setCoordinates(undefined)} 
         posts={filteredPosts} 
-        selectedTags={selectedTags} 
+        selectedTags={selectedTags}
+        taskbarVisible={taskbarVisible}
       />
       <Modal isOpen={isModalOpen} onClose={handleClose}>
           <PostForm onSubmit={handleSubmit} onClose={handleClose} initialCoordinates={coordinates}/>

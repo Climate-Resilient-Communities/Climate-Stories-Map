@@ -23,9 +23,10 @@ interface MapProps {
   onMapClick: (coordinates: [number, number], event: React.MouseEvent<HTMLDivElement>) => void;
   onMapRightClick?: () => void;
   selectedTags?: string[];
+  taskbarVisible?: boolean;
 }
 
-const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick }) => {
+const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskbarVisible = true }) => {
   const [canadaGeoJSON, setCanadaGeoJSON] = useState<any | null>(null);
   const [viewState, setViewState] = useState({
     longitude: -96.8283,  // Center of Canada
@@ -109,7 +110,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick }) => {
   };
 
   return (
-    <div className="map-container">
+    <div className={`map-container ${taskbarVisible ? '' : 'taskbar-hidden'}`}>
       <Map
         {...viewState}
         onMove={evt => setViewState(evt.viewState)}

@@ -23,6 +23,7 @@ const App: React.FC = () => {
   const [isPrivacyPolicyPopupOpen, setIsPrivacyPolicyPopupOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<ContentSection>('about');
   const [posts, setPosts] = useState<Post[]>([]);
+  const [isTaskbarVisible, setIsTaskbarVisible] = useState(true);
 
   const loadPosts = useCallback(async () => {
     try {
@@ -117,6 +118,7 @@ const App: React.FC = () => {
             onModClick={openModerationSection}
             onPrivacyPolicyClick={openPrivacyPolicyPopup}
             onTermsOfUseClick={openTermsOfUsePopup}
+            onVisibilityChange={setIsTaskbarVisible}
           />
           <main className="app-main">
             <WelcomePopup 
@@ -147,10 +149,15 @@ const App: React.FC = () => {
                     isModalOpen={isModalOpen}
                     setIsModalOpen={setIsModalOpen}
                     onPostSubmit={handlePostSubmit}
+                    taskbarVisible={isTaskbarVisible}
                   />
                 }
               />
-              <Route path="/" element={<MapWithForm posts={posts} onPostSubmit={handlePostSubmit}/>} />
+              <Route path="/" element={<MapWithForm 
+                posts={posts} 
+                onPostSubmit={handlePostSubmit}
+                taskbarVisible={isTaskbarVisible}
+              />} />
             </Routes>
           </main>
         </div>

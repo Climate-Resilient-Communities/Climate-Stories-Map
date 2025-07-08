@@ -3,8 +3,13 @@
   top: 0;
   right: 0;
   bottom: 0;
-  left: 250px; /* Match taskbar width */
+  left: 250px; /* This creates space for the taskbar */
   z-index: 1;
+  transition: left 0.3s ease-in-out;
+}
+
+.map-layout.taskbar-hidden {
+  left: 0;
 }
 
 /* Adjust for mobile portrait mode */
@@ -12,6 +17,11 @@
   .map-layout {
     top: 54px;
     left: 0;
+    transition: top 0.3s ease-in-out;
+  }
+
+  .map-layout.taskbar-hidden {
+    top: 0;
   }
 }
 
@@ -19,6 +29,10 @@
 @media screen and (max-width: 768px) and (orientation: landscape) {
   .map-layout {
     left: 200px;
+  }
+
+  .map-layout.taskbar-hidden {
+    left: 0;
   }
 }
 
@@ -60,7 +74,7 @@
   border-radius: 4px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   z-index: 1002;
-  max-width: 300px;
+  max-width: 350px;
 }
 
 .tag-search {

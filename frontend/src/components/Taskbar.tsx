@@ -9,6 +9,7 @@ interface TaskbarProps {
   onModClick?: () => void;
   onPrivacyPolicyClick?: () => void;
   onTermsOfUseClick?: () => void;
+  onVisibilityChange?: (isVisible: boolean) => void;
 }
 
 const Taskbar: React.FC<TaskbarProps> = ({ 
@@ -18,14 +19,21 @@ const Taskbar: React.FC<TaskbarProps> = ({
   onFaqClick,
   onModClick,
   onPrivacyPolicyClick,
-  onTermsOfUseClick
+  onTermsOfUseClick,
+  onVisibilityChange
 }) => {
   const [isVisible, setIsVisible] = useState(true);
+
+  const toggleVisibility = () => {
+    const newVisibility = !isVisible;
+    setIsVisible(newVisibility);
+    onVisibilityChange?.(newVisibility);
+  };
   return (
     <>
       <button 
         className={`taskbar-toggle-button ${isVisible ? 'expanded' : 'collapsed'}`}
-        onClick={() => setIsVisible(!isVisible)}
+        onClick={toggleVisibility}
         aria-label={isVisible ? 'Hide taskbar' : 'Show taskbar'}
       >
         {isVisible ? '◀' : '▶'}
