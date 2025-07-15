@@ -17,19 +17,11 @@
 [data-theme='winter'] html,
 [data-theme='winter'] body,
 [data-theme='winter'] #root {
-  background: linear-gradient(to bottom, #f8fbff 0%, #e8f4f8 30%, #d0e8f0 70%, #7bb3c7 100%) !important;
+  background: linear-gradient(to bottom, #E9ECED 0%, #6EC1E4 100%) !important;
   min-height: 100vh !important;
 }
 
-[data-theme='winter'] body {
-  background: linear-gradient(to bottom, #fff 0%, #b3d8ff 100%) !important;
-  background-color: #b3d8ff !important;
-}
 
-[data-theme='winter'] #root {
-  background: linear-gradient(135deg, #a8c8d8 0%, #7bb3c7 100%) !important;
-  min-height: 100vh;
-}
 
 [data-theme='winter'] .taskbar {
   background: white;
@@ -50,6 +42,7 @@
   width: 80px;
   padding: 30px 20px;
   transform: translateX(0) !important;
+  background-color:#587B9B;
   left: 20px !important;
   opacity: 1 !important;
   visibility: visible !important;
@@ -74,7 +67,7 @@
 
 [data-theme='winter'] .taskbar.hidden .taskbar-button:before {
   font-size: 20px;
-  color: #666666;
+  color: #FfFFFF;
 }
 
 [data-theme='winter'] .taskbar.hidden .taskbar-button:nth-child(1):before { content: '🗺️'; }
