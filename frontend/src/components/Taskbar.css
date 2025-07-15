@@ -1,9 +1,9 @@
 .taskbar {
-  background: #569BC4;
+  background: var(--primary-color);
   position: fixed;
   z-index: 1000;
   box-sizing: border-box;
-  transition: transform 0.3s ease-in-out;
+  transition: transform var(--transition-normal);
 }
 
 .taskbar.hidden {
@@ -17,19 +17,19 @@
 .taskbar-toggle-button {
   position: fixed;
   z-index: 1002;
-  background: #569BC4;
-  color: white;
+  background: var(--primary-color);
+  color: var(--background-color);
   border: none;
   padding: 10px;
   cursor: pointer;
   font-size: 16px;
-  border-radius: 0 4px 4px 0;
-  transition: all 0.3s ease-in-out;
-  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+  border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-sm);
 }
 
 .taskbar-toggle-button:hover {
-  background: #4a8ab0;
+  background: var(--primary-hover);
 }
 
 /* Desktop/Browser default - taskbar on the left */
@@ -40,7 +40,7 @@
     bottom: 0;
     width: 250px;
     height: 100vh;
-    border-right: 1px solid #569BC4;
+    border-right: 1px solid var(--primary-color);
   }
 
   .taskbar-toggle-button {
@@ -59,12 +59,12 @@
   .taskbar-content {
     height: 100%;
     width: 100%;
-    padding: 20px;
+    padding: var(--spacing-lg);
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
     align-items: flex-start;
-    gap: 20px;
+    gap: var(--spacing-lg);
     overflow-y: auto;
     box-sizing: border-box;
   }
@@ -79,7 +79,7 @@
       left: 0;
       right: 0;
       height: 54px;
-      border-bottom: 1px solid #569BC4;
+      border-bottom: 1px solid var(--primary-color);
       transform: translateY(0);
     }
 
@@ -105,7 +105,7 @@
       width: 100%;
       max-width: 100vw;
       margin: 0;
-      padding: 10px 20px;
+      padding: var(--spacing-sm) var(--spacing-lg);
       display: flex;
       flex-direction: row;
       justify-content: space-between;
@@ -123,7 +123,7 @@
       bottom: 0;
       width: 200px;
       height: 100vh;
-      border-right: 1px solid #569BC4;
+      border-right: 1px solid var(--primary-color);
     }
 
     .taskbar-toggle-button {
@@ -142,12 +142,12 @@
     .taskbar-content {
       height: 100%;
       width: 100%;
-      padding: 15px;
+      padding: var(--spacing-md);
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
       align-items: flex-start;
-      gap: 15px;
+      gap: var(--spacing-md);
       overflow-y: auto;
       box-sizing: border-box;
     }
@@ -156,29 +156,29 @@
 
 @media (max-width: 480px) {
   .taskbar-content {
-    padding: 10px;
+    padding: var(--spacing-sm);
   }
 }
 
 .taskbar-title {
-  color: white;
+  color: var(--background-color);
   font-weight: bold;
   font-size: 18px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding: 5px 0;
+  padding: var(--spacing-xs) 0;
 }
 
 /* Override the global hover effect for taskbar links */
 .taskbar-title:hover {
-  color: white;
+  color: var(--background-color);
   background-color: rgba(255, 255, 255, 0.1);
 }
 
 .taskbar-buttons {
   display: flex;
-  gap: 15px;
+  gap: var(--spacing-md);
   flex-shrink: 0;
 }
 
@@ -187,7 +187,7 @@
   .taskbar-buttons {
     flex-direction: column;
     width: 100%;
-    gap: 10px;
+    gap: var(--spacing-sm);
   }
 
   .taskbar-button {
@@ -202,20 +202,20 @@
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: flex-end;
-    gap: 8px;
+    gap: var(--spacing-xs);
   }
 
   .taskbar-title {
-    padding: 5px 10px;
+    padding: var(--spacing-xs) var(--spacing-sm);
   }
 }
 
 .taskbar-button {
-  color: white;
+  color: var(--background-color);
   text-decoration: none;
-  padding: 8px 12px;
-  border-radius: 4px;
-  transition: background-color 0.2s;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  transition: background-color var(--transition-fast);
   white-space: nowrap;
   background: none;
   border: none;
@@ -229,15 +229,85 @@
 }
 
 .taskbar-button:hover {
-  color: white;
+  color: var(--background-color);
   background-color: rgba(255, 255, 255, 0.1);
+}
+
+.theme-selector {
+  position: relative;
+  width: 100%;
+}
+
+.theme-toggle {
+  font-size: 1.2em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  background-color: rgba(255, 255, 255, 0.1);
+  width: 100%;
+}
+
+.theme-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.theme-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  box-shadow: var(--shadow-md);
+  z-index: 1000;
+  margin-top: var(--spacing-xs);
+  overflow: hidden;
+}
+
+.theme-option {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: none;
+  background: none;
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  transition: background-color var(--transition-fast);
+}
+
+.theme-option:hover {
+  background-color: var(--border-color);
+}
+
+.theme-option.active {
+  background-color: var(--primary-color);
+  color: var(--background-color);
+}
+
+/* Mobile portrait mode adjustments */
+@media screen and (max-width: 768px) and (orientation: portrait) {
+  .theme-selector {
+    width: auto;
+  }
+
+  .theme-menu {
+    right: 0;
+    left: auto;
+    min-width: 150px;
+  }
 }
 
 /* Mobile portrait mode specific button styles */
 @media screen and (max-width: 768px) and (orientation: portrait) {
   .taskbar-button {
     width: auto;
-    padding: 5px 8px;
+    padding: var(--spacing-xs) var(--spacing-sm);
     font-size: 0.9em;
   }
 }
@@ -255,7 +325,7 @@
   }
 
   .taskbar-button {
-    padding: 5px 6px;
+    padding: var(--spacing-xs) var(--spacing-xs);
     font-size: 0.85em;
   }
 }

@@ -1,5 +1,5 @@
 .tag-filter {
-  background-color: var(--background-color-light, white);
+  background-color: var(--surface-color);
   padding: 15px;
   border-radius: 5px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -14,24 +14,24 @@
   margin-top: 0;
   margin-bottom: 10px;
   font-size: 1.2em;
-  color: var(--text-color, #333);
+  color: var(--text-primary);
 }
 
 .tag-search {
   padding: 10px;
   border-radius: 5px;
-  border: 1px solid #569BC4;
+  border: 1px solid var(--primary-color);
   width: 100%;
   box-sizing: border-box;
-  color: #333;
-  background-color: #f8f9fa;
+  color: var(--text-primary);
+  background-color: var(--surface-color);
   margin-bottom: 10px;
 }
 
 .filter-description {
   margin-bottom: 15px;
   font-size: 0.9em;
-  color: #666;
+  color: var(--text-secondary);
   font-style: italic;
 }
 
@@ -50,38 +50,60 @@
 }
 
 .tag-buttons::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--scrollbar-track);
   border-radius: 4px;
 }
 
 .tag-buttons::-webkit-scrollbar-thumb {
-  background: #ddd;
+  background: var(--secondary-color);
   border-radius: 4px;
 }
 
 .tag-buttons::-webkit-scrollbar-thumb:hover {
-  background: #ccc;
+  background: var(--primary-hover);
 }
 
 .tag-button {
   padding: 5px 10px;
   border-radius: 15px;
-  border: 1px solid #ddd;
-  background-color: rgb(113, 113, 113);
+  border: 1px solid var(--border-color);
+  background-color: var(--surface-color);
+  color: var(--text-primary);
   cursor: pointer;
   font-size: 0.9em;
-  transition: all 0.2s;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 1px 2px var(--shadow-color);
+}
+
+.tag-button:hover {
+  background-color: var(--hover-background);
+  border-color: var(--primary-color);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+.tag-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--primary-color);
+  border-color: var(--primary-color);
 }
 
 .tag-button.selected {
-  background-color: #4a90e2;
-  color: white;
-  border-color: #4a90e2;
+  background-color: var(--primary-color);
+  color: var(--surface-color);
+  border-color: var(--primary-color);
+  box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+.tag-button.selected:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px var(--shadow-color);
 }
 
 .clear-filters {
-  background-color: #f44336;
-  color: white;
+  background-color: var(--primary-color);
+  color: var(--surface-color);
   border: none;
   padding: 5px 10px;
   border-radius: 4px;
@@ -91,5 +113,5 @@
 }
 
 .clear-filters:hover {
-  background-color: #d32f2f;
+  background-color: var(--primary-hover);
 }

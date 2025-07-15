@@ -1,0 +1,15 @@
+@import './base.css';
+
+:root[data-theme='summer'] {
+  --primary-color: #f59e0b;
+  --primary-hover: #d97706;
+  --secondary-color: #dc2626;
+  --background-color: #fffbeb;
+  --surface-color: #fef3c7;
+  --text-primary: #92400e;
+  --text-secondary: #b45309;
+  --border-color: #fed7aa;
+  --scrollbar-track: #fef3c7;
+  --shadow-color: rgba(245, 158, 11, 0.1);
+  --hover-background: #fed7aa;
+}

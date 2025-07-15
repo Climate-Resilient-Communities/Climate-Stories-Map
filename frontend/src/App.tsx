@@ -1,6 +1,7 @@
 // App.tsx
 import { useCallback, useEffect, useState } from 'react';
 import { NotificationProvider } from './components/common/NotificationContext';
+import { ThemeProvider } from './themes/ThemeContext';
 
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import './App.css';
@@ -36,13 +37,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     loadPosts();
-    
-    // Check if this is the first visit
-    //const hasVisited = localStorage.getItem('hasVisited');
-    //if (!hasVisited) {
-      setIsWelcomePopupOpen(true);
-      //localStorage.setItem('hasVisited', 'true');
-    //}
+    setIsWelcomePopupOpen(true);
   }, [loadPosts]);
     
   const handlePostSubmit = async (formData: any): Promise<void> => {
@@ -104,65 +99,67 @@ const App: React.FC = () => {
   };
 
   return (
-    <NotificationProvider>
-      <Router>
-        <div className="app-container">
-          {isWelcomePopupOpen && (
-            <div className="welcome-overlay" />
-          )}
-          <Taskbar 
-            onStoryClick={openStorySection}
-            onAboutClick={openAboutSection}
-            onContactClick={openContactSection}
-            onFaqClick={openFaqSection}
-            onModClick={openModerationSection}
-            onPrivacyPolicyClick={openPrivacyPolicyPopup}
-            onTermsOfUseClick={openTermsOfUsePopup}
-            onVisibilityChange={setIsTaskbarVisible}
-          />
-          <main className="app-main">
-            <WelcomePopup 
-              isOpen={isWelcomePopupOpen}
-              onClose={() => setIsWelcomePopupOpen(false)}
+    <ThemeProvider>
+      <NotificationProvider>
+        <Router>
+          <div className="app-container">
+            {isWelcomePopupOpen && (
+              <div className="welcome-overlay" />
+            )}
+            <Taskbar 
+              onStoryClick={openStorySection}
+              onAboutClick={openAboutSection}
+              onContactClick={openContactSection}
+              onFaqClick={openFaqSection}
+              onModClick={openModerationSection}
+              onPrivacyPolicyClick={openPrivacyPolicyPopup}
+              onTermsOfUseClick={openTermsOfUsePopup}
+              onVisibilityChange={setIsTaskbarVisible}
             />
-            <InformationPopup
-              isOpen={isInfoPopupOpen}
-              onClose={closeInfoPopup}
-              activeSection={activeSection}
-              openTermsOfUse={openTermsOfUsePopup}
-              openPrivacyPolicy={openPrivacyPolicyPopup}
-            />
-            <TermsOfUsePopUp
-              isOpen={isTermsOfUsePopupOpen}
-              onClose={closeTermsOfUsePopup}
-            />
-            <PrivacyPolicyPopup
-              isOpen={isPrivacyPolicyPopupOpen}
-              onClose={closePrivacyPolicyPopup}
-            />
-            <Routes>
-              <Route
-                path="/posts"
-                element={
-                  <Home
-                    posts={posts}
-                    isModalOpen={isModalOpen}
-                    setIsModalOpen={setIsModalOpen}
-                    onPostSubmit={handlePostSubmit}
-                    taskbarVisible={isTaskbarVisible}
-                  />
-                }
+            <main className="app-main">
+              <WelcomePopup 
+                isOpen={isWelcomePopupOpen}
+                onClose={() => setIsWelcomePopupOpen(false)}
               />
-              <Route path="/" element={<MapWithForm 
-                posts={posts} 
-                onPostSubmit={handlePostSubmit}
-                taskbarVisible={isTaskbarVisible}
-              />} />
-            </Routes>
-          </main>
-        </div>
-      </Router>
-    </NotificationProvider>
+              <InformationPopup
+                isOpen={isInfoPopupOpen}
+                onClose={closeInfoPopup}
+                activeSection={activeSection}
+                openTermsOfUse={openTermsOfUsePopup}
+                openPrivacyPolicy={openPrivacyPolicyPopup}
+              />
+              <TermsOfUsePopUp
+                isOpen={isTermsOfUsePopupOpen}
+                onClose={closeTermsOfUsePopup}
+              />
+              <PrivacyPolicyPopup
+                isOpen={isPrivacyPolicyPopupOpen}
+                onClose={closePrivacyPolicyPopup}
+              />
+              <Routes>
+                <Route
+                  path="/posts"
+                  element={
+                    <Home
+                      posts={posts}
+                      isModalOpen={isModalOpen}
+                      setIsModalOpen={setIsModalOpen}
+                      onPostSubmit={handlePostSubmit}
+                      taskbarVisible={isTaskbarVisible}
+                    />
+                  }
+                />
+                <Route path="/" element={<MapWithForm 
+                  posts={posts} 
+                  onPostSubmit={handlePostSubmit}
+                  taskbarVisible={isTaskbarVisible}
+                />} />
+              </Routes>
+            </main>
+          </div>
+        </Router>
+      </NotificationProvider>
+    </ThemeProvider>
   );
 };
 

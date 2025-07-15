@@ -1,0 +1,15 @@
+@import './base.css';
+
+:root[data-theme='spring'] {
+  --primary-color: #22c55e;
+  --primary-hover: #16a34a;
+  --secondary-color: #65a30d;
+  --background-color: #f0fdf4;
+  --surface-color: #dcfce7;
+  --text-primary: #14532d;
+  --text-secondary: #166534;
+  --border-color: #bbf7d0;
+  --scrollbar-track: #dcfce7;
+  --shadow-color: rgba(34, 197, 94, 0.1);
+  --hover-background: #bbf7d0;
+}

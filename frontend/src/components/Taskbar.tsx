@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTheme } from '../themes/ThemeContext';
 import './Taskbar.css';
 
 interface TaskbarProps {
@@ -12,6 +13,13 @@ interface TaskbarProps {
   onVisibilityChange?: (isVisible: boolean) => void;
 }
 
+const themeIcons = {
+  'winter': '❄️',
+  'spring': '🌸',
+  'summer': '☀️',
+  'fall': '🍂'
+};
+
 const Taskbar: React.FC<TaskbarProps> = ({ 
   onStoryClick,
   onAboutClick, 
@@ -23,12 +31,24 @@ const Taskbar: React.FC<TaskbarProps> = ({
   onVisibilityChange
 }) => {
   const [isVisible, setIsVisible] = useState(true);
+  const { theme, setTheme, availableThemes } = useTheme();
+  const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
 
   const toggleVisibility = () => {
     const newVisibility = !isVisible;
     setIsVisible(newVisibility);
     onVisibilityChange?.(newVisibility);
   };
+
+  const handleThemeClick = () => {
+    setIsThemeMenuOpen(!isThemeMenuOpen);
+  };
+
+  const handleThemeSelect = (newTheme: string) => {
+    setTheme(newTheme as any);
+    setIsThemeMenuOpen(false);
+  };
+
   return (
     <>
       <button 
@@ -42,13 +62,33 @@ const Taskbar: React.FC<TaskbarProps> = ({
         <div className="taskbar-content">
           <a className="taskbar-title">Climate Stories Map</a>
           <div className="taskbar-buttons">
-            <button className="taskbar-button" onClick={onStoryClick}>How To Use</button>
+            <button className="taskbar-button" onClick={onStoryClick}>How to use</button>
             <button className="taskbar-button" onClick={onAboutClick}>About</button>
-            <button className="taskbar-button" onClick={onContactClick}>Contact Us</button>
-            <button className="taskbar-button" onClick={onFaqClick}>FAQs</button>
+            <button className="taskbar-button" onClick={onFaqClick}>FAQ's</button>
             <button className="taskbar-button" onClick={onModClick}>Moderation</button>
-            <button className="taskbar-button" onClick={onPrivacyPolicyClick}>Privacy Policy</button>
-            <button className="taskbar-button" onClick={onTermsOfUseClick}>Terms of Use</button>
+            <div className="theme-selector">
+              <button 
+                className="taskbar-button theme-toggle" 
+                onClick={handleThemeClick}
+                aria-label="Change theme"
+                aria-expanded={isThemeMenuOpen}
+              >
+                {themeIcons[theme as keyof typeof themeIcons]}
+              </button>
+              {isThemeMenuOpen && (
+                <div className="theme-menu">
+                  {availableThemes.map((themeName) => (
+                    <button
+                      key={themeName}
+                      className={`theme-option ${theme === themeName ? 'active' : ''}`}
+                      onClick={() => handleThemeSelect(themeName)}
+                    >
+                      {themeIcons[themeName as keyof typeof themeIcons]} {themeName}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </nav>

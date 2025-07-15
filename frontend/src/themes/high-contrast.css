@@ -1,0 +1,13 @@
+@import './base.css';
+
+:root[data-theme='high-contrast'] {
+  --primary-color: #FFD700;
+  --primary-hover: #FFA500;
+  --secondary-color: #FFFFFF;
+  --background-color: #000000;
+  --surface-color: #1A1A1A;
+  --text-primary: #FFFFFF;
+  --text-secondary: #FFD700;
+  --border-color: #FFFFFF;
+  --scrollbar-track: #1A1A1A;
+}

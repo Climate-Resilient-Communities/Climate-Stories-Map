@@ -1,0 +1,179 @@
+@import './base.css';
+
+:root[data-theme='winter'] {
+  --primary-color: #4a90a4;
+  --primary-hover: #3a7a8a;
+  --secondary-color: #6ba3b8;
+  --background-color: #a8c8d8;
+  --surface-color: #ffffff;
+  --text-primary: #2c4a54;
+  --text-secondary: #666666;
+  --border-color: rgba(255, 255, 255, 0.3);
+  --scrollbar-track: #c8d8e8;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --hover-background: #f0f8ff;
+}
+
+[data-theme='winter'] html,
+[data-theme='winter'] body,
+[data-theme='winter'] #root {
+  background: linear-gradient(to bottom, #f8fbff 0%, #e8f4f8 30%, #d0e8f0 70%, #7bb3c7 100%) !important;
+  min-height: 100vh !important;
+}
+
+[data-theme='winter'] body {
+  background: linear-gradient(to bottom, #fff 0%, #b3d8ff 100%) !important;
+  background-color: #b3d8ff !important;
+}
+
+[data-theme='winter'] #root {
+  background: linear-gradient(135deg, #a8c8d8 0%, #7bb3c7 100%) !important;
+  min-height: 100vh;
+}
+
+[data-theme='winter'] .taskbar {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: none;
+  margin: 20px;
+  padding: 40px 30px;
+  width: 250px;
+  height: calc(100vh - 40px);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+[data-theme='winter'] .taskbar.hidden {
+  width: 80px;
+  padding: 30px 20px;
+  transform: translateX(0) !important;
+  left: 20px !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+[data-theme='winter'] .taskbar-toggle-button.collapsed {
+  left: 105px;
+}
+
+[data-theme='winter'] .taskbar.hidden .taskbar-title {
+  display: none;
+}
+
+[data-theme='winter'] .taskbar.hidden .taskbar-button {
+  font-size: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
+  margin-bottom: 20px;
+}
+
+[data-theme='winter'] .taskbar.hidden .taskbar-button:before {
+  font-size: 20px;
+  color: #666666;
+}
+
+[data-theme='winter'] .taskbar.hidden .taskbar-button:nth-child(1):before { content: '🗺️'; }
+[data-theme='winter'] .taskbar.hidden .taskbar-button:nth-child(2):before { content: '+'; }
+[data-theme='winter'] .taskbar.hidden .taskbar-button:nth-child(3):before { content: '#'; }
+[data-theme='winter'] .taskbar.hidden .taskbar-button:nth-child(4):before { content: '?'; }
+[data-theme='winter'] .taskbar.hidden .taskbar-button:nth-child(5):before { content: '❄️'; }
+[data-theme='winter'] .taskbar.hidden .taskbar-button:nth-child(6):before { content: '💡'; }
+
+[data-theme='winter'] .taskbar.hidden .taskbar-buttons {
+  justify-content: space-between;
+  height: 100%;
+}
+
+[data-theme='winter'] .taskbar.hidden .taskbar-button:nth-child(5),
+[data-theme='winter'] .taskbar.hidden .taskbar-button:nth-child(6) {
+  margin-top: auto;
+}
+
+[data-theme='winter'] .taskbar.hidden .taskbar-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+[data-theme='winter'] .taskbar.hidden .taskbar-button:nth-child(4),
+[data-theme='winter'] .taskbar.hidden .taskbar-button:nth-child(5),
+[data-theme='winter'] .taskbar.hidden .taskbar-button:nth-child(6) {
+  margin-top: 0;
+}
+
+
+[data-theme='winter'] .taskbar-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+[data-theme='winter'] .taskbar-title {
+  font-size: 15px;
+  font-weight: bold;
+  color: #4a90a4;
+  margin: 0 0 10px 0;
+  line-height: 1.1;
+}
+
+[data-theme='winter'] .taskbar-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+[data-theme='winter'] .taskbar-button {
+  background: transparent;
+  border: none;
+  color: #666666;
+  font-size: 16px;
+  padding: 0;
+  text-align: left;
+  width: 100%;
+  border-radius: 0;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+[data-theme='winter'] .taskbar-button:hover {
+  background: transparent;
+  color: #4a90a4;
+}
+
+[data-theme='winter'] .modal-content,
+[data-theme='winter'] .filter-overlay,
+[data-theme='winter'] .story-form {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: none;
+}
+
+[data-theme='winter'] .map-container {
+  margin: 10px 10px 10px 150px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  height: calc(100vh - 40px);
+  width: calc(100% - 150px);
+  transition: all 0.3s ease;
+}
+
+[data-theme='winter'] .map-container.taskbar-hidden {
+  margin-left: 0px;
+}
+
+[data-theme='winter'] .leaflet-container {
+  border-radius: 20px;
+  height: 100%;
+}
+
+[data-theme='winter'] .taskbar.hidden .create-post-button {
+  left: 20px;
+}

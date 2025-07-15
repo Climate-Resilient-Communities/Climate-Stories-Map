@@ -1,0 +1,15 @@
+@import './base.css';
+
+:root[data-theme='light'] {
+  --primary-color: #2563eb;
+  --primary-hover: #1d4ed8;
+  --secondary-color: #64748b;
+  --background-color: #ffffff;
+  --surface-color: #f8fafc;
+  --text-primary: #1e293b;
+  --text-secondary: #475569;
+  --border-color: #e2e8f0;
+  --scrollbar-track: #f1f1f1;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --hover-background: #f1f5f9;
+}
