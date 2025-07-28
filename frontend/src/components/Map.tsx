@@ -5,7 +5,6 @@ import './Map.css';
 import './MapPopup.css';
 import { Post } from './posts/types';
 import { isPointInPolygon } from '../utils/map-utils';
-import NotificationPopup from './common/NotificationPopup';
 import { useNotification } from './common/NotificationContext';
 
 // Replace this with your actual Mapbox access token
@@ -24,9 +23,10 @@ interface MapProps {
   onMapRightClick?: () => void;
   selectedTags?: string[];
   taskbarVisible?: boolean;
+  isCreatePostMode?: boolean;
 }
 
-const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskbarVisible = true }) => {
+const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskbarVisible = true, isCreatePostMode = false }) => {
   const [canadaGeoJSON, setCanadaGeoJSON] = useState<any | null>(null);
   const [viewState, setViewState] = useState({
     longitude: -96.8283,  // Center of Canada
@@ -54,7 +54,6 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
     }
   }, []);
   const [popupInfo, setPopupInfo] = useState<Post | null>(null);
-  const [clickedLocation, setClickedLocation] = useState<[number, number] | null>(null);
   
   const colorMapRef = useRef<Record<string, string>>({});
 
@@ -85,12 +84,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
       .catch((err) => console.error('Failed to load GeoJSON', err));
   }, []);
 
-  useEffect(() => {
-    // Clear the clicked location when coordinates are used in form submission
-    if (!onMapClick) {
-      setClickedLocation(null);
-    }
-  }, [onMapClick]);
+
 
   const handleClick = (event: any) => {
     const coordinates: [number, number] = [event.lngLat.lng, event.lngLat.lat];
@@ -101,7 +95,6 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
       if (isInsideCanada) {
         const roundedLng = parseFloat(coordinates[0].toFixed(5));
         const roundedLat = parseFloat(coordinates[1].toFixed(5));
-        setClickedLocation([roundedLng, roundedLat]);
         onMapClick([roundedLng, roundedLat], event.originalEvent);
       } else {
         showNotification('You can only click within Canada!', true);
@@ -110,7 +103,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
   };
 
   return (
-    <div className={`map-container ${taskbarVisible ? '' : 'taskbar-hidden'}`}>
+    <div className={`map-container ${taskbarVisible ? '' : 'taskbar-hidden'}${isCreatePostMode ? ' create-post-mode' : ''}`}>
       <Map
         {...viewState}
         onMove={evt => setViewState(evt.viewState)}
@@ -122,7 +115,6 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
           e.preventDefault();
           if (onMapRightClick) {
             onMapRightClick();
-            setClickedLocation(null);
           }
         }}
         minZoom={4}
@@ -134,14 +126,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
       >
         <NavigationControl />
 
-        {clickedLocation && (
-          <Marker
-            longitude={clickedLocation[0]}
-            latitude={clickedLocation[1]}
-            anchor="bottom"
-            color="rgb(68, 66, 66)"
-          />
-        )}
+
         
         {posts.map((post) => {
           // Use the stored color from colorMapRef if available, otherwise calculate it

@@ -22,13 +22,25 @@ const MapWithForm: React.FC<MapWithFormProps> = ({ posts, onPostSubmit, taskbarV
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [isCreatePostMode, setIsCreatePostMode] = useState(false);
 
   const toggleFilterVisibility = () => {
     setIsFilterVisible(prevState => !prevState);
   };
 
   const handleMapClick = (coords: [number, number]) => {
-    setCoordinates(coords);
+    if (isCreatePostMode) {
+      setCoordinates(coords);
+      setIsModalOpen(true);
+      setIsCreatePostMode(false);
+    }
+  };
+
+  const handleMapRightClick = () => {
+    if (isCreatePostMode) {
+      setIsCreatePostMode(false);
+    }
+    setCoordinates(undefined);
   };
 
   const handleClose = React.useCallback(() => {
@@ -63,10 +75,10 @@ const MapWithForm: React.FC<MapWithFormProps> = ({ posts, onPostSubmit, taskbarV
   }, [posts, selectedTags]);
 
   return (  
-    <div className="map-container">
+    <div className={`map-container${isCreatePostMode ? ' create-post-mode' : ''}`}>
       <CreatePostButton 
-        onClick={() => setIsModalOpen(true)}
-        disabled={!coordinates}
+        onClick={() => setIsCreatePostMode(true)}
+        disabled={false}
         taskbarVisible={taskbarVisible}
       />
       <button 
@@ -93,10 +105,11 @@ const MapWithForm: React.FC<MapWithFormProps> = ({ posts, onPostSubmit, taskbarV
       
       <CRCMap 
         onMapClick={handleMapClick} 
-        onMapRightClick={() => setCoordinates(undefined)} 
+        onMapRightClick={handleMapRightClick} 
         posts={filteredPosts} 
         selectedTags={selectedTags}
         taskbarVisible={taskbarVisible}
+        isCreatePostMode={isCreatePostMode}
       />
       <Modal isOpen={isModalOpen} onClose={handleClose}>
           <PostForm onSubmit={handleSubmit} onClose={handleClose} initialCoordinates={coordinates}/>
