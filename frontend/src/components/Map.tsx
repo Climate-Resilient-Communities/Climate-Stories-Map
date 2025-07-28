@@ -6,6 +6,7 @@ import './MapPopup.css';
 import { Post } from './posts/types';
 import { isPointInPolygon } from '../utils/map-utils';
 import { useNotification } from './common/NotificationContext';
+import { useTheme } from '../themes/ThemeContext';
 
 // Replace this with your actual Mapbox access token
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
@@ -34,6 +35,11 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
     zoom: 4
   });
   const { showNotification } = useNotification();
+  const { theme } = useTheme();
+
+  const getMapStyle = () => {
+    return theme === 'winter' ? 'mapbox://styles/yorudan/cmdng88pw003p01rv4hsmhmm7' : 'mapbox://styles/mapbox/streets-v12';
+  };
 
   useEffect(() => {
     if ("geolocation" in navigator) {
@@ -108,7 +114,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
         {...viewState}
         onMove={evt => setViewState(evt.viewState)}
         style={{ width: '100%', height: '100%' }}
-        mapStyle="mapbox://styles/mapbox/streets-v12"
+        mapStyle={getMapStyle()}
         mapboxAccessToken={MAPBOX_TOKEN}
         onClick={handleClick}
         onContextMenu={(e) => {

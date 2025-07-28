@@ -15,6 +15,7 @@ import WelcomePopup from './components/WelcomePopup';
 import InformationPopup, { ContentSection } from './components/InformationPopup';
 import TermsOfUsePopUp from './components/TermsOfUsePopUp';
 import PrivacyPolicyPopup from './components/PrivacyPolicyPopup';
+import CreatePostInstructionsPopup from './components/CreatePostInstructionsPopup';
 
 const App: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -25,6 +26,10 @@ const App: React.FC = () => {
   const [activeSection, setActiveSection] = useState<ContentSection>('about');
   const [posts, setPosts] = useState<Post[]>([]);
   const [isTaskbarVisible, setIsTaskbarVisible] = useState(true);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [isFilterVisible, setIsFilterVisible] = useState(false);
+  const [isCreatePostMode, setIsCreatePostMode] = useState(false);
+  const [isInstructionsPopupOpen, setIsInstructionsPopupOpen] = useState(false);
 
   const loadPosts = useCallback(async () => {
     try {
@@ -98,6 +103,31 @@ const App: React.FC = () => {
     setIsPrivacyPolicyPopupOpen(false);
   };
 
+  const handleCreatePost = () => {
+    const dontShowInstructions = localStorage.getItem('dontShowCreatePostInstructions') === 'true';
+    if (dontShowInstructions) {
+      setIsCreatePostMode(true);
+    } else {
+      setIsInstructionsPopupOpen(true);
+    }
+  };
+
+  const handleInstructionsNext = (dontShowAgain: boolean) => {
+    if (dontShowAgain) {
+      localStorage.setItem('dontShowCreatePostInstructions', 'true');
+    }
+    setIsInstructionsPopupOpen(false);
+    setIsCreatePostMode(true);
+  };
+
+  const resetCreatePostMode = () => {
+    setIsCreatePostMode(false);
+  };
+
+  const handleToggleFilter = () => {
+    setIsFilterVisible(!isFilterVisible);
+  };
+
   return (
     <ThemeProvider>
       <NotificationProvider>
@@ -115,6 +145,12 @@ const App: React.FC = () => {
               onPrivacyPolicyClick={openPrivacyPolicyPopup}
               onTermsOfUseClick={openTermsOfUsePopup}
               onVisibilityChange={setIsTaskbarVisible}
+              onCreatePost={handleCreatePost}
+              posts={posts}
+              selectedTags={selectedTags}
+              onTagSelect={setSelectedTags}
+              isFilterVisible={isFilterVisible}
+              onToggleFilter={handleToggleFilter}
             />
             <main className="app-main">
               <WelcomePopup 
@@ -136,6 +172,11 @@ const App: React.FC = () => {
                 isOpen={isPrivacyPolicyPopupOpen}
                 onClose={closePrivacyPolicyPopup}
               />
+              <CreatePostInstructionsPopup
+                isOpen={isInstructionsPopupOpen}
+                onClose={() => setIsInstructionsPopupOpen(false)}
+                onNext={handleInstructionsNext}
+              />
               <Routes>
                 <Route
                   path="/posts"
@@ -153,6 +194,12 @@ const App: React.FC = () => {
                   posts={posts} 
                   onPostSubmit={handlePostSubmit}
                   taskbarVisible={isTaskbarVisible}
+                  selectedTags={selectedTags}
+                  onTagSelect={setSelectedTags}
+                  isFilterVisible={isFilterVisible}
+                  onToggleFilter={handleToggleFilter}
+                  createPostTrigger={isCreatePostMode}
+                  onCreatePostTriggered={resetCreatePostMode}
                 />} />
               </Routes>
             </main>

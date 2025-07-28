@@ -1,32 +1,40 @@
 import React, { useState } from 'react';
 import CRCMap from './Map';
 import PostForm from './posts/PostForm';
-import TagFilter from './posts/TagFilter';
 import './MapWithForm.css';
-import './posts/TagFilter.css';
-import './FilterButton.css';
 import Modal from './common/Modal';
 import { Post } from './posts/types';
-import { FaFilter } from 'react-icons/fa';
-import CreatePostButton from './posts/CreatePostButton';
 
 interface MapWithFormProps {
   posts: Post[];
   onPostSubmit: (formData: any) => void;
   taskbarVisible?: boolean;
+  createPostTrigger?: boolean;
+  onCreatePostTriggered?: () => void;
+  selectedTags?: string[];
+  onTagSelect?: (tags: string[]) => void;
+  isFilterVisible?: boolean;
 }
 
-const MapWithForm: React.FC<MapWithFormProps> = ({ posts, onPostSubmit, taskbarVisible = true }) => {
+const MapWithForm: React.FC<MapWithFormProps> = ({ 
+  posts, 
+  onPostSubmit, 
+  taskbarVisible = true,
+  createPostTrigger,
+  onCreatePostTriggered,
+  selectedTags: externalSelectedTags,
+  onTagSelect: externalOnTagSelect
+}) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [coordinates, setCoordinates] = useState<[number, number] | undefined>(undefined);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [isFilterVisible, setIsFilterVisible] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
+  const [selectedTags, setSelectedTags] = useState<string[]>(externalSelectedTags || []);
+
   const [isCreatePostMode, setIsCreatePostMode] = useState(false);
 
-  const toggleFilterVisibility = () => {
-    setIsFilterVisible(prevState => !prevState);
-  };
+  React.useEffect(() => {
+    if (externalSelectedTags) setSelectedTags(externalSelectedTags);
+  }, [externalSelectedTags]);
+
 
   const handleMapClick = (coords: [number, number]) => {
     if (isCreatePostMode) {
@@ -35,6 +43,22 @@ const MapWithForm: React.FC<MapWithFormProps> = ({ posts, onPostSubmit, taskbarV
       setIsCreatePostMode(false);
     }
   };
+
+  React.useEffect(() => {
+    if (createPostTrigger) {
+      setIsCreatePostMode(true);
+      if (onCreatePostTriggered) {
+        onCreatePostTriggered();
+      }
+    }
+  }, [createPostTrigger, onCreatePostTriggered]);
+
+  const handleTagSelect = (tags: string[]) => {
+    setSelectedTags(tags);
+    if (externalOnTagSelect) externalOnTagSelect(tags);
+  };
+
+
 
   const handleMapRightClick = () => {
     if (isCreatePostMode) {
@@ -76,33 +100,6 @@ const MapWithForm: React.FC<MapWithFormProps> = ({ posts, onPostSubmit, taskbarV
 
   return (  
     <div className={`map-container${isCreatePostMode ? ' create-post-mode' : ''}`}>
-      <CreatePostButton 
-        onClick={() => setIsCreatePostMode(true)}
-        disabled={false}
-        taskbarVisible={taskbarVisible}
-      />
-      <button 
-        className={`filter-toggle-button ${!taskbarVisible ? 'taskbar-hidden' : ''}`}
-        onClick={toggleFilterVisibility}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        style={{ 
-          minWidth: isHovered ? 'auto' : '36px'
-        }}
-      >
-        <FaFilter />{isHovered && ' Filter by Tags'}
-      </button>
-      
-      {isFilterVisible && (
-        <div className={`filter-overlay ${!taskbarVisible ? 'taskbar-hidden' : ''}`}>
-          <TagFilter 
-            posts={posts} 
-            selectedTags={selectedTags} 
-            onTagSelect={setSelectedTags} 
-          />
-        </div>
-      )}
-      
       <CRCMap 
         onMapClick={handleMapClick} 
         onMapRightClick={handleMapRightClick} 

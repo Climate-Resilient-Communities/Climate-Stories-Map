@@ -4,6 +4,7 @@ import HCaptcha from '@hcaptcha/react-hcaptcha';
 import { PostFormData } from './types';
 import './PostForm.css';
 import { useNotification } from '../common/NotificationContext';
+import { useTheme } from '../../themes/ThemeContext';
 import PrivacyPolicyPopup from '../PrivacyPolicyPopup';
 import TermsOfUsePopUp from '../TermsOfUsePopUp';
 
@@ -19,6 +20,7 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
   const captchaRef = React.useRef<HCaptcha>(null);
   const [isActive, setIsActive] = useState(true);
   const { showNotification } = useNotification();
+  const { theme } = useTheme();
   const [isAgreedToAll, setIsAgreedToAll] = useState(false);
   const [isPrivacyPolicyOpen, setIsPrivacyPolicyOpen] = useState(false);
   const [isTermsOfUseOpen, setIsTermsOfUseOpen] = useState(false);
@@ -161,9 +163,89 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
     }));
   }, []);
 
-  return (
-    <>
-      <form className="post-form" onSubmit={handleSubmit}> 
+  const renderWinterForm = () => (
+    <form className="post-form" onSubmit={handleSubmit}>
+      <div className="post-form-left">
+        <div className="post-form-icon">🌲</div>
+      </div>
+      <div className="post-form-right">
+        <h2 className="post-form-title">Share your Climate Story</h2>
+        
+        <div className="tag-checkboxes">
+          {MAIN_TAGS.map((tag) => (
+            <label key={tag} className="tag-checkbox">
+              <input
+                type="checkbox"
+                checked={formData.tag === tag}
+                onChange={() => setFormData(prev => ({ ...prev, tag: formData.tag === tag ? '-' : tag }))}
+              />
+              {tag}
+            </label>
+          ))}
+        </div>
+
+        <input
+          type="text"
+          name="title"
+          placeholder="Title"
+          value={formData.title}
+          onChange={handleChange}
+          required
+        />
+        
+        <textarea
+          name="description"
+          placeholder="Description"
+          value={formData.content.description}
+          onChange={handleChange}
+          required
+        />
+        
+        <input
+          type="text"
+          name="optionalTags"
+          placeholder="Add Tags"
+          value={formData.optionalTags}
+          onChange={handleChange}
+        />
+        <div className="checkbox-container">
+          <div className="checkbox-row">
+            <label className="checkbox-label">
+              <input 
+                type="checkbox" 
+                checked={isAgreedToAll} 
+                onChange={handleAgreementCheckboxChange} 
+              />
+              <span>By clicking this, you agree to the following:</span>
+            </label>
+          </div>
+          <ul className="agreement-list">
+            <li>I certify that I meet the age requirements (13+ or with parental/guardian consent if under 18)</li>
+            <li>I have read and agreed to the <a href="#" onClick={openPrivacyPolicy}>Privacy Policy</a></li>
+            <li>I have read and agreed to the <a href="#" onClick={openTermsOfUse}>Terms of Use</a></li>
+          </ul>
+        </div>
+
+        {isActive && (
+          <HCaptcha
+            ref={captchaRef}
+            sitekey={CAPTCHA_SITE_KEY}
+            onVerify={handleVerificationSuccess}
+            onError={(err) => console.warn('hCaptcha Error:', err)}
+            onClose={() => setIsActive(false)}
+          />
+        )}
+
+        <div className="form-buttons">
+          <button type="button" onClick={handleModalClose}>Cancel</button>
+          <button type="submit">Add</button>
+        </div>
+      </div>
+    </form>
+  );
+
+  const renderDefaultForm = () => (
+    <form className="post-form" onSubmit={handleSubmit}> 
       <h2 className="post-form-title">Share Your Climate Story</h2>
       <input
         type="text"
@@ -240,8 +322,13 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
         <button type="button" onClick={handleModalClose}>Cancel</button>
       </div>
     </form>
-    <PrivacyPolicyPopup isOpen={isPrivacyPolicyOpen} onClose={closePrivacyPolicy} />
-    <TermsOfUsePopUp isOpen={isTermsOfUseOpen} onClose={closeTermsOfUse} />
+  );
+
+  return (
+    <>
+      {theme === 'winter' ? renderWinterForm() : renderDefaultForm()}
+      <PrivacyPolicyPopup isOpen={isPrivacyPolicyOpen} onClose={closePrivacyPolicy} />
+      <TermsOfUsePopUp isOpen={isTermsOfUseOpen} onClose={closeTermsOfUse} />
     </>
   );
 };
