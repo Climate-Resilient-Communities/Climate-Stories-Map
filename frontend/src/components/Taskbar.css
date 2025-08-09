@@ -17,24 +17,25 @@
 .taskbar-toggle-button {
   position: fixed;
   z-index: 1002;
-  background: white;
-  color: #333;
+  background: black;
+  color: white;
   border: none;
   padding: 8px 12px;
   cursor: pointer;
-  font-size: 18px;
+  font-size: 15px;
   border-radius: 50%;
   transition: all var(--transition-normal);
   box-shadow: var(--shadow-md);
-  width: 40px;
-  height: 40px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .taskbar-toggle-button:hover {
-  background: #f0f0f0;
+  background: white;
+  color: black;
 }
 
 /* Desktop/Browser default - taskbar on the left */
@@ -49,12 +50,12 @@
   }
 
   .taskbar-toggle-button {
-    top: 50%;
+    top: 15%;
     transform: translateY(-50%);
   }
 
   .taskbar-toggle-button.expanded {
-    left: 250px;
+    left: 260px;
   }
 
   .taskbar-toggle-button.collapsed {
@@ -256,60 +257,45 @@
 }
 
 .theme-selector {
-  position: relative;
   width: 100%;
 }
 
-.theme-toggle {
-  font-size: 1.2em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--border-radius-sm);
-  background-color: rgba(255, 255, 255, 0.1);
-  width: 100%;
+.theme-label {
+  color: #000000;
+  font-weight: bold;
+  font-size: 16px;
+  margin-bottom: var(--spacing-sm);
+  padding: var(--spacing-xs) 0;
 }
 
-.theme-toggle:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-}
-
-.theme-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background-color: var(--surface-color);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-sm);
-  box-shadow: var(--shadow-md);
-  z-index: 1000;
-  margin-top: var(--spacing-xs);
-  overflow: hidden;
+.theme-options {
+  border-left: 3px solid var(--primary-color);
+  padding-left: var(--spacing-sm);
 }
 
 .theme-option {
   width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: var(--spacing-xs) var(--spacing-sm);
   border: none;
-  background: none;
-  color: var(--text-primary);
+  background: transparent;
+  color: #666666;
   text-align: left;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  transition: background-color var(--transition-fast);
+  font-size: 16px;
+  font-weight: 400;
+  border-radius: 0;
+  transition: all var(--transition-fast);
+  margin-bottom: var(--spacing-xs);
 }
 
 .theme-option:hover {
-  background-color: var(--border-color);
+  background: transparent;
+  color: var(--primary-color);
 }
 
 .theme-option.active {
-  background-color: var(--primary-color);
-  color: var(--background-color);
+  color: var(--primary-color);
+  font-weight: bold;
 }
 
 /* Mobile portrait mode adjustments */

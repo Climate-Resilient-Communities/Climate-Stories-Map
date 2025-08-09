@@ -10,6 +10,7 @@ import { useTheme } from '../themes/ThemeContext';
 
 // Replace this with your actual Mapbox access token
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+const MONOCHROME_MAP = import.meta.env.VITE_MONOCHROME_MAP;
 
 // Marker color constants
 const MARKER_COLORS = {
@@ -38,7 +39,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
   const { theme } = useTheme();
 
   const getMapStyle = () => {
-    return theme === 'winter' ? 'mapbox://styles/yorudan/cmdng88pw003p01rv4hsmhmm7' : 'mapbox://styles/mapbox/streets-v12';
+    return MONOCHROME_MAP;
   };
 
   useEffect(() => {

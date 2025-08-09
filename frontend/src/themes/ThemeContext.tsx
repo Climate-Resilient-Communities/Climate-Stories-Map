@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import './spring.css';
 import './summer.css';
-import './fall.css';
+import './autumn.css';
 import './winter.css';
 
-type Theme = 'winter' | 'spring' | 'summer' | 'fall';
+type Theme = 'winter' | 'spring' | 'summer' | 'autumn';
 
 interface ThemeContextType {
   theme: Theme;
@@ -14,7 +14,7 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const availableThemes: Theme[] = ['winter', 'spring', 'summer', 'fall'];
+const availableThemes: Theme[] = ['winter', 'spring', 'summer', 'autumn'];
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setThemeState] = useState<Theme>(() => {

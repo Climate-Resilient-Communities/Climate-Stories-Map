@@ -46,21 +46,14 @@ const Taskbar: React.FC<TaskbarProps> = ({
 }) => {
   const [isVisible, setIsVisible] = useState(true);
   const { theme, setTheme, availableThemes } = useTheme();
-  const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
-
   const toggleVisibility = () => {
     const newVisibility = !isVisible;
     setIsVisible(newVisibility);
     onVisibilityChange?.(newVisibility);
   };
 
-  const handleThemeClick = () => {
-    setIsThemeMenuOpen(!isThemeMenuOpen);
-  };
-
   const handleThemeSelect = (newTheme: string) => {
     setTheme(newTheme as any);
-    setIsThemeMenuOpen(false);
   };
 
   return (
@@ -70,7 +63,7 @@ const Taskbar: React.FC<TaskbarProps> = ({
         onClick={toggleVisibility}
         aria-label={isVisible ? 'Hide taskbar' : 'Show taskbar'}
       >
-        {isVisible ? '◀' : '▶'}
+        {isVisible ? '<' : '>'}
       </button>
       <nav className={`taskbar ${isVisible ? 'visible' : 'hidden'}`}>
         <div className="taskbar-content">
@@ -78,12 +71,12 @@ const Taskbar: React.FC<TaskbarProps> = ({
           <div className="taskbar-main">
             {onCreatePost && (
               <div className="taskbar-create-post">
-                <button className="taskbar-button" onClick={onCreatePost}>Add your story</button>
+                <button className="taskbar-button" onClick={onCreatePost} title="Add your story">Add your story</button>
               </div>
             )}
             {onToggleFilter && (
               <div className="taskbar-filter">
-                <button className="taskbar-button" onClick={onToggleFilter}>Filter by Tags</button>
+                <button className="taskbar-button" onClick={onToggleFilter} title="Filter by Tags">Filter by Tags</button>
                 {isFilterVisible && onTagSelect && (
                   <div className="taskbar-filter-content">
                     <TagFilter 
@@ -97,31 +90,23 @@ const Taskbar: React.FC<TaskbarProps> = ({
             )}
           </div>
           <div className="taskbar-buttons">
-            <button className="taskbar-button" onClick={onAboutClick}>About</button>
-            <button className="taskbar-button" onClick={onFaqClick}>FAQ's</button>
-            <button className="taskbar-button" onClick={onModClick}>Moderation</button>
+            <button className="taskbar-button" onClick={onAboutClick} title="About">About</button>
+            <button className="taskbar-button" onClick={onFaqClick} title="FAQ's">FAQ's</button>
+            <button className="taskbar-button" onClick={onModClick} title="Moderation">Moderation</button>
             <div className="theme-selector">
-              <button 
-                className="taskbar-button theme-toggle" 
-                onClick={handleThemeClick}
-                aria-label="Change theme"
-                aria-expanded={isThemeMenuOpen}
-              >
-                {themeIcons[theme as keyof typeof themeIcons]}
-              </button>
-              {isThemeMenuOpen && (
-                <div className="theme-menu">
-                  {availableThemes.map((themeName) => (
-                    <button
-                      key={themeName}
-                      className={`theme-option ${theme === themeName ? 'active' : ''}`}
-                      onClick={() => handleThemeSelect(themeName)}
-                    >
-                      {themeIcons[themeName as keyof typeof themeIcons]} {themeName}
-                    </button>
-                  ))}
-                </div>
-              )}
+              <div className="theme-label">Mode</div>
+              <div className="theme-options">
+                {availableThemes.map((themeName) => (
+                  <button
+                    key={themeName}
+                    className={`taskbar-button theme-option ${theme === themeName ? 'active' : ''}`}
+                    onClick={() => handleThemeSelect(themeName)}
+                    title={themeName.charAt(0).toUpperCase() + themeName.slice(1)}
+                  >
+                    {themeName.charAt(0).toUpperCase() + themeName.slice(1)}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
