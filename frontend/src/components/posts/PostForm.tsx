@@ -326,7 +326,7 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
 
   return (
     <>
-      {theme === 'winter' ? renderWinterForm() : renderDefaultForm()}
+      {renderWinterForm()}
       <PrivacyPolicyPopup isOpen={isPrivacyPolicyOpen} onClose={closePrivacyPolicy} />
       <TermsOfUsePopUp isOpen={isTermsOfUseOpen} onClose={closeTermsOfUse} />
     </>
