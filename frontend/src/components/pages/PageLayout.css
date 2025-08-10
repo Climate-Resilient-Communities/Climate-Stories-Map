@@ -1,0 +1,137 @@
+.page-container {
+  margin: 22px 10px 10px 300px;
+  border-radius: 20px;
+  overflow: hidden;
+  height: calc(100vh - 42px);
+  width: calc(100% - 310px);
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.page-container.taskbar-hidden {
+  margin-left: 180px;
+  width: calc(100% - 190px);
+}
+
+.page-content {
+  max-width: 800px;
+  margin: 20px auto;
+}
+
+.page-content h1 {
+  color: var(--primary-color);
+  font-size: 2.5rem;
+  margin-bottom: var(--spacing-xl);
+  font-weight: bold;
+}
+
+.content-with-image {
+  display: flex;
+  gap: var(--spacing-xl);
+  align-items: flex-start;
+}
+
+.text-content {
+  flex: 1;
+}
+
+.text-content p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-md);
+}
+
+.image-placeholder {
+  flex: 0 0 300px;
+  height: 200px;
+  background: linear-gradient(135deg, #87CEEB, #4169E1);
+  border-radius: var(--border-radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.community-icon {
+  font-size: 4rem;
+  color: white;
+}
+
+.faq-item {
+  margin-bottom: var(--spacing-xl);
+  padding: var(--spacing-lg);
+  background: var(--surface-color);
+  border-radius: var(--border-radius-md);
+  border-left: 4px solid var(--primary-color);
+}
+
+.faq-item h3 {
+  color: var(--primary-color);
+  font-size: 1.3rem;
+  margin-bottom: var(--spacing-md);
+}
+
+.faq-item p {
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+.moderation-section {
+  margin-bottom: var(--spacing-xl);
+}
+
+.moderation-section h3 {
+  color: var(--primary-color);
+  font-size: 1.3rem;
+  margin-bottom: var(--spacing-md);
+}
+
+.moderation-section p {
+  color: var(--text-primary);
+  line-height: 1.6;
+  margin-bottom: var(--spacing-md);
+}
+
+.moderation-section strong {
+  color: var(--primary-color);
+  display: block;
+  margin-top: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+}
+
+/* Mobile portrait mode */
+@media screen and (max-width: 768px) and (orientation: portrait) {
+  .page-container {
+    margin: 10px;
+    width: calc(100% - 20px);
+    height: calc(100vh - 74px);
+  }
+
+  .page-container.taskbar-hidden {
+    margin: 10px;
+    width: calc(100% - 20px);
+    height: calc(100vh - 20px);
+  }
+
+  .content-with-image {
+    flex-direction: column;
+  }
+
+  .image-placeholder {
+    flex: none;
+    width: 100%;
+  }
+}
+
+/* Mobile landscape mode */
+@media screen and (max-width: 768px) and (orientation: landscape) {
+  .page-container {
+    margin: 10px 10px 10px 210px;
+    width: calc(100% - 220px);
+  }
+
+  .page-container.taskbar-hidden {
+    margin: 10px;
+    width: calc(100% - 20px);
+  }
+}

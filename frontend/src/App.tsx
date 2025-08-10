@@ -12,7 +12,9 @@ import { createPost, fetchPosts } from './services/postService';
 import { Post } from './components/posts/types';
 import Home from './components/Home';
 import WelcomePopup from './components/WelcomePopup';
-import InformationPopup, { ContentSection } from './components/InformationPopup';
+import About from './components/pages/About';
+import Faqs from './components/pages/Faqs';
+import Moderation from './components/pages/Moderation';
 import TermsOfUsePopUp from './components/TermsOfUsePopUp';
 import PrivacyPolicyPopup from './components/PrivacyPolicyPopup';
 import CreatePostInstructionsPopup from './components/CreatePostInstructionsPopup';
@@ -20,10 +22,8 @@ import CreatePostInstructionsPopup from './components/CreatePostInstructionsPopu
 const App: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isWelcomePopupOpen, setIsWelcomePopupOpen] = useState(false);
-  const [isInfoPopupOpen, setIsInfoPopupOpen] = useState(false);
   const [isTermsOfUsePopupOpen, setIsTermsOfUsePopupOpen] = useState(false);
   const [isPrivacyPolicyPopupOpen, setIsPrivacyPolicyPopupOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState<ContentSection>('about');
   const [posts, setPosts] = useState<Post[]>([]);
   const [isTaskbarVisible, setIsTaskbarVisible] = useState(true);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -58,33 +58,7 @@ const App: React.FC = () => {
     }
   };
   
-  // Handlers for the InformationPopup
-  const closeInfoPopup = () => setIsInfoPopupOpen(false);
 
-  const openStorySection = () => {
-    setActiveSection('story');
-    setIsInfoPopupOpen(true);
-  };
-
-  const openAboutSection = () => {
-    setActiveSection('about');
-    setIsInfoPopupOpen(true);
-  };
-  
-  const openContactSection = () => {
-    setActiveSection('contact');
-    setIsInfoPopupOpen(true);
-  };
-  
-  const openFaqSection = () => {
-    setActiveSection('faq');
-    setIsInfoPopupOpen(true);
-  };
-
-  const openModerationSection = () => {
-    setActiveSection('moderation');
-    setIsInfoPopupOpen(true);
-  };
 
   // Handlers for Terms of Use and Privacy Policy popups
   const openTermsOfUsePopup = () => {
@@ -137,11 +111,6 @@ const App: React.FC = () => {
               <div className="welcome-overlay" />
             )}
             <Taskbar 
-              onStoryClick={openStorySection}
-              onAboutClick={openAboutSection}
-              onContactClick={openContactSection}
-              onFaqClick={openFaqSection}
-              onModClick={openModerationSection}
               onPrivacyPolicyClick={openPrivacyPolicyPopup}
               onTermsOfUseClick={openTermsOfUsePopup}
               onVisibilityChange={setIsTaskbarVisible}
@@ -157,13 +126,7 @@ const App: React.FC = () => {
                 isOpen={isWelcomePopupOpen}
                 onClose={() => setIsWelcomePopupOpen(false)}
               />
-              <InformationPopup
-                isOpen={isInfoPopupOpen}
-                onClose={closeInfoPopup}
-                activeSection={activeSection}
-                openTermsOfUse={openTermsOfUsePopup}
-                openPrivacyPolicy={openPrivacyPolicyPopup}
-              />
+
               <TermsOfUsePopUp
                 isOpen={isTermsOfUsePopupOpen}
                 onClose={closeTermsOfUsePopup}
@@ -190,6 +153,9 @@ const App: React.FC = () => {
                     />
                   }
                 />
+                <Route path="/about" element={<About taskbarVisible={isTaskbarVisible} />} />
+                <Route path="/faqs" element={<Faqs taskbarVisible={isTaskbarVisible} />} />
+                <Route path="/moderation" element={<Moderation taskbarVisible={isTaskbarVisible} />} />
                 <Route path="/" element={<MapWithForm 
                   posts={posts} 
                   onPostSubmit={handlePostSubmit}
