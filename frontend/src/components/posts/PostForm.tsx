@@ -163,7 +163,7 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
     }));
   }, []);
 
-  const renderWinterForm = () => (
+  const renderForm = () => (
     <form className="post-form" onSubmit={handleSubmit}>
       <div className="post-form-left">
         <div className="post-form-icon">🌲</div>
@@ -244,89 +244,9 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
     </form>
   );
 
-  const renderDefaultForm = () => (
-    <form className="post-form" onSubmit={handleSubmit}> 
-      <h2 className="post-form-title">Share Your Climate Story</h2>
-      <input
-        type="text"
-        name="title"
-        placeholder="Title"
-        value={formData.title}
-        onChange={handleChange}
-        required
-      />
-      <textarea
-        name="description"
-        placeholder="Description"
-        value={formData.content.description}
-        onChange={handleChange}
-        required
-      />      
-      <div className="form-group">
-        <label htmlFor="tag">Tag (Required): </label>
-        <select
-          id="tag"
-          name="tag"
-          value={formData.tag}
-          onChange={handleChange}
-          required
-        >
-          <option value="-">-</option>
-          {MAIN_TAGS.map((tag) => (
-            <option key={tag} value={tag}>{tag}</option>
-          ))}
-        </select>
-      </div>
-      <div className="form-group">
-        <label htmlFor="optionalTags">Additional Tags (Optional):</label>
-        <input
-          type="text"
-          id="optionalTags"
-          name="optionalTags"
-          placeholder="Enter optional tag (sentence tags allowed)"
-          value={formData.optionalTags}
-          onChange={handleChange}
-        />
-      </div>
-
-      <div className="checkbox-container">
-        <div className="checkbox-row">
-          <label className="checkbox-label">
-            <input 
-              type="checkbox" 
-              checked={isAgreedToAll} 
-              onChange={handleAgreementCheckboxChange} 
-            />
-            <span>By submitting this post, you agree to the following:</span>
-          </label>
-        </div>
-        <ul className="agreement-list">
-          <li>I certify that I meet the age requirements <i>(13+ or with parental/guardian consent if under 18)</i></li>
-          <li>I have read and agreed to the <a href="#" onClick={openPrivacyPolicy}>Privacy Policy</a></li>
-          <li>I have read and agreed to the <a href="#" onClick={openTermsOfUse}>Terms of Use</a></li>
-        </ul>
-      </div>
-
-      {isActive && (
-        <HCaptcha
-          ref={captchaRef}
-          sitekey={CAPTCHA_SITE_KEY}
-          onVerify={handleVerificationSuccess}
-          onError={(err) => console.warn('hCaptcha Error:', err)}
-          onClose={() => setIsActive(false)}
-        />
-      )}
-
-      <div className="form-buttons">
-        <button type="submit">Submit</button>
-        <button type="button" onClick={handleModalClose}>Cancel</button>
-      </div>
-    </form>
-  );
-
   return (
     <>
-      {renderWinterForm()}
+      {renderForm()}
       <PrivacyPolicyPopup isOpen={isPrivacyPolicyOpen} onClose={closePrivacyPolicy} />
       <TermsOfUsePopUp isOpen={isTermsOfUseOpen} onClose={closeTermsOfUse} />
     </>
