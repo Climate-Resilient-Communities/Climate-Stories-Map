@@ -18,9 +18,9 @@ const availableThemes: Theme[] = ['winter', 'spring', 'summer', 'autumn'];
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setThemeState] = useState<Theme>(() => {
-    // Try to get theme from localStorage, default to spring
+    // Try to get theme from localStorage, default to winter
     const savedTheme = localStorage.getItem('theme') as Theme;
-    return availableThemes.includes(savedTheme) ? savedTheme : 'spring';
+    return availableThemes.includes(savedTheme) ? savedTheme : 'winter';
   });
 
   useEffect(() => {

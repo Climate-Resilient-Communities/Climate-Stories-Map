@@ -174,6 +174,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
   padding: var(--spacing-xs) 0;
+  text-decoration: none;
+  display: block;
 }
 
 /* Override the global hover effect for taskbar links */
@@ -249,11 +251,17 @@
   outline: none;
   width: 100%;
   text-align: left;
+  display: block;
 }
 
 .taskbar-button:hover {
   color: var(--background-color);
   background-color: rgba(255, 255, 255, 0.1);
+}
+
+.taskbar-button.active {
+  background-color: rgba(255, 255, 255, 0.2);
+  font-weight: bold;
 }
 
 .theme-selector {

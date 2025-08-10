@@ -1,15 +1,11 @@
 import { useState } from 'react';
 import { useTheme } from '../themes/ThemeContext';
+import { Link, useLocation } from 'react-router-dom';
 import TagFilter from './posts/TagFilter';
 import { Post } from './posts/types';
 import './Taskbar.css';
 
 interface TaskbarProps {
-  onStoryClick?: () => void;
-  onAboutClick?: () => void;
-  onContactClick?: () => void;
-  onFaqClick?: () => void;
-  onModClick?: () => void;
   onPrivacyPolicyClick?: () => void;
   onTermsOfUseClick?: () => void;
   onVisibilityChange?: (isVisible: boolean) => void;
@@ -29,11 +25,6 @@ const themeIcons = {
 };
 
 const Taskbar: React.FC<TaskbarProps> = ({ 
-  onStoryClick,
-  onAboutClick, 
-  onContactClick, 
-  onFaqClick,
-  onModClick,
   onPrivacyPolicyClick,
   onTermsOfUseClick,
   onVisibilityChange,
@@ -46,6 +37,7 @@ const Taskbar: React.FC<TaskbarProps> = ({
 }) => {
   const [isVisible, setIsVisible] = useState(true);
   const { theme, setTheme, availableThemes } = useTheme();
+  const location = useLocation();
   const toggleVisibility = () => {
     const newVisibility = !isVisible;
     setIsVisible(newVisibility);
@@ -67,7 +59,7 @@ const Taskbar: React.FC<TaskbarProps> = ({
       </button>
       <nav className={`taskbar ${isVisible ? 'visible' : 'hidden'}`}>
         <div className="taskbar-content">
-          <a className="taskbar-title">Climate Stories Map</a>
+          <Link to="/" className="taskbar-title">Climate Stories Map</Link>
           <div className="taskbar-main">
             {onCreatePost && (
               <div className="taskbar-create-post">
@@ -90,9 +82,27 @@ const Taskbar: React.FC<TaskbarProps> = ({
             )}
           </div>
           <div className="taskbar-buttons">
-            <button className="taskbar-button" onClick={onAboutClick} title="About">About</button>
-            <button className="taskbar-button" onClick={onFaqClick} title="FAQ's">FAQ's</button>
-            <button className="taskbar-button" onClick={onModClick} title="Moderation">Moderation</button>
+            <Link 
+              to="/about" 
+              className={`taskbar-button ${location.pathname === '/about' ? 'active' : ''}`} 
+              title="About"
+            >
+              About
+            </Link>
+            <Link 
+              to="/faqs" 
+              className={`taskbar-button ${location.pathname === '/faqs' ? 'active' : ''}`} 
+              title="FAQ's"
+            >
+              FAQ's
+            </Link>
+            <Link 
+              to="/moderation" 
+              className={`taskbar-button ${location.pathname === '/moderation' ? 'active' : ''}`} 
+              title="Moderation"
+            >
+              Moderation
+            </Link>
             <div className="theme-selector">
               <div className="theme-label">Mode</div>
               <div className="theme-options">
