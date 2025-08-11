@@ -116,21 +116,24 @@ body,
 }
 
 .post-form-left {
-  flex: 0 0 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #87CEEB, #4169E1);
-  border-radius: 50%;
-  width: 200px;
-  height: 200px;
-  position: relative;
+  flex: 0 0 250px;
+  width: 250px;
+  height: 100%;
+  min-height: 655px;
+  border-radius: 20px 0 0 20px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  margin-left: -30px;
+  margin-top: -30px;
+  margin-bottom: -30px;
+  padding-left: 30px;
+  padding-top: 30px;
+  padding-bottom: 30px;
 }
 
-.post-form-icon {
-  font-size: 4rem;
-  color: white;
-}
+
 
 .post-form-right {
   flex: 1;

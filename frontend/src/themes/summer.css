@@ -284,17 +284,7 @@
   width: 100%;
 }
 
-[data-theme='summer'] .post-form-left {
-  flex: 0 0 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #fed7aa, #f59e0b);
-  border-radius: 50%;
-  width: 200px;
-  height: 200px;
-  position: relative;
-}
+
 
 [data-theme='summer'] .post-form-icon {
   font-size: 4rem;

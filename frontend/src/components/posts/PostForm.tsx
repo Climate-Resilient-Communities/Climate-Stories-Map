@@ -163,11 +163,17 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
     }));
   }, []);
 
+
+
   const renderForm = () => (
     <form className="post-form" onSubmit={handleSubmit}>
-      <div className="post-form-left">
-        <div className="post-form-icon">🌲</div>
-      </div>
+      <div 
+        className="post-form-left"
+        style={{ 
+          backgroundImage: `url("/themes/${theme}/Share your climate story.png")`,
+          backgroundColor: '#000000' // fallback color if image doesn't load
+        }}
+      ></div>
       <div className="post-form-right">
         <h2 className="post-form-title">Share your Climate Story</h2>
         

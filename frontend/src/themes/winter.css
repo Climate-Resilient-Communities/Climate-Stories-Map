@@ -289,17 +289,7 @@
   width: 100%;
 }
 
-[data-theme='winter'] .post-form-left {
-  flex: 0 0 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #87CEEB, #4169E1);
-  border-radius: 50%;
-  width: 200px;
-  height: 200px;
-  position: relative;
-}
+
 
 [data-theme='winter'] .post-form-icon {
   font-size: 4rem;

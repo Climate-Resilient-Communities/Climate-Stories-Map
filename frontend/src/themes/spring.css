@@ -284,17 +284,7 @@
   width: 100%;
 }
 
-[data-theme='spring'] .post-form-left {
-  flex: 0 0 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #bbf7d0, #22c55e);
-  border-radius: 50%;
-  width: 200px;
-  height: 200px;
-  position: relative;
-}
+
 
 [data-theme='spring'] .post-form-icon {
   font-size: 4rem;
