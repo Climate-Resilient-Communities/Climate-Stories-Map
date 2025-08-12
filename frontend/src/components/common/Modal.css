@@ -19,7 +19,7 @@
   color: var(--text-primary);
   border-radius: var(--border-radius-lg);
   max-width: 800px;
-  width: 100%;
+  width: 95%;
   position: relative;
   box-shadow: var(--shadow-lg);
   border: 1px solid var(--border-color);

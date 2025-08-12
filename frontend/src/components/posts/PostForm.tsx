@@ -18,12 +18,15 @@ const CAPTCHA_SITE_KEY = import.meta.env.VITE_CAPTCHA_SITE_KEY || "10000000-ffff
 
 const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinates = [0, 0] }) => {
   const captchaRef = React.useRef<HCaptcha>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isActive, setIsActive] = useState(true);
   const { showNotification } = useNotification();
   const { theme } = useTheme();
   const [isAgreedToAll, setIsAgreedToAll] = useState(false);
   const [isPrivacyPolicyOpen, setIsPrivacyPolicyOpen] = useState(false);
   const [isTermsOfUseOpen, setIsTermsOfUseOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
 
   const handleAgreementCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsAgreedToAll(e.target.checked);
@@ -84,6 +87,27 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
     onClose();
   }, [onClose]);
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      setSelectedImage(null);
+      setImagePreview('');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      showNotification('Image must be less than 5MB', true);
+      return;
+    }
+
+    setSelectedImage(file);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setImagePreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     const updateNestedField = (fieldPath: (string | number)[], value: any) => {
@@ -139,13 +163,30 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
       showNotification('Please select a valid tag (Positive, Neutral, or Negative).', true);
       return;
     }
-    if (formData.captchaToken) {
+    
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    
+    if (formData.captchaToken || isLocalhost) {
       try {
-        await onSubmit(formData);
-        showNotification('Your post has been submitted for review with our moderators!');
-        setTimeout(() => {
-          onClose();
-        }, 100);
+        const submitData = new FormData();
+        submitData.append('postData', JSON.stringify(formData));
+        if (selectedImage) {
+          submitData.append('image', selectedImage);
+        }
+        
+        const response = await fetch('/api/posts/create', {
+          method: 'POST',
+          body: submitData,
+        });
+        
+        if (response.ok) {
+          showNotification('Your post has been submitted for review with our moderators!');
+          setTimeout(() => {
+            onClose();
+          }, 100);
+        } else {
+          throw new Error('Failed to submit post');
+        }
       } catch (error) {
         console.error('Error submitting post:', error);
         showNotification('There was an error submitting your post. Please try again.', true);
@@ -207,6 +248,41 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
           required
         />
         
+        <div className="image-upload-section">
+          <label htmlFor="image-upload" className="image-upload-label">
+            Upload Image (Optional)
+          </label>
+          <div className="image-upload-content">
+            <input
+              id="image-upload"
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageSelect}
+              className="image-upload-input"
+            />
+            {imagePreview && (
+              <div className="image-preview">
+                <img src={imagePreview} alt="Preview" />
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    setSelectedImage(null);
+                    setImagePreview('');
+                    if (fileInputRef.current) {
+                      fileInputRef.current.value = '';
+                    }
+                  }}
+                  className="remove-image-btn"
+                  title="Remove image"
+                >
+                  ×
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+        
         <input
           type="text"
           name="optionalTags"
@@ -232,18 +308,17 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
           </ul>
         </div>
 
-        {isActive && (
-          <HCaptcha
-            ref={captchaRef}
-            sitekey={CAPTCHA_SITE_KEY}
-            onVerify={handleVerificationSuccess}
-            onError={(err) => console.warn('hCaptcha Error:', err)}
-            onClose={() => setIsActive(false)}
-          />
-        )}
-
         <div className="form-buttons">
           <button type="button" onClick={handleModalClose}>Cancel</button>
+          {isActive && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1') && (
+            <HCaptcha
+              ref={captchaRef}
+              sitekey={CAPTCHA_SITE_KEY}
+              onVerify={handleVerificationSuccess}
+              onError={(err) => console.warn('hCaptcha Error:', err)}
+              onClose={() => setIsActive(false)}
+            />
+          )}
           <button type="submit">Add</button>
         </div>
       </div>

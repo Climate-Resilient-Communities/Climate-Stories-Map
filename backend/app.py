@@ -7,6 +7,7 @@ from bson.objectid import ObjectId
 from marshmallow import Schema, fields, ValidationError, validate
 from flask_cors import CORS
 import os
+import json
 
 from admin.auth import init_auth
 from admin import init_admin
@@ -26,6 +27,9 @@ captcha_secret_key = os.getenv('CAPTCHA_SECRET_KEY')
 # Now retrieve the MongoDB URI
 mongo_uri = os.getenv('MONGODB_URI')
 secret_key = os.getenv('SECRET_KEY')
+cdn_key = os.getenv('CDN_KEY')
+cdn_url = os.getenv('CDN_API')
+captcha_url = os.getenv('CAPTCHA_URL')
 
 # Configure MongoDB and Flask session
 app.config["MONGO_URI"] = mongo_uri
@@ -77,9 +81,32 @@ tag_schema = TagSchema()
 # Swagger definition for Post
 # Swagger definition for Post
 
+def upload_image_to_imgbb(image_file):
+    """Upload image to ImgBB and return the URL"""
+    try:
+        files = {'image': image_file}
+        data = {
+            'key': cdn_key,
+            'album': os.getenv('IMGBB_ALBUM_ID')  # Add your private album ID
+        }
+        
+        response = requests.post(cdn_url, files=files, data=data)
+        result = response.json()
+        
+        print(f"ImgBB response: {result}")
+        
+        if result.get('success'):
+            return result['data']['url']
+        else:
+            print(f"ImgBB upload failed: {result.get('error', 'Unknown error')}")
+            return None
+    except Exception as e:
+        print(f"Error uploading image: {e}")
+        return None
+
 # CREATE (Insert a new document)
 # Route to create a new post document
-@app.route('/posts/create', methods=['POST'])
+@app.route('/api/posts/create', methods=['POST'])
 def create():
     """
     Create a new post
@@ -97,42 +124,72 @@ def create():
         description: Validation error
     """
     try:
-        # Validate and deserialize the request JSON
-        data = post_schema.load(request.json)
+        # Get post data from form
+        post_data_str = request.form.get('postData')
+        if not post_data_str:
+            return jsonify({'error': 'Post data missing'}), 400
+            
+        post_data = json.loads(post_data_str)
+        
+        # Validate and deserialize the post data
+        data = post_schema.load(post_data)
         hcaptcha_response = data.pop('captchaToken')
 
-        if not hcaptcha_response:
-            return jsonify({'success': False, 'message': 'CAPTCHA token missing'}), 400
+        # Skip CAPTCHA verification on localhost
+        is_localhost = request.host.startswith('localhost') or request.host.startswith('127.0.0.1')
+        
+        if not is_localhost:
+            if not hcaptcha_response:
+                return jsonify({'success': False, 'message': 'CAPTCHA token missing'}), 400
 
-        # Verify the hCaptcha token with the hCaptcha verification endpoint
-        verification_response = requests.post(
-            'https://hcaptcha.com/siteverify',
-            data={
-                'secret': captcha_secret_key,
-                'response': hcaptcha_response
-            }
-        )
+            # Verify the hCaptcha token
+            verification_response = requests.post(
+                captcha_url,
+                data={
+                    'secret': captcha_secret_key,
+                    'response': hcaptcha_response
+                }
+            )
 
-        verification_result = verification_response.json()
+            verification_result = verification_response.json()
+            if not verification_result.get('success'):
+                print(f"CAPTCHA verification failed: {verification_result}")
+                return jsonify({'success': False, 'message': 'CAPTCHA verification failed'}), 400
 
-        if not verification_result.get('success'):
-            return jsonify({'success': False, 'message': 'CAPTCHA verification failed'}), 400
+        # Handle image upload if present
+        if 'image' in request.files:
+            image_file = request.files['image']
+            if image_file.filename:
+                if not cdn_key:
+                    print("CDN_KEY not configured, skipping image upload")
+                else:
+                    print(f"Uploading image: {image_file.filename}, size: {len(image_file.read())} bytes")
+                    image_file.seek(0)  # Reset file pointer after reading
+                    image_url = upload_image_to_imgbb(image_file)
+                    if image_url:
+                        data['content']['image'] = image_url
+                        print(f"Image uploaded successfully: {image_url}")
+                    else:
+                        print("Failed to upload image to ImgBB, continuing without image")
 
-        data['created_at'] = datetime.datetime.now(datetime.timezone.utc)  # Add created_at timestamp
-        data['status'] = 'pending'  # Set initial status to pending
-        data['optional_tags'] = data.pop('optionalTags', [])  # Handle optional tags
+        data['created_at'] = datetime.datetime.now(datetime.timezone.utc)
+        data['status'] = 'pending'
+        data['optional_tags'] = data.pop('optionalTags', [])
             
-        # Insert the sanitized data into the collection
+        # Insert the data into the collection
         result = collection.insert_one(data)
         
         return jsonify({'message': 'Post created', 'post_id': str(result.inserted_id)}), 201
     
     except ValidationError as err:
-        # Return error messages in case of validation failure
+        print(f"Validation error: {err.messages}")
         return jsonify({'errors': err.messages}), 400
+    except Exception as e:
+        print(f"Unexpected error: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 # Example route to retrieve all posts
-@app.route('/posts', methods=['GET'])
+@app.route('/api/posts', methods=['GET'])
 def get_posts():
     """
     Get all posts with optional tag filters
@@ -195,7 +252,7 @@ def get_posts():
         return jsonify({'errors': err.messages}), 400
 
 # UPDATE (Modify a document by ID)
-@app.route('/posts/update/<id>', methods=['PUT'])
+@app.route('/api/posts/update/<id>', methods=['PUT'])
 def update_post(id):
     """
     Update a post by ID
@@ -262,7 +319,7 @@ def update_post(id):
         return jsonify({'errors': err.messages}), 400
 
 # DELETE (Delete a document by ID)
-@app.route('/posts/delete/<id>', methods=['DELETE'])
+@app.route('/api/posts/delete/<id>', methods=['DELETE'])
 def delete_post(id):
     """
     Delete a post by ID
