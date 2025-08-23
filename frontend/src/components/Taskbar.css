@@ -189,6 +189,7 @@
   flex-direction: column;
   gap: var(--spacing-md);
   flex: 1;
+  width: 100%;
 }
 
 .taskbar-create-post,
@@ -238,7 +239,7 @@
 .taskbar-button {
   color: var(--background-color);
   text-decoration: none;
-  padding: var(--spacing-xs) var(--spacing-sm);
+  padding: calc(var(--spacing-xs) + 3px) var(--spacing-sm);
   border-radius: var(--border-radius-sm);
   transition: background-color var(--transition-fast);
   white-space: nowrap;
@@ -252,6 +253,7 @@
   width: 100%;
   text-align: left;
   display: block;
+  min-height: 30px;
 }
 
 .taskbar-button:hover {
@@ -259,9 +261,13 @@
   background-color: rgba(255, 255, 255, 0.1);
 }
 
-.taskbar-button.active {
-  background-color: rgba(255, 255, 255, 0.2);
+.taskbar-button.active:not(.theme-option) {
+  background-color: black;
+  color: white;
   font-weight: bold;
+  border-radius: 20px;
+  margin: -8px -5px;
+  padding-left: calc(var(--spacing-sm) + 5px);
 }
 
 .theme-selector {

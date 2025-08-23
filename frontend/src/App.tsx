@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { NotificationProvider } from './components/common/NotificationContext';
 import { ThemeProvider } from './themes/ThemeContext';
 
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import './App.css';
 import './components/Overlay.css';
 import MapWithForm from './components/MapWithForm';
@@ -19,7 +19,9 @@ import TermsOfUsePopUp from './components/TermsOfUsePopUp';
 import PrivacyPolicyPopup from './components/PrivacyPolicyPopup';
 import CreatePostInstructionsPopup from './components/CreatePostInstructionsPopup';
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isWelcomePopupOpen, setIsWelcomePopupOpen] = useState(false);
   const [isTermsOfUsePopupOpen, setIsTermsOfUsePopupOpen] = useState(false);
@@ -29,6 +31,8 @@ const App: React.FC = () => {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const [isCreatePostMode, setIsCreatePostMode] = useState(false);
+  const isMapPage = location.pathname === '/';
+  const isOtherPage = ['/about', '/faqs', '/moderation'].includes(location.pathname);
   const [isInstructionsPopupOpen, setIsInstructionsPopupOpen] = useState(false);
 
   const loadPosts = useCallback(async () => {
@@ -86,6 +90,11 @@ const App: React.FC = () => {
     }
   };
 
+  const handleGoBackToMap = () => {
+    navigate('/');
+    setIsCreatePostMode(true);
+  };
+
   const handleInstructionsNext = (dontShowAgain: boolean) => {
     if (dontShowAgain) {
       localStorage.setItem('dontShowCreatePostInstructions', 'true');
@@ -103,10 +112,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <ThemeProvider>
-      <NotificationProvider>
-        <Router>
-          <div className="app-container">
+    <div className="app-container">
             {isWelcomePopupOpen && (
               <div className="welcome-overlay" />
             )}
@@ -120,6 +126,9 @@ const App: React.FC = () => {
               onTagSelect={setSelectedTags}
               isFilterVisible={isFilterVisible}
               onToggleFilter={handleToggleFilter}
+              isCreatePostMode={isMapPage && isCreatePostMode}
+              isOtherPage={isOtherPage}
+              onGoBackToMap={handleGoBackToMap}
             />
             <main className="app-main">
               <WelcomePopup 
@@ -170,6 +179,15 @@ const App: React.FC = () => {
               </Routes>
             </main>
           </div>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <ThemeProvider>
+      <NotificationProvider>
+        <Router>
+          <AppContent />
         </Router>
       </NotificationProvider>
     </ThemeProvider>

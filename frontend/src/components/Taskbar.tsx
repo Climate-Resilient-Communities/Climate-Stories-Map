@@ -15,6 +15,9 @@ interface TaskbarProps {
   onTagSelect?: (tags: string[]) => void;
   isFilterVisible?: boolean;
   onToggleFilter?: () => void;
+  isCreatePostMode?: boolean;
+  isOtherPage?: boolean;
+  onGoBackToMap?: () => void;
 }
 
 const themeIcons = {
@@ -33,7 +36,10 @@ const Taskbar: React.FC<TaskbarProps> = ({
   selectedTags = [],
   onTagSelect,
   isFilterVisible = false,
-  onToggleFilter
+  onToggleFilter,
+  isCreatePostMode = false,
+  isOtherPage = false,
+  onGoBackToMap
 }) => {
   const [isVisible, setIsVisible] = useState(true);
   const { theme, setTheme, availableThemes } = useTheme();
@@ -61,24 +67,34 @@ const Taskbar: React.FC<TaskbarProps> = ({
         <div className="taskbar-content">
           <Link to="/" className="taskbar-title">Climate Stories Map</Link>
           <div className="taskbar-main">
-            {onCreatePost && (
-              <div className="taskbar-create-post">
-                <button className="taskbar-button" onClick={onCreatePost} title="Add your story">Add your story</button>
-              </div>
-            )}
-            {onToggleFilter && (
-              <div className="taskbar-filter">
-                <button className="taskbar-button" onClick={onToggleFilter} title="Filter by Tags">Filter by Tags</button>
-                {isFilterVisible && onTagSelect && (
-                  <div className="taskbar-filter-content">
-                    <TagFilter 
-                      posts={posts} 
-                      selectedTags={selectedTags} 
-                      onTagSelect={onTagSelect} 
-                    />
+            {isOtherPage ? (
+              onGoBackToMap && (
+                <div className="taskbar-go-back">
+                  <button className="taskbar-button" onClick={onGoBackToMap} title="Go Back to Map">Go Back to Map</button>
+                </div>
+              )
+            ) : (
+              <>
+                {onCreatePost && (
+                  <div className="taskbar-create-post">
+                    <button className="taskbar-button active" onClick={onCreatePost} title="Add your story">Add your story</button>
                   </div>
                 )}
-              </div>
+                {onToggleFilter && (
+                  <div className="taskbar-filter">
+                    <button className="taskbar-button" onClick={onToggleFilter} title="Filter by Tags">Filter by Tags</button>
+                    {isFilterVisible && onTagSelect && (
+                      <div className="taskbar-filter-content">
+                        <TagFilter 
+                          posts={posts} 
+                          selectedTags={selectedTags} 
+                          onTagSelect={onTagSelect} 
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
             )}
           </div>
           <div className="taskbar-buttons">
