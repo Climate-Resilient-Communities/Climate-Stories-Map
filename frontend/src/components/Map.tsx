@@ -169,6 +169,9 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
             <div className="map-popup-content">
               <b>{popupInfo.title}</b>
               <p>{popupInfo.content.description}</p>
+              {popupInfo.content.image && (
+                <img src={popupInfo.content.image} alt={popupInfo.title} className="map-popup-image" />
+              )}
               <div className="map-popup-footer">
                 <div>
                   {popupInfo.tag && popupInfo.tag !== '-' && popupInfo.tag.trim() !== '' && (

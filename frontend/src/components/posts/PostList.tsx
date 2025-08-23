@@ -14,6 +14,7 @@ const PostList: React.FC<PostListProps> = ({ posts }) => {
           <div className="post-list-header">
             <span>Title</span>
             <span>Description</span>
+            <span>Image</span>
             <span>Longitude</span>
             <span>Latitude</span>
             <span>Tag</span>
@@ -24,6 +25,11 @@ const PostList: React.FC<PostListProps> = ({ posts }) => {
               <div className={`post-item ${post.tag.toLowerCase()}`} key={post._id}>
                 <div className="post-title">{post.title}</div>
                 <div className="post-description">{post.content.description}</div>
+                <div className="post-image">
+                  {post.content.image && (
+                    <img src={post.content.image} alt={post.title} />
+                  )}
+                </div>
                 <div className="post-longitude">{post.location.coordinates[0]}</div>
                 <div className="post-latitude">{post.location.coordinates[1]}</div>
                 <div className="post-tag">{post.tag}</div>

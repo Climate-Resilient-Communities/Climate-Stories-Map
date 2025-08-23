@@ -78,6 +78,15 @@
   background-color: rgba(74, 163, 192, 0.3);
 }
 
+.map-popup-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  margin: 10px 0;
+  max-height: 200px;
+  object-fit: cover;
+}
+
 .map-popup-date {
   color: #777;
   font-size: 12px;
