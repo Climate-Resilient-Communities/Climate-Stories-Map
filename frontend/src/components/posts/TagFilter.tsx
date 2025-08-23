@@ -17,12 +17,14 @@ const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect,
     const tagSet = new Set<string>();
     
     posts.forEach(post => {
-      if (post.tag) {
+      if (post.tag && post.tag.trim()) {
         tagSet.add(post.tag);
       }
       
       post.optionalTags.forEach(tag => {
-        tagSet.add(tag);
+        if (tag && tag.trim()) {
+          tagSet.add(tag);
+        }
       });
     });
     
@@ -63,14 +65,15 @@ const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect,
       {(isOpen || !showToggle) && (
         <div className="filter-dropdown">
           {allTags.map(tag => (
-            <label key={tag} className="tag-option">
-              <input
-                type="checkbox"
-                checked={selectedTags.includes(tag)}
-                onChange={() => handleTagToggle(tag)}
-              />
-              <span className={`tag-label ${tag}`}>{tag}</span>
-            </label>
+            <div 
+              key={tag} 
+              className="tag-option"
+              onClick={() => handleTagToggle(tag)}
+            >
+              <span className={`tag-label ${tag} ${selectedTags.includes(tag) ? 'selected' : ''}`}>
+                {tag}
+              </span>
+            </div>
           ))}
         </div>
       )}
