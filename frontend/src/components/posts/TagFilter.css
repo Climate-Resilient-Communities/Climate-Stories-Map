@@ -1,117 +1,106 @@
-.tag-filter {
-  background-color: var(--surface-color);
-  padding: 15px;
-  border-radius: 5px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  margin-bottom: 15px;
-  z-index: 900;
-  margin-top: 0px;
-  margin-left: 40px;
-  position: relative;
+.tag-filter-dropdown {
+  position: fixed;
+  top: 240px;
+  left: 40px;
+  z-index: 1002;
+  width: 250px;
 }
 
-.tag-filter h3 {
-  margin-top: 0;
-  margin-bottom: 10px;
-  font-size: 1.2em;
-  color: var(--text-primary);
-}
-
-.tag-search {
-  padding: 10px;
-  border-radius: 5px;
-  border: 1px solid var(--primary-color);
-  width: 100%;
-  box-sizing: border-box;
-  color: var(--text-primary);
-  background-color: var(--surface-color);
-  margin-bottom: 10px;
-}
-
-.filter-description {
-  margin-bottom: 15px;
-  font-size: 0.9em;
-  color: var(--text-secondary);
-  font-style: italic;
-}
-
-.tag-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 10px;
-  max-height: 200px;
-  overflow-y: auto;
-  padding-right: 8px;
-}
-
-.tag-buttons::-webkit-scrollbar {
-  width: 8px;
-}
-
-.tag-buttons::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
-  border-radius: 4px;
-}
-
-.tag-buttons::-webkit-scrollbar-thumb {
-  background: var(--secondary-color);
-  border-radius: 4px;
-}
-
-.tag-buttons::-webkit-scrollbar-thumb:hover {
-  background: var(--primary-hover);
-}
-
-.tag-button {
-  padding: 5px 10px;
-  border-radius: 15px;
-  border: 1px solid var(--border-color);
-  background-color: var(--surface-color);
-  color: var(--text-primary);
-  cursor: pointer;
-  font-size: 0.9em;
-  transition: all 0.2s ease-in-out;
-  box-shadow: 0 1px 2px var(--shadow-color);
-}
-
-.tag-button:hover {
-  background-color: var(--hover-background);
-  border-color: var(--primary-color);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px var(--shadow-color);
-}
-
-.tag-button:focus {
-  outline: none;
-  box-shadow: 0 0 0 2px var(--primary-color);
-  border-color: var(--primary-color);
-}
-
-.tag-button.selected {
-  background-color: var(--primary-color);
-  color: var(--surface-color);
-  border-color: var(--primary-color);
-  box-shadow: 0 2px 4px var(--shadow-color);
-}
-
-.tag-button.selected:hover {
-  background-color: var(--primary-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 3px 6px var(--shadow-color);
-}
-
-.clear-filters {
-  background-color: var(--primary-color);
-  color: var(--surface-color);
+.filter-toggle {
+  background-color: #333;
   border: none;
-  padding: 5px 10px;
   border-radius: 4px;
+  padding: 8px 12px;
   cursor: pointer;
-  font-size: 0.9em;
-  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font-size: 13px;
+  color: white;
+  font-weight: 500;
+  transition: all 0.2s ease;
 }
 
-.clear-filters:hover {
-  background-color: var(--primary-hover);
+.filter-toggle:hover {
+  background-color: #444;
+}
+
+.dropdown-arrow {
+  margin-left: 8px;
+  transition: transform 0.2s ease;
+  font-size: 10px;
+}
+
+.dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+.filter-dropdown {
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  max-height: 150px;
+  overflow-y: auto;
+  z-index: 1002;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  width: 100%;
+}
+
+.tag-option {
+  display: flex;
+  align-items: center;
+  padding: 6px 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.tag-option:hover {
+  background-color: #f8f8f8;
+}
+
+.tag-option input[type="checkbox"] {
+  margin-right: 6px;
+  cursor: pointer;
+  width: 12px;
+  height: 12px;
+}
+
+.tag-label {
+  font-size: 12px;
+  color: #333;
+  font-weight: 500;
+}
+
+.tag-label.Negative {
+  color: #e15151;
+}
+
+.tag-label.Positive {
+  color: #4caf50;
+}
+
+.tag-label.Neutral {
+  color: #4aa3c0;
+}
+
+.filter-dropdown::-webkit-scrollbar {
+  width: 4px;
+}
+
+.filter-dropdown::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.filter-dropdown::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 2px;
+}
+
+.filter-dropdown::-webkit-scrollbar-thumb:hover {
+  background: #999;
 }

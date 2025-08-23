@@ -77,21 +77,21 @@ const Taskbar: React.FC<TaskbarProps> = ({
               <>
                 {onCreatePost && (
                   <div className="taskbar-create-post">
-                    <button className="taskbar-button active" onClick={onCreatePost} title="Add your story">Add your story</button>
+                    <button 
+                      className={`taskbar-button ${!isFilterVisible && location.pathname === '/' ? 'active' : ''}`} 
+                      onClick={() => {
+                        if (isFilterVisible && onToggleFilter) onToggleFilter();
+                        onCreatePost();
+                      }} 
+                      title="Add your story"
+                    >
+                      Add your story
+                    </button>
                   </div>
                 )}
                 {onToggleFilter && (
                   <div className="taskbar-filter">
-                    <button className="taskbar-button" onClick={onToggleFilter} title="Filter by Tags">Filter by Tags</button>
-                    {isFilterVisible && onTagSelect && (
-                      <div className="taskbar-filter-content">
-                        <TagFilter 
-                          posts={posts} 
-                          selectedTags={selectedTags} 
-                          onTagSelect={onTagSelect} 
-                        />
-                      </div>
-                    )}
+                    <button className={`taskbar-button ${isFilterVisible ? 'active' : ''}`} onClick={onToggleFilter} title="Filter by Tags">Filter by Tags</button>
                   </div>
                 )}
               </>
@@ -102,6 +102,9 @@ const Taskbar: React.FC<TaskbarProps> = ({
               to="/about" 
               className={`taskbar-button ${location.pathname === '/about' ? 'active' : ''}`} 
               title="About"
+              onClick={() => {
+                if (isFilterVisible && onToggleFilter) onToggleFilter();
+              }}
             >
               About
             </Link>
@@ -109,6 +112,9 @@ const Taskbar: React.FC<TaskbarProps> = ({
               to="/faqs" 
               className={`taskbar-button ${location.pathname === '/faqs' ? 'active' : ''}`} 
               title="FAQ's"
+              onClick={() => {
+                if (isFilterVisible && onToggleFilter) onToggleFilter();
+              }}
             >
               FAQ's
             </Link>
@@ -116,6 +122,9 @@ const Taskbar: React.FC<TaskbarProps> = ({
               to="/moderation" 
               className={`taskbar-button ${location.pathname === '/moderation' ? 'active' : ''}`} 
               title="Moderation"
+              onClick={() => {
+                if (isFilterVisible && onToggleFilter) onToggleFilter();
+              }}
             >
               Moderation
             </Link>
@@ -137,6 +146,14 @@ const Taskbar: React.FC<TaskbarProps> = ({
           </div>
         </div>
       </nav>
+      {isFilterVisible && onTagSelect && (
+        <TagFilter 
+          posts={posts} 
+          selectedTags={selectedTags} 
+          onTagSelect={onTagSelect}
+          showToggle={false}
+        />
+      )}
     </>
   );
 };
