@@ -7,6 +7,7 @@ import { Post } from './posts/types';
 import { isPointInPolygon } from '../utils/map-utils';
 import { useNotification } from './common/NotificationContext';
 import { useTheme } from '../themes/ThemeContext';
+import ImageModal from './common/ImageModal';
 
 // Replace this with your actual Mapbox access token
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
@@ -61,6 +62,9 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
     }
   }, []);
   const [popupInfo, setPopupInfo] = useState<Post | null>(null);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [modalImageSrc, setModalImageSrc] = useState('');
+  const [modalImageAlt, setModalImageAlt] = useState('');
   
   const colorMapRef = useRef<Record<string, string>>({});
 
@@ -170,7 +174,18 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
               <b>{popupInfo.title}</b>
               <p>{popupInfo.content.description}</p>
               {popupInfo.content.image && (
-                <img src={popupInfo.content.image} alt={popupInfo.title} className="map-popup-image" />
+                <img 
+                  src={popupInfo.content.image} 
+                  alt={popupInfo.title} 
+                  className="map-popup-image" 
+                  onClick={() => {
+                    setModalImageSrc(popupInfo.content.image!);
+                    setModalImageAlt(popupInfo.title);
+                    setIsImageModalOpen(true);
+                  }}
+                  style={{ cursor: 'pointer' }}
+                  title="Click to view full size"
+                />
               )}
               <div className="map-popup-footer">
                 <div>
@@ -192,6 +207,12 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
           </Popup>
         )}
       </Map>
+      <ImageModal 
+        isOpen={isImageModalOpen} 
+        onClose={() => setIsImageModalOpen(false)} 
+        imageSrc={modalImageSrc} 
+        imageAlt={modalImageAlt} 
+      />
     </div>
   );
 };

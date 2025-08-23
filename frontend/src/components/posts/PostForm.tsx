@@ -7,6 +7,7 @@ import { useNotification } from '../common/NotificationContext';
 import { useTheme } from '../../themes/ThemeContext';
 import PrivacyPolicyPopup from '../PrivacyPolicyPopup';
 import TermsOfUsePopUp from '../TermsOfUsePopUp';
+import ImageModal from '../common/ImageModal';
 
 interface PostFormProps {
   onSubmit: (formData: PostFormData) => void;
@@ -27,6 +28,7 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
   const [isTermsOfUseOpen, setIsTermsOfUseOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
   const handleAgreementCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsAgreedToAll(e.target.checked);
@@ -263,7 +265,13 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
             />
             {imagePreview && (
               <div className="image-preview">
-                <img src={imagePreview} alt="Preview" />
+                <img 
+                  src={imagePreview} 
+                  alt="Preview" 
+                  onClick={() => setIsImageModalOpen(true)}
+                  style={{ cursor: 'pointer' }}
+                  title="Click to view full size"
+                />
                 <button 
                   type="button" 
                   onClick={() => {
@@ -330,6 +338,12 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
       {renderForm()}
       <PrivacyPolicyPopup isOpen={isPrivacyPolicyOpen} onClose={closePrivacyPolicy} />
       <TermsOfUsePopUp isOpen={isTermsOfUseOpen} onClose={closeTermsOfUse} />
+      <ImageModal 
+        isOpen={isImageModalOpen} 
+        onClose={() => setIsImageModalOpen(false)} 
+        imageSrc={imagePreview} 
+        imageAlt="Image preview" 
+      />
     </>
   );
 };
