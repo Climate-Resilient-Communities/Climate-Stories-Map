@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useTheme } from '../themes/ThemeContext';
 import { Link, useLocation } from 'react-router-dom';
+// Fixed icons for hidden taskbar
+import { Plus, Info, Question, Eye, Snowflake, Flower, Sun, Leaf, MapPin, Share, BookOpen, Notepad, ArrowLeft, MapTrifold } from 'phosphor-react';
 import TagFilter from './posts/TagFilter';
 import { Post } from './posts/types';
 import './Taskbar.css';
@@ -20,11 +22,11 @@ interface TaskbarProps {
   onGoBackToMap?: () => void;
 }
 
-const themeIcons = {
-  'winter': '❄️',
-  'spring': '🌸',
-  'summer': '☀️',
-  'fall': '🍂'
+const themeLeafColors = {
+  'winter': '#3b82f6',
+  'spring': '#10b981', 
+  'summer': '#f59e0b',
+  'autumn': '#F7926A'
 };
 
 const Taskbar: React.FC<TaskbarProps> = ({ 
@@ -70,7 +72,9 @@ const Taskbar: React.FC<TaskbarProps> = ({
             {isOtherPage ? (
               onGoBackToMap && (
                 <div className="taskbar-go-back">
-                  <button className="taskbar-button" onClick={onGoBackToMap} title="Go Back to Map">Go Back to Map</button>
+                  <button className="taskbar-button" onClick={onGoBackToMap} title="Go Back to Map">
+                    {isVisible ? 'Go Back to Map' : <MapTrifold size={16} />}
+                  </button>
                 </div>
               )
             ) : (
@@ -85,13 +89,15 @@ const Taskbar: React.FC<TaskbarProps> = ({
                       }} 
                       title="Add your story"
                     >
-                      Add your story
+                      {isVisible ? <><Plus size={16} />Add your story</>:<MapPin size={16} />}
                     </button>
                   </div>
                 )}
                 {onToggleFilter && (
                   <div className="taskbar-filter">
-                    <button className={`taskbar-button ${isFilterVisible ? 'active' : ''}`} onClick={onToggleFilter} title="Filter by Tags">Filter by Tags</button>
+                    <button className={`taskbar-button ${isFilterVisible ? 'active' : ''}`} onClick={onToggleFilter} title="Filter by Tags">
+                      {isVisible ? <>Filter by Tags</> : <Plus size={16} />}
+                    </button>
                   </div>
                 )}
               </>
@@ -106,7 +112,8 @@ const Taskbar: React.FC<TaskbarProps> = ({
                 if (isFilterVisible && onToggleFilter) onToggleFilter();
               }}
             >
-              About
+              {isVisible ? <Info size={16} /> : <Share size={16} />}
+              {isVisible && 'About'}
             </Link>
             <Link 
               to="/faqs" 
@@ -116,7 +123,8 @@ const Taskbar: React.FC<TaskbarProps> = ({
                 if (isFilterVisible && onToggleFilter) onToggleFilter();
               }}
             >
-              FAQ's
+              {isVisible ? <Question size={16} /> : <BookOpen size={16} />}
+              {isVisible && "FAQ's"}
             </Link>
             <Link 
               to="/moderation" 
@@ -126,10 +134,11 @@ const Taskbar: React.FC<TaskbarProps> = ({
                 if (isFilterVisible && onToggleFilter) onToggleFilter();
               }}
             >
-              Moderation
+              {isVisible ? <Eye size={16} /> : <Notepad size={16} />}
+              {isVisible && 'Moderation'}
             </Link>
             <div className="theme-selector">
-              <div className="theme-label">Mode</div>
+              {isVisible && <div className="theme-label">Mode</div>}
               <div className="theme-options">
                 {availableThemes.map((themeName) => (
                   <button
@@ -138,7 +147,8 @@ const Taskbar: React.FC<TaskbarProps> = ({
                     onClick={() => handleThemeSelect(themeName)}
                     title={themeName.charAt(0).toUpperCase() + themeName.slice(1)}
                   >
-                    {themeName.charAt(0).toUpperCase() + themeName.slice(1)}
+                    {!isVisible && <Leaf size={16} color={themeLeafColors[themeName as keyof typeof themeLeafColors]} weight={theme === themeName ? 'bold' : 'regular'} />}
+                    {isVisible && themeName.charAt(0).toUpperCase() + themeName.slice(1)}
                   </button>
                 ))}
               </div>
@@ -152,6 +162,7 @@ const Taskbar: React.FC<TaskbarProps> = ({
           selectedTags={selectedTags} 
           onTagSelect={onTagSelect}
           showToggle={false}
+          taskbarVisible={isVisible}
         />
       )}
     </>

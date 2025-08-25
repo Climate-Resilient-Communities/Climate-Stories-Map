@@ -87,15 +87,7 @@
   padding: 0;
 }
 
-[data-theme='summer'] .taskbar.hidden .theme-option:before {
-  font-size: 20px;
-  color: #f59e0b;
-}
 
-[data-theme='summer'] .taskbar.hidden .theme-option[title="Winter"]:before { content: '❄️'; }
-[data-theme='summer'] .taskbar.hidden .theme-option[title="Spring"]:before { content: '🌸'; }
-[data-theme='summer'] .taskbar.hidden .theme-option[title="Summer"]:before { content: '☀️'; }
-[data-theme='summer'] .taskbar.hidden .theme-option[title="Autumn"]:before { content: '🍂'; }
 
 [data-theme='summer'] .taskbar.hidden .taskbar-button {
   font-size: 0;
@@ -106,16 +98,7 @@
   width: 40px;
 }
 
-[data-theme='summer'] .taskbar.hidden .taskbar-button:before {
-  font-size: 20px;
-  color: #f59e0b;
-}
 
-[data-theme='summer'] .taskbar.hidden .taskbar-create-post .taskbar-button:before { content: '+'; }
-[data-theme='summer'] .taskbar.hidden .taskbar-filter .taskbar-button:before { content: '🔍'; }
-[data-theme='summer'] .taskbar.hidden .taskbar-buttons > .taskbar-button:nth-child(1):before { content: '👤'; }
-[data-theme='summer'] .taskbar.hidden .taskbar-buttons > .taskbar-button:nth-child(2):before { content: '?'; }
-[data-theme='summer'] .taskbar.hidden .taskbar-buttons > .taskbar-button:nth-child(3):before { content: '⚖️'; }
 
 [data-theme='summer'] .taskbar.hidden .taskbar-content {
   display: flex;

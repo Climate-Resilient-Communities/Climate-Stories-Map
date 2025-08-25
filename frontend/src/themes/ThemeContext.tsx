@@ -16,17 +16,35 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 const availableThemes: Theme[] = ['winter', 'spring', 'summer', 'autumn'];
 
+const getSeasonalTheme = (): Theme => {
+  const month = new Date().getMonth(); // 0-11
+  if (month >= 11 || month <= 1) return 'winter'; // Dec, Jan, Feb
+  if (month >= 2 && month <= 4) return 'spring'; // Mar, Apr, May
+  if (month >= 5 && month <= 7) return 'summer'; // Jun, Jul, Aug
+  return 'autumn'; // Sep, Oct, Nov
+};
+
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setThemeState] = useState<Theme>(() => {
-    // Try to get theme from localStorage, default to winter
-    const savedTheme = localStorage.getItem('theme') as Theme;
-    return availableThemes.includes(savedTheme) ? savedTheme : 'winter';
+    // Try to get theme from localStorage with expiration check
+    const savedData = localStorage.getItem('themeData');
+    if (savedData) {
+      try {
+        const { theme: savedTheme, expiry } = JSON.parse(savedData);
+        if (Date.now() < expiry && availableThemes.includes(savedTheme)) {
+          return savedTheme;
+        }
+      } catch {}
+    }
+    return getSeasonalTheme();
   });
 
   useEffect(() => {
     // Update data-theme attribute when theme changes
     document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
+    // Save theme with 1 week expiration
+    const expiry = Date.now() + (7 * 24 * 60 * 60 * 1000);
+    localStorage.setItem('themeData', JSON.stringify({ theme, expiry }));
   }, [theme]);
 
   const setTheme = (newTheme: Theme) => {

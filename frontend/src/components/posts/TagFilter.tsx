@@ -8,9 +8,10 @@ interface TagFilterProps {
   selectedTags: string[];
   onTagSelect: (selectedTags: string[]) => void;
   showToggle?: boolean;
+  taskbarVisible?: boolean;
 }
 
-const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect, showToggle = true }) => {
+const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect, showToggle = true, taskbarVisible = true }) => {
   const [isOpen, setIsOpen] = React.useState(false);
 
   const getAllTags = () => {
@@ -51,7 +52,7 @@ const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect,
   };
 
   return (
-    <div className="tag-filter-dropdown">
+    <div className={`tag-filter-dropdown ${!taskbarVisible ? 'taskbar-hidden' : ''}`}>
       {showToggle && (
         <button 
           className="filter-toggle"

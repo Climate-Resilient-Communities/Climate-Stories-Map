@@ -7,7 +7,8 @@
 }
 
 .taskbar.hidden {
-  transform: translateX(-100%);
+  width: 60px;
+  transform: translateX(0);
 }
 
 .taskbar.visible {
@@ -36,6 +37,32 @@
 .taskbar-toggle-button:hover {
   background: white;
   color: black;
+}
+
+.taskbar.hidden {
+  width: 60px;
+  transform: translateX(0);
+}
+
+.taskbar.hidden .taskbar-content {
+  padding: var(--spacing-lg) var(--spacing-xs);
+  align-items: center;
+}
+
+.taskbar.hidden .taskbar-title {
+  display: none;
+}
+
+.taskbar.hidden .theme-label {
+  display: none;
+}
+
+.taskbar.hidden .taskbar-button {
+  width: 40px;
+  height: 40px;
+  padding: var(--spacing-xs);
+  justify-content: center;
+  text-align: center;
 }
 
 /* Desktop/Browser default - taskbar on the left */
@@ -252,7 +279,9 @@
   outline: none;
   width: 100%;
   text-align: left;
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   min-height: 30px;
 }
 

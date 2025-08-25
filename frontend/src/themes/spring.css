@@ -47,11 +47,6 @@
   overflow: hidden;
 }
 
-[data-theme='spring'] .taskbar-toggle-button.collapsed {
-  left: 107px;
-  top: 15%;
-}
-
 [data-theme='spring'] .taskbar.hidden .taskbar-title {
   display: none;
 }
@@ -87,16 +82,6 @@
   padding: 0;
 }
 
-[data-theme='spring'] .taskbar.hidden .theme-option:before {
-  font-size: 20px;
-  color: #22c55e;
-}
-
-[data-theme='spring'] .taskbar.hidden .theme-option[title="Winter"]:before { content: '❄️'; }
-[data-theme='spring'] .taskbar.hidden .theme-option[title="Spring"]:before { content: '🌸'; }
-[data-theme='spring'] .taskbar.hidden .theme-option[title="Summer"]:before { content: '☀️'; }
-[data-theme='spring'] .taskbar.hidden .theme-option[title="Autumn"]:before { content: '🍂'; }
-
 [data-theme='spring'] .taskbar.hidden .taskbar-button {
   font-size: 0;
   display: flex;
@@ -105,17 +90,6 @@
   height: 40px;
   width: 40px;
 }
-
-[data-theme='spring'] .taskbar.hidden .taskbar-button:before {
-  font-size: 20px;
-  color: #22c55e;
-}
-
-[data-theme='spring'] .taskbar.hidden .taskbar-create-post .taskbar-button:before { content: '+'; }
-[data-theme='spring'] .taskbar.hidden .taskbar-filter .taskbar-button:before { content: '🔍'; }
-[data-theme='spring'] .taskbar.hidden .taskbar-buttons > .taskbar-button:nth-child(1):before { content: '👤'; }
-[data-theme='spring'] .taskbar.hidden .taskbar-buttons > .taskbar-button:nth-child(2):before { content: '?'; }
-[data-theme='spring'] .taskbar.hidden .taskbar-buttons > .taskbar-button:nth-child(3):before { content: '⚖️'; }
 
 [data-theme='spring'] .taskbar.hidden .taskbar-content {
   display: flex;
@@ -252,7 +226,7 @@
 }
 
 [data-theme='spring'] .map-container.taskbar-hidden {
-  margin-left:35px;
+  margin-left: 35px;
   width: calc(100% - 120px);
 }
 
@@ -261,14 +235,9 @@
   height: 100%;
 }
 
-[data-theme='spring'] .create-post-button {
-  top: 20px;
-  left: 160px;
-}
-
-[data-theme='spring'] .filter-toggle-button {
-  top: 70px;
-  left: 160px;
+[data-theme='spring'] .taskbar-toggle-button.collapsed {
+  left: 107px;
+  top: 15%;
 }
 
 [data-theme='spring'] .post-form {
@@ -284,7 +253,27 @@
   width: 100%;
 }
 
-
+[data-theme='spring'] .post-form-left {
+  flex: 0 0 250px;
+  width: 250px;
+  height: 100%;
+  min-height: 655px;
+  border-radius: 20px 0 0 20px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  margin-left: -30px;
+  margin-top: -30px;
+  margin-bottom: -30px;
+  padding-left: 30px;
+  padding-top: 30px;
+  padding-bottom: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 [data-theme='spring'] .post-form-icon {
   font-size: 4rem;

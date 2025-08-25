@@ -4,6 +4,12 @@
   left: 40px;
   z-index: 1002;
   width: 250px;
+  transition: top 0.3s ease, left 0.3s ease;
+}
+
+.tag-filter-dropdown.taskbar-hidden {
+  top: 140px;
+  left: 50px
 }
 
 .filter-toggle {
@@ -20,6 +26,7 @@
   color: white;
   font-weight: 500;
   transition: all 0.2s ease;
+  outline: none;
 }
 
 .filter-toggle:hover {
