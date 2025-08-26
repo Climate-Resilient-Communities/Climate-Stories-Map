@@ -295,6 +295,9 @@
   color: white;
   font-weight: bold;
   border-radius: 20px;
+}
+
+.taskbar:not(.hidden) .taskbar-button.active:not(.theme-option) {
   margin: -8px -5px;
   padding-left: calc(var(--spacing-sm) + 5px);
 }

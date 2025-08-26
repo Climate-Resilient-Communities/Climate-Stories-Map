@@ -166,9 +166,7 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
       return;
     }
     
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    
-    if (formData.captchaToken || isLocalhost) {
+    if (formData.captchaToken) {
       try {
         const submitData = new FormData();
         submitData.append('postData', JSON.stringify(formData));
@@ -318,7 +316,7 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
 
         <div className="form-buttons">
           <button type="button" onClick={handleModalClose}>Cancel</button>
-          {isActive && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1') && (
+          {isActive && (
             <HCaptcha
               ref={captchaRef}
               sitekey={CAPTCHA_SITE_KEY}

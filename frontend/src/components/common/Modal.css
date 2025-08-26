@@ -27,8 +27,8 @@
 
 .modal-close-button {
   position: absolute;
-  top: var(--spacing-md);
-  right: var(--spacing-md);
+  top: 10px;
+  right: 10px;
   background: none;
   border: none;
   font-size: 1.5rem;
@@ -41,6 +41,7 @@
   justify-content: center;
   border-radius: var(--border-radius-sm);
   transition: all var(--transition-fast);
+  z-index: 10;
 }
 
 .modal-close-button:hover {
