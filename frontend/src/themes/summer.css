@@ -394,3 +394,8 @@
   display: flex;
   justify-content: flex-start;
 }
+
+[data-theme='summer'] .modal-close-button {
+  top: 5px;
+  right: 5px;
+}
