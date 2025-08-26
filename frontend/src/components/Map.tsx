@@ -38,6 +38,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
   });
   const { showNotification } = useNotification();
   const { theme } = useTheme();
+  const mapRef = useRef<any>(null);
 
   const getMapStyle = () => {
     return MONOCHROME_MAP;
@@ -95,6 +96,12 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
       .catch((err) => console.error('Failed to load GeoJSON', String(err).replace(/[\r\n\t]/g, ' ')));
   }, []);
 
+  useEffect(() => {
+    if (mapRef.current) {
+      setTimeout(() => mapRef.current.resize(), 350);
+    }
+  }, [taskbarVisible]);
+
 
 
   const handleClick = (event: any) => {
@@ -116,6 +123,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
   return (
     <div className={`map-container ${taskbarVisible ? '' : 'taskbar-hidden'}${isCreatePostMode ? ' create-post-mode' : ''}`}>
       <Map
+        ref={mapRef}
         {...viewState}
         onMove={evt => setViewState(evt.viewState)}
         style={{ width: '100%', height: '100%' }}
