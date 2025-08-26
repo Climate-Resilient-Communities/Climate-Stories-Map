@@ -56,7 +56,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
           }));
         },
         (error) => {
-          console.log("Geolocation error or permission denied:", error);
+          console.log("Geolocation error or permission denied:", String(error).replace(/[\r\n\t]/g, ' '));
         }
       );
     }
@@ -92,7 +92,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
     fetch('/canada.geojson')
       .then((res) => res.json())
       .then((data) => setCanadaGeoJSON(data))
-      .catch((err) => console.error('Failed to load GeoJSON', err));
+      .catch((err) => console.error('Failed to load GeoJSON', String(err).replace(/[\r\n\t]/g, ' ')));
   }, []);
 
 

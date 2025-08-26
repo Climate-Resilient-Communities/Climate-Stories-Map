@@ -21,6 +21,9 @@ export const fetchPosts = async (tag?: string, optionalTags?: string[]): Promise
 };
 
 export const fetchPostById = async (id: string): Promise<Post> => {
+  if (!/^[a-fA-F0-9]{24}$/.test(id)) {
+    throw new Error('Invalid ID format');
+  }
   const response = await axios.get(`${API_URL}/${id}`);
   return transformKeysToCamel(response.data);
 };
@@ -31,10 +34,16 @@ export const createPost = async (postData: PostFormData): Promise<Post> => {
 };
 
 export const updatePost = async (id: string, postData: PostFormData): Promise<Post> => {
+  if (!/^[a-fA-F0-9]{24}$/.test(id)) {
+    throw new Error('Invalid ID format');
+  }
   const response = await axios.put(`${API_URL}/update/${id}`, postData);
   return transformKeysToCamel(response.data);
 };
 
 export const deletePost = async (id: string): Promise<void> => {
+  if (!/^[a-fA-F0-9]{24}$/.test(id)) {
+    throw new Error('Invalid ID format');
+  }
   await axios.delete(`${API_URL}/delete/${id}`);
 };
