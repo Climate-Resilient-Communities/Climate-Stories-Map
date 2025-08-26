@@ -38,6 +38,10 @@
   max-width: 1000px;
 }
 
+.modal-custom-600 {
+  max-width: 600px;
+}
+
 .modal-close-button {
   position: absolute;
   top: 5px;

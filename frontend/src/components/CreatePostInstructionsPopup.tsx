@@ -22,7 +22,7 @@ const CreatePostInstructionsPopup: React.FC<CreatePostInstructionsPopupProps> = 
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal isOpen={isOpen} onClose={onClose} size="custom-600">
       <div className="create-post-instructions-popup">
         <div className="instructions-content">
           <div className="instructions-icon">
