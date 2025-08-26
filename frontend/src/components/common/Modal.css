@@ -15,20 +15,33 @@
 }
 
 .modal-content {
-  background-color: var(--surface-color);
+  background-color: transparent;
   color: var(--text-primary);
   border-radius: var(--border-radius-lg);
-  max-width: 800px;
   width: 95%;
   position: relative;
   box-shadow: var(--shadow-lg);
-  border: 1px solid var(--border-color);
+  border: none;
+  padding: 0;
+  overflow: hidden;
+}
+
+.modal-small {
+  max-width: 400px;
+}
+
+.modal-medium {
+  max-width: 800px;
+}
+
+.modal-large {
+  max-width: 1000px;
 }
 
 .modal-close-button {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 5px;
+  right: 5px;
   background: none;
   border: none;
   font-size: 1.5rem;
@@ -42,7 +55,6 @@
   border-radius: var(--border-radius-sm);
   transition: all var(--transition-fast);
   z-index: 10;
-  padding: 0.5em 0.5em;
 }
 
 .modal-close-button:hover {
