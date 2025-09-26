@@ -129,12 +129,13 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
             navigator.geolocation.getCurrentPosition(
               (position) => {
                 const { longitude, latitude } = position.coords;
-                setViewState(prev => ({
-                  ...prev,
-                  longitude,
-                  latitude,
-                  zoom: 12
-                }));
+                if (mapRef.current) {
+                  mapRef.current.flyTo({
+                    center: [longitude, latitude],
+                    zoom: 12,
+                    duration: 2000
+                  });
+                }
               },
               (error) => {
                 if (error.code === 1) { // PERMISSION_DENIED
