@@ -121,7 +121,59 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
   };
 
   return (
-    <div className={`map-container ${taskbarVisible ? '' : 'taskbar-hidden'}${isCreatePostMode ? ' create-post-mode' : ''}`}>
+    <div className={`map-container ${taskbarVisible ? '' : 'taskbar-hidden'}${isCreatePostMode ? ' create-post-mode' : ''}`} style={{ position: 'relative' }}>
+      {/* My Location Button */}
+      <button
+        onClick={() => {
+          if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                const { longitude, latitude } = position.coords;
+                setViewState(prev => ({
+                  ...prev,
+                  longitude,
+                  latitude,
+                  zoom: 12
+                }));
+              },
+              (error) => {
+                if (error.code === 1) { // PERMISSION_DENIED
+                  showNotification('Location access denied. Please enable location permissions in your browser settings and refresh the page.', true);
+                } else if (error.code === 2) { // POSITION_UNAVAILABLE
+                  showNotification('Location unavailable. Please check your GPS/location services.', true);
+                } else if (error.code === 3) { // TIMEOUT
+                  showNotification('Location request timed out. Please try again.', true);
+                } else {
+                  showNotification('Unable to access location. Please enable location permissions.', true);
+                }
+              }
+            );
+          } else {
+            showNotification('Geolocation is not supported by this browser.', true);
+          }
+        }}
+        style={{
+          position: 'absolute',
+          bottom: '20px',
+          right: '10px',
+          zIndex: 1000,
+          background: 'white',
+          border: '2px solid rgba(0,0,0,0.2)',
+          borderRadius: '4px',
+          width: '29px',
+          height: '29px',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '14px',
+          boxShadow: '0 0 0 2px rgba(0,0,0,0.1)',
+          color: '#333'
+        }}
+        title="Go to my location"
+      >
+        ⊕
+      </button>
       <Map
         ref={mapRef}
         {...viewState}
