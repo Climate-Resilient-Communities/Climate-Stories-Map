@@ -299,11 +299,11 @@
 }
 
 [data-theme='winter'] .post-form-title {
-  color: #C06C5A;
+  color: #1E498A !important;
   font-size: 1.1rem;
   font-weight: bold;
   margin: 0;
-  border-bottom: 2px solid #C06C5A;
+  border-bottom: 2px solid #1E498A !important;
   padding-bottom: 4px;
   margin-bottom: 6px;
   line-height: 1.2;
@@ -378,14 +378,14 @@
 
 [data-theme='winter'] .post-form button[type="submit"] {
   background: white;
-  color: #C06C5A;
-  border: 2px solid #C06C5A;
+  color: #1E498A;
+  border: 2px solid #1E498A;
 }
 
 [data-theme='winter'] .post-form button[type="submit"]:hover {
-  background: #C06C5A;
+  background: #1E498A;
   color: white;
-  border: 2px solid #C06C5A;
+  border: 2px solid #1E498A;
 }
 
 [data-theme='winter'] .post-form button[type="button"] {
@@ -399,6 +399,5 @@
 }
 
 [data-theme='winter'] .modal-close-button {
-  top: 5px;
-  right: 5px;
+  top: 2px;
 }

@@ -390,6 +390,5 @@
 }
 
 [data-theme='spring'] .modal-close-button {
-  top: 5px;
-  right: 5px;
+  top: 2px;
 }
