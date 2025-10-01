@@ -29,6 +29,7 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [tagInput, setTagInput] = useState('');
 
   const handleAgreementCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsAgreedToAll(e.target.checked);
@@ -79,6 +80,10 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
       }));
     }
   }, [initialCoordinates]);
+
+  React.useEffect(() => {
+    setTagInput(formData.optionalTags.join(', '));
+  }, [formData.optionalTags]);
 
   const handleModalClose = React.useCallback(() => {
     setIsActive(false);
@@ -137,13 +142,7 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
       case 'latitude':
         updateNestedField(['location', 'coordinates', 1], value === '' ? 0 : parseFloat(value) || 0);
         break;
-      case 'optionalTags':
-        // Allow spaces and commas in tags
-        setFormData(prevData => ({
-          ...prevData,
-          optionalTags: value ? [value] : [],
-        }));
-        break;
+
       case 'tag':
         setFormData(prevData => ({
           ...prevData,
@@ -203,6 +202,41 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
       captchaToken: token,
     }));
   }, []);
+
+  const handleTagInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTagInput(e.target.value);
+  };
+
+  const handleTagInputBlur = () => {
+    const tags = tagInput ? tagInput.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
+    const longTag = tags.find(tag => tag.length > 50);
+    if (longTag) {
+      showNotification('Each tag must be 50 characters or less', true);
+      return;
+    }
+    if (tags.length > 3) {
+      showNotification('Maximum 3 optional tags allowed', true);
+      return;
+    }
+    setFormData(prevData => ({
+      ...prevData,
+      optionalTags: tags,
+    }));
+  };
+
+  const isFormValid = () => {
+    const tags = tagInput ? tagInput.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
+    const hasLongTag = tags.some(tag => tag.length > 50);
+    const hasTooManyTags = tags.length > 3;
+    
+    return formData.title.trim() !== '' &&
+           formData.content.description.trim() !== '' &&
+           formData.tag !== '-' &&
+           isAgreedToAll &&
+           formData.captchaToken !== '' &&
+           !hasLongTag &&
+           !hasTooManyTags;
+  };
 
 
 
@@ -292,9 +326,10 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
         <input
           type="text"
           name="optionalTags"
-          placeholder="Add Tags"
-          value={formData.optionalTags}
-          onChange={handleChange}
+          placeholder="Add Tags (max 3, comma separated)"
+          value={tagInput}
+          onChange={handleTagInputChange}
+          onBlur={handleTagInputBlur}
         />
         <div className="checkbox-container">
           <div className="checkbox-row">
@@ -325,7 +360,7 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
               onClose={() => setIsActive(false)}
             />
           )}
-          <button type="submit">Add</button>
+          <button type="submit" disabled={!isFormValid()}>Add</button>
         </div>
       </div>
     </form>
