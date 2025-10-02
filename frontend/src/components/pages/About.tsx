@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTheme } from '../../themes/ThemeContext';
 import './PageLayout.css';
 
 interface AboutProps {
@@ -6,12 +7,13 @@ interface AboutProps {
 }
 
 const About: React.FC<AboutProps> = ({ taskbarVisible = true }) => {
+  const { theme } = useTheme();
   return (
     <div className={`page-container ${taskbarVisible ? '' : 'taskbar-hidden'}`}>
-      <div className="page-content">
+      <div className="about-page-content">
         <h1>ABOUT</h1>
-        <div className="content-with-image">
-          <div className="text-content">
+        <div className="about-layout">
+          <div className="about-text-section">
             <p>
               The Climate Stories Map is a space for sharing personal experiences with climate change. 
               Whether you've felt hopeful, frustrated, or inspired, your story matters. Drop a pin, 
@@ -20,8 +22,12 @@ const About: React.FC<AboutProps> = ({ taskbarVisible = true }) => {
               like in our communities.
             </p>
           </div>
-          <div className="image-placeholder">
-            <div className="community-icon">👥</div>
+          <div className="about-image-section">
+            <img 
+              src={`/themes/${theme}/About.png`} 
+              alt="About" 
+              className="about-page-image"
+            />
           </div>
         </div>
       </div>
