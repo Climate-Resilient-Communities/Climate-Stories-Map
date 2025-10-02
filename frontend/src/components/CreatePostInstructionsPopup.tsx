@@ -30,9 +30,6 @@ const CreatePostInstructionsPopup: React.FC<CreatePostInstructionsPopupProps> = 
               src={`/themes/${theme}/Add your story.png`} 
               alt="Add your story" 
               className="instructions-image"
-              onError={(e) => {
-                e.currentTarget.src = '/themes/summer/Add your story.png';
-              }}
             />
           </div>
           <div className="instructions-text">
