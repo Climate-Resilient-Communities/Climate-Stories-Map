@@ -37,31 +37,33 @@ const Faqs: React.FC<FaqsProps> = ({ taskbarVisible = true }) => {
 
   return (
     <div className={`page-container ${taskbarVisible ? '' : 'taskbar-hidden'}`}>
-      <div className="page-content">
+      <div className="faq-page-content">
         <h1>FAQ's</h1>
-        <div className="content-with-image">
-          <div className="nav-left">
+        <div className="faq-layout">
+          <div className="faq-nav-left">
             {currentIndex > 0 && (
-              <button className="nav-button" onClick={goToPrevious}>
-                ‹
+              <button className="faq-nav-button" onClick={goToPrevious}>
+                &lt;
               </button>
             )}
           </div>
-          <div className="content-center">
-            <div className="image-placeholder">
-              <div className="community-icon">❓</div>
+          <div className={`faq-content-area ${currentIndex % 2 === 1 ? 'reverse' : ''}`}>
+            <div className="faq-icon-section">
+              <img 
+                src={`/themes/summer/FAQ-Q${currentIndex + 1}.png`} 
+                alt={`FAQ ${currentIndex + 1}`} 
+                className="faq-icon-image"
+              />
             </div>
-            <div className="text-content">
-              <div className="faq-item">
-                <h3>{faqItems[currentIndex].question}</h3>
-                <p>{faqItems[currentIndex].answer}</p>
-              </div>
+            <div className="faq-text-section">
+              <h3>{faqItems[currentIndex].question}</h3>
+              <p>{faqItems[currentIndex].answer}</p>
             </div>
           </div>
-          <div className="nav-right">
+          <div className="faq-nav-right">
             {currentIndex < faqItems.length - 1 && (
-              <button className="nav-button" onClick={goToNext}>
-                ›
+              <button className="faq-nav-button" onClick={goToNext}>
+                &gt; 
               </button>
             )}
           </div>
