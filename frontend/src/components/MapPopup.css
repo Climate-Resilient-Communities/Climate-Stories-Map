@@ -263,6 +263,55 @@
   color: #333 !important;
 }
 
+/* Theme-specific close button styles */
+.map-popup-content.theme-spring ~ .mapboxgl-popup-close-button,
+.theme-spring .mapboxgl-popup-close-button {
+  background: rgba(240, 253, 244, 0.9) !important;
+  color: #22c55e !important;
+}
+
+.map-popup-content.theme-spring ~ .mapboxgl-popup-close-button:hover,
+.theme-spring .mapboxgl-popup-close-button:hover {
+  background: rgba(240, 253, 244, 1) !important;
+  color: #16a34a !important;
+}
+
+.map-popup-content.theme-summer ~ .mapboxgl-popup-close-button,
+.theme-summer .mapboxgl-popup-close-button {
+  background: rgba(255, 251, 235, 0.9) !important;
+  color: #f59e0b !important;
+}
+
+.map-popup-content.theme-summer ~ .mapboxgl-popup-close-button:hover,
+.theme-summer .mapboxgl-popup-close-button:hover {
+  background: rgba(255, 251, 235, 1) !important;
+  color: #d97706 !important;
+}
+
+.map-popup-content.theme-autumn ~ .mapboxgl-popup-close-button,
+.theme-autumn .mapboxgl-popup-close-button {
+  background: rgba(254, 247, 237, 0.9) !important;
+  color: #ea580c !important;
+}
+
+.map-popup-content.theme-autumn ~ .mapboxgl-popup-close-button:hover,
+.theme-autumn .mapboxgl-popup-close-button:hover {
+  background: rgba(254, 247, 237, 1) !important;
+  color: #c2410c !important;
+}
+
+.map-popup-content.theme-winter ~ .mapboxgl-popup-close-button,
+.theme-winter .mapboxgl-popup-close-button {
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: #1E498A !important;
+}
+
+.map-popup-content.theme-winter ~ .mapboxgl-popup-close-button:hover,
+.theme-winter .mapboxgl-popup-close-button:hover {
+  background: rgba(255, 255, 255, 1) !important;
+  color: #1e3a8a !important;
+}
+
 /* Scrollbar styling */
 .map-popup-body::-webkit-scrollbar {
   width: 4px;
