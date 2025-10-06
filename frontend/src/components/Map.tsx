@@ -124,6 +124,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
     <div className={`map-container ${taskbarVisible ? '' : 'taskbar-hidden'}${isCreatePostMode ? ' create-post-mode' : ''}`} style={{ position: 'relative' }}>
       {/* My Location Button */}
       <button
+        className={`location-button theme-${theme}`}
         onClick={() => {
           if ("geolocation" in navigator) {
             navigator.geolocation.getCurrentPosition(
@@ -152,24 +153,6 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
           } else {
             showNotification('Geolocation is not supported by this browser.', true);
           }
-        }}
-        style={{
-          position: 'absolute',
-          bottom: '20px',
-          right: '10px',
-          zIndex: 1000,
-          background: 'white',
-          border: '2px solid rgba(0,0,0,0.2)',
-          borderRadius: '4px',
-          width: '29px',
-          height: '29px',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '14px',
-          boxShadow: '0 0 0 2px rgba(0,0,0,0.1)',
-          color: '#333'
         }}
         title="Go to my location"
       >
@@ -231,38 +214,42 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
             anchor="bottom"
             onClose={() => setPopupInfo(null)}
           >
-            <div className="map-popup-content">
-              <b>{popupInfo.title}</b>
-              <p>{popupInfo.content.description}</p>
-              {popupInfo.content.image && (
-                <img 
-                  src={popupInfo.content.image} 
-                  alt={popupInfo.title} 
-                  className="map-popup-image" 
-                  onClick={() => {
-                    setModalImageSrc(popupInfo.content.image!);
-                    setModalImageAlt(popupInfo.title);
-                    setIsImageModalOpen(true);
-                  }}
-                  style={{ cursor: 'pointer' }}
-                  title="Click to view full size"
-                />
-              )}
+            <div className={`map-popup-content theme-${theme}`}>
+              <div className="map-popup-header">
+                <h3 className="map-popup-title">{popupInfo.title}</h3>
+              </div>
+              <div className="map-popup-body">
+                <p className="map-popup-description">{popupInfo.content.description}</p>
+                {popupInfo.content.image && (
+                  <img 
+                    src={popupInfo.content.image} 
+                    alt={popupInfo.title} 
+                    className="map-popup-image" 
+                    onClick={() => {
+                      setModalImageSrc(popupInfo.content.image!);
+                      setModalImageAlt(popupInfo.title);
+                      setIsImageModalOpen(true);
+                    }}
+                    style={{ cursor: 'pointer' }}
+                    title="Click to view full size"
+                  />
+                )}
+              </div>
               <div className="map-popup-footer">
-                <div>
+                <div className="map-popup-tags">
                   {popupInfo.tag && popupInfo.tag !== '-' && popupInfo.tag.trim() !== '' && (
-                    <span className={`map-popup-tag ${popupInfo.tag}`}>{popupInfo.tag}</span>
+                    <span className={`map-popup-tag ${popupInfo.tag.toLowerCase()}`}>{popupInfo.tag}</span>
                   )}
                   {popupInfo.optionalTags && popupInfo.optionalTags.length > 0 && popupInfo.optionalTags
                     .filter(tag => tag && tag.trim() !== '')
                     .map(tag => (
-                      <span key={tag} className="map-popup-tag">#{tag}</span>
+                      <span key={tag} className="map-popup-tag optional">#{tag}</span>
                     ))
                   }
                 </div>
-              </div>
-              <div className="map-popup-date">
-                {new Date(popupInfo.createdAt).toLocaleDateString()}
+                <div className="map-popup-date">
+                  {new Date(popupInfo.createdAt).toLocaleDateString()}
+                </div>
               </div>
             </div>
           </Popup>
