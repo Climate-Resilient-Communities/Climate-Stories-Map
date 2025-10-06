@@ -202,6 +202,19 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
               onClick={e => {
                 e.originalEvent.stopPropagation();
                 setPopupInfo(post);
+                if (mapRef.current) {
+                  const map = mapRef.current.getMap();
+                  const bounds = map.getBounds();
+                  const latSpan = bounds.getNorth() - bounds.getSouth();
+                  
+                  mapRef.current.flyTo({
+                    center: [
+                      post.location.coordinates[0],
+                      post.location.coordinates[1] + latSpan * 0.15
+                    ],
+                    duration: 1500
+                  });
+                }
               }}
             />
           );
@@ -212,6 +225,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
             longitude={popupInfo.location.coordinates[0]}
             latitude={popupInfo.location.coordinates[1]}
             anchor="bottom"
+            offset={[0, -60]}
             onClose={() => setPopupInfo(null)}
           >
             <div className={`map-popup-content theme-${theme}`}>
