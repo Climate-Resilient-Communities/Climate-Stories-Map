@@ -68,7 +68,7 @@ class PostSchema(Schema):
     optionalTags = fields.List(fields.Str(), required=False, load_default=[]) # Make optional for backward compatibility
     captchaToken = fields.Str(required=True) # Add captcha token to schema
     createdAt = fields.DateTime()
-    status = fields.Str(required=False, default='pending')
+    status = fields.Str(required=False, load_default='pending')
 
 # Define a schema for tag validation
 class TagSchema(Schema):
