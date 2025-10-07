@@ -262,12 +262,22 @@ def get_posts():
         # Convert ObjectId to string to make it JSON serializable
         for post in posts:
             post['_id'] = str(post['_id'])
-            # Convert created_at to createdAt for frontend compatibility
+            # Handle date field conversion - check both formats
             if 'created_at' in post:
-                post['createdAt'] = post.pop('created_at')
+                created_at = post.pop('created_at')
+                # Convert datetime object to ISO string if needed
+                if isinstance(created_at, datetime.datetime):
+                    post['createdAt'] = created_at.isoformat()
+                else:
+                    post['createdAt'] = created_at
+            elif 'createdAt' not in post:
+                # If no date field exists, use current time as fallback
+                post['createdAt'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
             # Convert optional_tags to optionalTags for frontend compatibility
             if 'optional_tags' in post:
                 post['optionalTags'] = post.pop('optional_tags')
+            elif 'optionalTags' not in post:
+                post['optionalTags'] = []
         return jsonify(posts), 200
 
     except ValidationError as err:
