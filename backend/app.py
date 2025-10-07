@@ -85,20 +85,25 @@ def upload_image_to_imgbb(image_file):
     """Upload image to ImgBB and return the URL"""
     try:
         files = {'image': image_file}
-        data = {
-            'key': cdn_key,
-            'album': os.getenv('IMGBB_ALBUM_ID')  # Add your private album ID
-        }
+        data = {'key': cdn_key}
+        
+        # Extract album ID from URL if needed
+        album_id = os.getenv('IMGBB_ALBUM_ID')
+        if album_id and album_id.startswith('https://ibb.co/album/'):
+            album_id = album_id.split('/')[-1]
+        
+        if album_id:
+            data['album'] = album_id
         
         response = requests.post(cdn_url, files=files, data=data)
         result = response.json()
         
-
+        print(f"ImgBB response: {result}")
         
         if result.get('success'):
             return result['data']['url']
         else:
-            print("ImgBB upload failed")
+            print(f"ImgBB upload failed: {result.get('error', 'Unknown error')}")
             return None
     except Exception as e:
         print(f"Error uploading image: {e}")
