@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './PageLayout.css';
+import { useTheme } from '../../themes/ThemeContext';
 
 interface FaqsProps {
   taskbarVisible?: boolean;
@@ -7,6 +8,7 @@ interface FaqsProps {
 
 const Faqs: React.FC<FaqsProps> = ({ taskbarVisible = true }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const { theme } = useTheme();
   
   const faqItems = [
     {
@@ -50,7 +52,7 @@ const Faqs: React.FC<FaqsProps> = ({ taskbarVisible = true }) => {
           <div className={`faq-content-area ${currentIndex % 2 === 1 ? 'reverse' : ''}`}>
             <div className="faq-icon-section">
               <img 
-                src={`/themes/summer/FAQ-Q${currentIndex + 1}.png`} 
+                src={`/themes/${theme}/FAQ-Q${currentIndex + 1}.png`} 
                 alt={`FAQ ${currentIndex + 1}`} 
                 className="faq-icon-image"
               />
