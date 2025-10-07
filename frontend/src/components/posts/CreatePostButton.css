@@ -1,34 +1,70 @@
 .create-post-button {
-  position: absolute;
-  top: 110px;
-  left: 10px;
-  z-index: 999;
-  padding: 8px;
   display: flex;
   align-items: center;
-  gap: 5px;
-  background: #569BC4;
-  color: white;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--primary-color);
+  color: var(--surface-color);
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s ease-in-out;
+  white-space: nowrap;
+  font-size: 14px;
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1000;
 }
 
 .create-post-button:disabled {
-  background: #cccccc;
+  background: var(--secondary-color);
   cursor: not-allowed;
   opacity: 0.7;
 }
 
-.create-post-button:hover {
-  background: #4a89b0;
+.create-post-button:hover:not(:disabled) {
+  background: var(--primary-hover);
 }
 
 .create-post-button .button-text {
-  display: none;
+  display: inline;
+  margin-left: 4px;
 }
 
-.create-post-button:hover .button-text {
-  display: inline;
+/* Desktop/Browser default - taskbar on the left */
+@media screen and (min-width: 769px) {
+  .create-post-button {
+    left: 260px; /* 250px taskbar width + 10px margin */
+  }
+  
+  .create-post-button.taskbar-hidden {
+    left: 10px;
+  }
+}
+
+/* Mobile portrait mode */
+@media screen and (max-width: 768px) and (orientation: portrait) {
+  .create-post-button {
+    top: 64px; /* 54px taskbar height + 10px margin */
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+
+  .create-post-button.taskbar-hidden {
+    top: 10px;
+  }
+}
+
+/* Mobile landscape mode */
+@media screen and (max-width: 768px) and (orientation: landscape) {
+  .create-post-button {
+    left: 210px; /* 200px taskbar width + 10px margin */
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+
+  .create-post-button.taskbar-hidden {
+    left: 10px;
+  }
 }

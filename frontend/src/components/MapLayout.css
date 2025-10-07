@@ -1,0 +1,118 @@
+.map-layout {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 250px; /* This creates space for the taskbar */
+  z-index: 1;
+  transition: left 0.3s ease-in-out;
+}
+
+.map-layout.taskbar-hidden {
+  left: 0;
+}
+
+/* Adjust for mobile portrait mode */
+@media screen and (max-width: 768px) and (orientation: portrait) {
+  .map-layout {
+    top: 54px;
+    left: 0;
+    transition: top 0.3s ease-in-out;
+  }
+
+  .map-layout.taskbar-hidden {
+    top: 0;
+  }
+}
+
+/* Adjust for mobile landscape mode */
+@media screen and (max-width: 768px) and (orientation: landscape) {
+  .map-layout {
+    left: 200px;
+  }
+
+  .map-layout.taskbar-hidden {
+    left: 0;
+  }
+}
+
+/* Control panel container for filter and create post buttons */
+.map-controls {
+  position: absolute;
+  top: 10px;
+  right: 25px;
+  z-index: 1002;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Style adjustments for the create post button */
+.create-post-button {
+  position: relative;
+  top: auto;
+  left: auto;
+  z-index: 1002;
+  padding: 8px 12px;
+  background: #569BC4;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+/* Tag filter container */
+.tag-filter {
+  position: relative;
+  background: white;
+  padding: 15px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 1002;
+  max-width: 350px;
+}
+
+.tag-search {
+  width: 100%;
+  padding: 8px;
+  margin: 8px 0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tag-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.tag-button {
+  padding: 4px 8px;
+  border: 1px solid #569BC4;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tag-button.selected {
+  background: #569BC4;
+  color: white;
+}
+
+.clear-filters {
+  margin-top: 10px;
+  padding: 8px;
+  width: 100%;
+  background: #f44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}

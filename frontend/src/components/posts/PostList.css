@@ -18,7 +18,7 @@
 
 .post-list-header {
   display: grid;
-  grid-template-columns: 2fr 3fr 1fr 1fr 1fr 1fr; /* Match proportions to post items */
+  grid-template-columns: 2fr 3fr 1fr 1fr 1fr 1fr 1fr; /* Added column for image */
   padding: 10px;
   font-weight: bold;
   border-bottom: 1px solid #333;
@@ -27,7 +27,7 @@
 /* Individual post styling */
 .post-item {
   display: grid; /* Use grid to align items properly */
-  grid-template-columns: 2fr 3fr 1fr 1fr 1fr 1fr; /* Match header proportions */
+  grid-template-columns: 2fr 3fr 1fr 1fr 1fr 1fr 1fr; /* Added column for image */
   align-items: center; /* Center items vertically */
   padding: 15px;
   border: 1px solid #ddd;

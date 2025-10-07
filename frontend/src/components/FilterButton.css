@@ -1,0 +1,85 @@
+.filter-toggle-button {
+  position: absolute;
+  top: 50px;
+  left: 10px;
+  z-index: 999;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--primary-color);
+  color: var(--text-primary);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+
+.filter-toggle-button:hover {
+  background: var(--primary-hover);
+}
+
+/* Desktop/Browser default - taskbar on the left */
+@media screen and (min-width: 769px) {
+  .filter-toggle-button {
+    left: 260px; /* 250px taskbar width + 10px margin */
+  }
+  
+  .filter-toggle-button.taskbar-hidden {
+    left: 10px;
+  }
+
+  .filter-overlay {
+    left: 260px;
+  }
+
+  .filter-overlay.taskbar-hidden {
+    left: 10px;
+  }
+}
+
+/* Mobile portrait mode */
+@media screen and (max-width: 768px) and (orientation: portrait) {
+  .filter-toggle-button {
+    top: 64px; /* 54px taskbar height + 10px margin */
+  }
+
+  .filter-toggle-button.taskbar-hidden {
+    top: 10px;
+  }
+
+  .filter-overlay {
+    top: 114px;
+  }
+
+  .filter-overlay.taskbar-hidden {
+    top: 60px;
+  }
+}
+
+/* Mobile landscape mode */
+@media screen and (max-width: 768px) and (orientation: landscape) {
+  .filter-toggle-button {
+    left: 210px; /* 200px taskbar width + 10px margin */
+  }
+
+  .filter-toggle-button.taskbar-hidden {
+    left: 10px;
+  }
+
+  .filter-overlay {
+    left: 210px;
+  }
+
+  .filter-overlay.taskbar-hidden {
+    left: 10px;
+  }
+}
+
+.filter-overlay {
+  position: absolute;
+  top: 90px;
+  z-index: 998;
+  width: 400px;
+  transition: all 0.3s ease-in-out;
+}

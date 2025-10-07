@@ -1,29 +1,33 @@
 import React from 'react';
 import { Post } from './types';
 import { MAIN_TAGS } from '../../utils/tag-constants';
+import './TagFilter.css';
 
 interface TagFilterProps {
   posts: Post[];
   selectedTags: string[];
   onTagSelect: (selectedTags: string[]) => void;
+  showToggle?: boolean;
+  taskbarVisible?: boolean;
 }
 
-const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect }) => {
-  const [tagFilter, setTagFilter] = React.useState('');
+const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect, showToggle = true, taskbarVisible = true }) => {
+  const [isOpen, setIsOpen] = React.useState(false);
 
   const getAllTags = () => {
     const tagSet = new Set<string>();
     
     posts.forEach(post => {
-      if (post.tag) {
+      if (post.tag && post.tag.trim()) {
         tagSet.add(post.tag);
       }
       
       post.optionalTags.forEach(tag => {
-        tagSet.add(tag);
+        if (tag && tag.trim()) {
+          tagSet.add(tag);
+        }
       });
     });
-    
     
     return Array.from(tagSet).sort((a, b) => {
       const aIsMain = MAIN_TAGS.includes(a);
@@ -38,9 +42,6 @@ const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect 
   };
 
   const allTags = getAllTags();
-  const filteredTags = allTags.filter(tag => 
-    tag.toLowerCase().includes(tagFilter.toLowerCase())
-  );
 
   const handleTagToggle = (tag: string) => {
     if (selectedTags.includes(tag)) {
@@ -50,40 +51,32 @@ const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect 
     }
   };
 
-  const clearFilters = () => {
-    onTagSelect([]);
-  };
-
   return (
-    <div className="tag-filter">
-      <h3>Filter by Tags</h3>
-      <input
-        type="text"
-        placeholder="Search tags..."
-        value={tagFilter}
-        onChange={(e) => setTagFilter(e.target.value)}
-        className="tag-search"
-      />
-      <div className="filter-description">
-        {selectedTags.length > 0 ? 
-          'Showing posts with selected tags' : 
-          'Showing all posts (no filters applied)'}
-      </div>
-      <div className="tag-buttons">
-        {filteredTags.map(tag => (
-          <button
-            key={tag}
-            className={`tag-button ${selectedTags.includes(tag) ? 'selected' : ''}`}
-            onClick={() => handleTagToggle(tag)}
-          >
-            {tag}
-          </button>
-        ))}
-      </div>
-      {selectedTags.length > 0 && (
-        <button className="clear-filters" onClick={clearFilters}>
-          Clear Filters
+    <div className={`tag-filter-dropdown ${!taskbarVisible ? 'taskbar-hidden' : ''}`}>
+      {showToggle && (
+        <button 
+          className="filter-toggle"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          Filter by Tags
+          <span className={`dropdown-arrow ${isOpen ? 'open' : ''}`}>▼</span>
         </button>
+      )}
+      
+      {(isOpen || !showToggle) && (
+        <div className="filter-dropdown">
+          {allTags.map(tag => (
+            <div 
+              key={tag} 
+              className="tag-option"
+              onClick={() => handleTagToggle(tag)}
+            >
+              <span className={`tag-label ${tag} ${selectedTags.includes(tag) ? 'selected' : ''}`}>
+                {tag}
+              </span>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

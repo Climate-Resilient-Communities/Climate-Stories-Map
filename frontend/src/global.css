@@ -2,6 +2,9 @@ body {
     margin: 0;
     padding: 0;
     overflow-x: hidden;
+    background-color: var(--background-color);
+    color: var(--text-primary);
+    transition: background-color var(--transition-normal), color var(--transition-normal);
 }
 
 ::-webkit-scrollbar {
@@ -9,23 +12,23 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 5px;
+    background: var(--scrollbar-track);
+    border-radius: var(--border-radius-sm);
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #2563eb;
-    border-radius: 5px;
-    transition: background 0.2s ease;
+    background: var(--scrollbar-thumb);
+    border-radius: var(--border-radius-sm);
+    transition: background var(--transition-fast);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #1d4ed8;
+    background: var(--scrollbar-thumb-hover);
 }
 
 * {
     scrollbar-width: thin;
-    scrollbar-color: #2563eb #f1f1f1;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
 .leaflet-container {

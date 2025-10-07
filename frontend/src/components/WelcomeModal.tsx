@@ -13,7 +13,7 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose, children }
 
   return (
     <div className="modal-overlay">
-      <div className="modal-content">
+      <div className="modal-content" style={{ maxWidth: 'none', width: 'auto', height: 'auto' }}>
         <button className="modal-close-button" onClick={onClose}>
           &times;
         </button>

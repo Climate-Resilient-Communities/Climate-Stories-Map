@@ -5,11 +5,13 @@ import './Map.css';
 import './MapPopup.css';
 import { Post } from './posts/types';
 import { isPointInPolygon } from '../utils/map-utils';
-import NotificationPopup from './common/NotificationPopup';
 import { useNotification } from './common/NotificationContext';
+import { useTheme } from '../themes/ThemeContext';
+import ImageModal from './common/ImageModal';
 
 // Replace this with your actual Mapbox access token
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+const MONOCHROME_MAP = import.meta.env.VITE_MONOCHROME_MAP;
 
 // Marker color constants
 const MARKER_COLORS = {
@@ -21,10 +23,13 @@ const MARKER_COLORS = {
 interface MapProps {
   posts: Post[];
   onMapClick: (coordinates: [number, number], event: React.MouseEvent<HTMLDivElement>) => void;
+  onMapRightClick?: () => void;
   selectedTags?: string[];
+  taskbarVisible?: boolean;
+  isCreatePostMode?: boolean;
 }
 
-const CRCMap: React.FC<MapProps> = ({ posts, onMapClick }) => {
+const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskbarVisible = true, isCreatePostMode = false }) => {
   const [canadaGeoJSON, setCanadaGeoJSON] = useState<any | null>(null);
   const [viewState, setViewState] = useState({
     longitude: -96.8283,  // Center of Canada
@@ -32,6 +37,12 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick }) => {
     zoom: 4
   });
   const { showNotification } = useNotification();
+  const { theme } = useTheme();
+  const mapRef = useRef<any>(null);
+
+  const getMapStyle = () => {
+    return MONOCHROME_MAP;
+  };
 
   useEffect(() => {
     if ("geolocation" in navigator) {
@@ -46,13 +57,15 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick }) => {
           }));
         },
         (error) => {
-          console.log("Geolocation error or permission denied:", error);
+          console.log("Geolocation error or permission denied:", String(error).replace(/[\r\n\t]/g, ' '));
         }
       );
     }
   }, []);
   const [popupInfo, setPopupInfo] = useState<Post | null>(null);
-  const [clickedLocation, setClickedLocation] = useState<[number, number] | null>(null);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [modalImageSrc, setModalImageSrc] = useState('');
+  const [modalImageAlt, setModalImageAlt] = useState('');
   
   const colorMapRef = useRef<Record<string, string>>({});
 
@@ -80,15 +93,16 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick }) => {
     fetch('/canada.geojson')
       .then((res) => res.json())
       .then((data) => setCanadaGeoJSON(data))
-      .catch((err) => console.error('Failed to load GeoJSON', err));
+      .catch((err) => console.error('Failed to load GeoJSON', String(err).replace(/[\r\n\t]/g, ' ')));
   }, []);
 
   useEffect(() => {
-    // Clear the clicked location when coordinates are used in form submission
-    if (!onMapClick) {
-      setClickedLocation(null);
+    if (mapRef.current) {
+      setTimeout(() => mapRef.current.resize(), 350);
     }
-  }, [onMapClick]);
+  }, [taskbarVisible]);
+
+
 
   const handleClick = (event: any) => {
     const coordinates: [number, number] = [event.lngLat.lng, event.lngLat.lat];
@@ -99,7 +113,6 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick }) => {
       if (isInsideCanada) {
         const roundedLng = parseFloat(coordinates[0].toFixed(5));
         const roundedLat = parseFloat(coordinates[1].toFixed(5));
-        setClickedLocation([roundedLng, roundedLat]);
         onMapClick([roundedLng, roundedLat], event.originalEvent);
       } else {
         showNotification('You can only click within Canada!', true);
@@ -108,14 +121,57 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick }) => {
   };
 
   return (
-    <div className="map-container">
+    <div className={`map-container ${taskbarVisible ? '' : 'taskbar-hidden'}${isCreatePostMode ? ' create-post-mode' : ''}`} style={{ position: 'relative' }}>
+      {/* My Location Button */}
+      <button
+        className={`location-button theme-${theme}`}
+        onClick={() => {
+          if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                const { longitude, latitude } = position.coords;
+                if (mapRef.current) {
+                  mapRef.current.flyTo({
+                    center: [longitude, latitude],
+                    zoom: 12,
+                    duration: 2000
+                  });
+                }
+              },
+              (error) => {
+                if (error.code === 1) { // PERMISSION_DENIED
+                  showNotification('Location access denied. Please enable location permissions in your browser settings and refresh the page.', true);
+                } else if (error.code === 2) { // POSITION_UNAVAILABLE
+                  showNotification('Location unavailable. Please check your GPS/location services.', true);
+                } else if (error.code === 3) { // TIMEOUT
+                  showNotification('Location request timed out. Please try again.', true);
+                } else {
+                  showNotification('Unable to access location. Please enable location permissions.', true);
+                }
+              }
+            );
+          } else {
+            showNotification('Geolocation is not supported by this browser.', true);
+          }
+        }}
+        title="Go to my location"
+      >
+        ⊕
+      </button>
       <Map
+        ref={mapRef}
         {...viewState}
         onMove={evt => setViewState(evt.viewState)}
         style={{ width: '100%', height: '100%' }}
-        mapStyle="mapbox://styles/mapbox/streets-v12"
+        mapStyle={getMapStyle()}
         mapboxAccessToken={MAPBOX_TOKEN}
         onClick={handleClick}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          if (onMapRightClick) {
+            onMapRightClick();
+          }
+        }}
         minZoom={4}
         maxZoom={20}
         maxBounds={[
@@ -125,14 +181,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick }) => {
       >
         <NavigationControl />
 
-        {clickedLocation && (
-          <Marker
-            longitude={clickedLocation[0]}
-            latitude={clickedLocation[1]}
-            anchor="bottom"
-            color="rgb(68, 66, 66)"
-          />
-        )}
+
         
         {posts.map((post) => {
           // Use the stored color from colorMapRef if available, otherwise calculate it
@@ -153,6 +202,19 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick }) => {
               onClick={e => {
                 e.originalEvent.stopPropagation();
                 setPopupInfo(post);
+                if (mapRef.current) {
+                  const map = mapRef.current.getMap();
+                  const bounds = map.getBounds();
+                  const latSpan = bounds.getNorth() - bounds.getSouth();
+                  
+                  mapRef.current.flyTo({
+                    center: [
+                      post.location.coordinates[0],
+                      post.location.coordinates[1] + latSpan * 0.15
+                    ],
+                    duration: 1500
+                  });
+                }
               }}
             />
           );
@@ -163,31 +225,56 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick }) => {
             longitude={popupInfo.location.coordinates[0]}
             latitude={popupInfo.location.coordinates[1]}
             anchor="bottom"
+            offset={[0, -60]}
             onClose={() => setPopupInfo(null)}
           >
-            <div className="map-popup-content">
-              <b>{popupInfo.title}</b>
-              <p>{popupInfo.content.description}</p>
+            <div className={`map-popup-content theme-${theme}`}>
+              <div className="map-popup-header">
+                <h3 className="map-popup-title">{popupInfo.title}</h3>
+              </div>
+              <div className="map-popup-body">
+                <p className="map-popup-description">{popupInfo.content.description}</p>
+                {popupInfo.content.image && (
+                  <img 
+                    src={popupInfo.content.image} 
+                    alt={popupInfo.title} 
+                    className="map-popup-image" 
+                    onClick={() => {
+                      setModalImageSrc(popupInfo.content.image!);
+                      setModalImageAlt(popupInfo.title);
+                      setIsImageModalOpen(true);
+                    }}
+                    style={{ cursor: 'pointer' }}
+                    title="Click to view full size"
+                  />
+                )}
+              </div>
               <div className="map-popup-footer">
-                <div>
+                <div className="map-popup-tags">
                   {popupInfo.tag && popupInfo.tag !== '-' && popupInfo.tag.trim() !== '' && (
-                    <span className={`map-popup-tag ${popupInfo.tag}`}>{popupInfo.tag}</span>
+                    <span className={`map-popup-tag ${popupInfo.tag.toLowerCase()}`}>{popupInfo.tag}</span>
                   )}
                   {popupInfo.optionalTags && popupInfo.optionalTags.length > 0 && popupInfo.optionalTags
                     .filter(tag => tag && tag.trim() !== '')
                     .map(tag => (
-                      <span key={tag} className="map-popup-tag">#{tag}</span>
+                      <span key={tag} className="map-popup-tag optional">#{tag}</span>
                     ))
                   }
                 </div>
-              </div>
-              <div className="map-popup-date">
-                {new Date(popupInfo.createdAt).toLocaleDateString()}
+                <div className="map-popup-date">
+                  {new Date(popupInfo.createdAt).toLocaleDateString()}
+                </div>
               </div>
             </div>
           </Popup>
         )}
       </Map>
+      <ImageModal 
+        isOpen={isImageModalOpen} 
+        onClose={() => setIsImageModalOpen(false)} 
+        imageSrc={modalImageSrc} 
+        imageAlt={modalImageAlt} 
+      />
     </div>
   );
 };

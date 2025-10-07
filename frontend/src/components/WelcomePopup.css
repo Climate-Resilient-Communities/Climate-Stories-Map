@@ -1,15 +1,18 @@
 /* WelcomePopup.css */
 .welcome-popup {
-  background: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  background: var(--surface-color);
+  color: var(--text-primary);
+  z-index: 1011;
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-lg);
   max-width: 800px;
   width: 100%;
-  max-height: 80vh; /* Limit height to 80% of viewport height */
-  overflow-y: auto; /* Add vertical scrollbar when content overflows */
-  scrollbar-width: thin; /* For Firefox */
-  scrollbar-color: #569BC4 #f1f1f1; /* For Firefox */
+  max-height: 80vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary-color) var(--background-color);
+  border: 1px solid var(--border-color);
 }
 
 /* Custom scrollbar styling for WebKit browsers (Chrome, Safari, Edge) */
@@ -18,36 +21,36 @@
 }
 
 .welcome-popup::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
+  background: var(--background-color);
+  border-radius: var(--border-radius-sm);
 }
 
 .welcome-popup::-webkit-scrollbar-thumb {
-  background: #569BC4;
-  border-radius: 4px;
+  background: var(--primary-color);
+  border-radius: var(--border-radius-sm);
 }
 
 .welcome-popup::-webkit-scrollbar-thumb:hover {
-  background: #4a8ab0;
+  background: var(--primary-hover);
 }
 
 .welcome-popup h1 {
-  color: #569BC4;
+  color: var(--primary-color);
   text-align: center;
   font-size: 2.5em;
-  margin: 0 0 20px 0;
-  padding-bottom: 15px;
-  border-bottom: 3px solid #569BC4;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+  margin: 0 0 var(--spacing-lg) 0;
+  padding-bottom: var(--spacing-md);
+  border-bottom: 3px solid var(--primary-color);
+  text-shadow: var(--text-shadow);
   font-weight: 700;
   letter-spacing: 0.5px;
 }
 
 .welcome-popup h2 {
-  color: #569BC4;
+  color: var(--primary-color);
   margin-top: 0;
-  border-bottom: 2px solid #569BC4;
-  padding-bottom: 10px;
+  border-bottom: 2px solid var(--primary-color);
+  padding-bottom: var(--spacing-sm);
 }
 
 .welcome-popup p {
@@ -56,35 +59,35 @@
 }
 
 .welcome-btn {
-  background: #569BC4;
-  color: white;
+  background: var(--primary-color);
+  color: var(--text-on-primary);
   border: none;
-  padding: 10px 20px;
-  border-radius: 4px;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--border-radius-sm);
   cursor: pointer;
-  font-size: 16px;
-  margin-top: 10px;
-  transition: background-color 0.3s;
+  font-size: 1rem;
+  margin-top: var(--spacing-sm);
+  transition: background-color var(--transition-fast);
 }
 
 .welcome-btn:hover {
-  background: #4a8ab0;
+  background: var(--primary-hover);
 }
 
 .welcome-btn-disabled {
-  background: #a0a0a0 !important;
+  background: var(--disabled-color) !important;
   cursor: not-allowed !important;
 }
 
 .welcome-btn-disabled:hover {
-  background: #a0a0a0 !important;
+  background: var(--disabled-color) !important;
 }
 
 .checkbox-container {
-  margin: 20px 0;
+  margin: var(--spacing-lg) 0;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: var(--spacing-xs);
 }
 
 .checkbox-row {
@@ -95,12 +98,13 @@
 .checkbox-label {
   display: flex;
   align-items: center;
-  font-size: 14px;
+  font-size: 0.875rem;
   cursor: pointer;
+  color: var(--text-primary);
 }
 
 .checkbox-label input {
-  margin-right: 10px;
+  margin-right: var(--spacing-sm);
   cursor: pointer;
 }
 
@@ -109,28 +113,53 @@
 }
 
 .agreement-list {
-  margin-top: 5px;
-  padding-left: 30px; /* Increased padding to align with the text above */
+  margin-top: var(--spacing-xs);
+  padding-left: var(--spacing-xl);
   list-style-type: disc;
+  color: var(--text-primary);
 }
 
 .agreement-list li {
-  margin-bottom: 5px;
+  margin-bottom: var(--spacing-xs);
 }
 
 .checkbox-label a, .agreement-list a {
-  color: #569BC4;
+  color: var(--primary-color);
   text-decoration: underline;
   font-weight: 600;
-  transition: color 0.2s;
+  transition: color var(--transition-fast);
 }
 
 .checkbox-label a:hover, .agreement-list a:hover {
-  color: #4a8ab0;
+  color: var(--primary-hover);
   text-decoration: underline;
+}/* High contrast theme adjustments */
+:root[data-theme='high-contrast'] .welcome-popup {
+  border: 2px solid var(--primary-color);
 }
 
+:root[data-theme='high-contrast'] .welcome-popup h1,
+:root[data-theme='high-contrast'] .welcome-popup h2 {
+  border-bottom-width: 3px;
+}
 
+:root[data-theme='high-contrast'] .welcome-btn {
+  border: 2px solid var(--primary-color);
+}
 
+/* Sepia theme adjustments */
+:root[data-theme='sepia'] .welcome-popup {
+  background-color: var(--surface-color);
+  border-color: var(--border-color-dark);
+}
 
+:root[data-theme='sepia'] .welcome-btn {
+  background-color: var(--primary-color);
+  color: var(--text-on-primary);
+}
+
+/* Dark theme adjustments */
+:root[data-theme='dark'] .welcome-popup {
+  box-shadow: var(--shadow-lg-dark);
+}
 

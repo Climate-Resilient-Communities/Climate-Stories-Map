@@ -1,154 +1,89 @@
-/* Override dark theme */
-:root {
-  --popup-text: black;
-  --popup-bg: white;
-}
-
+/* Base popup styles */
 .leaflet-popup,
 .leaflet-popup-content-wrapper,
 .leaflet-popup-content,
 .custom-popup {
-  color: var(--popup-text) !important;
-  background-color: var(--popup-bg) !important;
-}
-:root [class*="leaflet-popup"],
-:root [class*="leaflet-popup"] * {
-    color-scheme: light !important;
-    background-color: white;
-    color: #000000 !important;
-    --text-color: #000000 !important;
-    --text-primary: #000000 !important;
-    --text-secondary: #000000 !important;
-    -webkit-text-fill-color: #000000 !important;
-}
-
-.leaflet-popup-pane,
-.leaflet-popup-pane * {
-    color: #000000 !important;
-    -webkit-text-fill-color: #000000 !important;
-}
-
-/* Direct element styling */
-.leaflet-popup * {
-    color: black !important;
-    -webkit-text-fill-color: black !important;
-}
-
-.leaflet-popup-content-wrapper {
-    background: white !important;
-    color: black !important;
-    -webkit-text-fill-color: black !important;
-}
-
-.leaflet-popup-content {
-    color: black !important;
-    -webkit-text-fill-color: black !important;
-}
-
-.custom-popup * {
-    color: black !important;
-    -webkit-text-fill-color: black !important;
-}
-
-/* Disable dark mode for popup */
-:root {
-    &.leaflet-popup,
-    & .leaflet-popup,
-    & .leaflet-popup-content-wrapper,
-    & .leaflet-popup-content,
-    & .custom-popup {
-        color-scheme: light !important;
-        color: black !important;
-        --text-color: black !important;
-        background-color: white !important;
-    }
-}
-
-/* Force light theme and black text for popups */
-.leaflet-popup-content-wrapper,
-.leaflet-popup-content {
-    background-color: white !important;
-    color-scheme: light !important;
-}
-
-/* Reset all text colors inside popup */
-.leaflet-popup h1,
-.leaflet-popup h2,
-.leaflet-popup h3,
-.leaflet-popup h4,
-.leaflet-popup h5,
-.leaflet-popup h6,
-.leaflet-popup p,
-.leaflet-popup span,
-.leaflet-popup div,
-.leaflet-popup small {
-    color: black !important;
-    -webkit-text-fill-color: black !important;
-}
-
-/* Reset theme variables */
-.leaflet-popup {
-    color-scheme: light !important;
-}
-
-.leaflet-popup,
-.leaflet-popup *,
-.leaflet-popup-content-wrapper,
-.leaflet-popup-content,
-.custom-popup,
-.custom-popup * {
-    color: black !important;
-    --text-color: black !important;
-    --text-primary: black !important;
-    --text-secondary: black !important;
-}
-
-/* Base popup overrides */
-.leaflet-popup-content-wrapper {
-    background-color: white !important;
-    color-scheme: light !important;
+  background-color: var(--surface-color) !important;
+  color: var(--text-primary) !important;
+  border-radius: var(--border-radius-md) !important;
+  box-shadow: var(--shadow-md) !important;
 }
 
 .leaflet-popup-tip {
-    background-color: white !important;
+  background-color: var(--surface-color) !important;
 }
 
 /* Content wrapper styles */
 .leaflet-popup-content {
-    color: black !important;
-    margin: 8px !important;
+  margin: var(--spacing-md) !important;
 }
 
 /* Specific popup styles */
-.leaflet-popup .custom-popup {
-    background-color: white !important;
-    color: black !important;
+.popup-title {
+  color: var(--text-primary) !important;
+  font-weight: bold !important;
+  margin-bottom: var(--spacing-sm) !important;
 }
 
-.leaflet-popup .popup-title {
-    color: black !important;
-    font-weight: bold !important;
-    margin-bottom: 8px !important;
-    -webkit-text-fill-color: black !important;
-    text-fill-color: black !important;
+.popup-description {
+  color: var(--text-primary) !important;
+  margin-bottom: var(--spacing-sm) !important;
 }
 
-.leaflet-popup .popup-description {
-    color: black !important;
-    margin-bottom: 8px !important;
+.popup-date {
+  color: var(--text-secondary) !important;
+  display: block !important;
+  margin-bottom: var(--spacing-sm) !important;
+  font-size: 0.9em !important;
 }
 
-.leaflet-popup .popup-date {
-    color: black !important;
-    display: block !important;
-    margin-bottom: 8px !important;
+.popup-tags,
+.popup-opt-tags {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: var(--spacing-xs) !important;
+  margin-top: var(--spacing-xs) !important;
 }
 
-.leaflet-popup .popup-tags {
-    color: black !important;
+.popup-tag {
+  color: var(--text-secondary) !important;
+  background-color: var(--background-color) !important;
+  padding: 2px 6px !important;
+  border-radius: var(--border-radius-sm) !important;
+  font-size: 0.9em !important;
+  border: 1px solid var(--border-color) !important;
 }
 
-.leaflet-popup .popup-tag {
-    color: black !important;
-    margin-right: 4px !important;
+/* Close button */
+.leaflet-popup-close-button {
+  color: var(--text-secondary) !important;
+  opacity: 0.7 !important;
+  transition: opacity var(--transition-fast) !important;
+}
+
+.leaflet-popup-close-button:hover {
+  color: var(--text-primary) !important;
+  opacity: 1 !important;
+  background: none !important;
+}
+
+/* Ensure good contrast in all themes */
+:root[data-theme='high-contrast'] {
+  & .leaflet-popup,
+  & .leaflet-popup-content-wrapper,
+  & .leaflet-popup-content,
+  & .custom-popup {
+    border: 1px solid var(--primary-color) !important;
+  }
+  
+  & .popup-tag {
+    border-color: var(--primary-color) !important;
+  }
+}
+
+/* Sepia theme adjustments */
+:root[data-theme='sepia'] {
+  & .popup-tag {
+    background-color: var(--surface-color) !important;
+  }
 }
