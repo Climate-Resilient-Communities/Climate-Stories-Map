@@ -257,6 +257,12 @@ def get_posts():
         # Convert ObjectId to string to make it JSON serializable
         for post in posts:
             post['_id'] = str(post['_id'])
+            # Convert created_at to createdAt for frontend compatibility
+            if 'created_at' in post:
+                post['createdAt'] = post.pop('created_at')
+            # Convert optional_tags to optionalTags for frontend compatibility
+            if 'optional_tags' in post:
+                post['optionalTags'] = post.pop('optional_tags')
         return jsonify(posts), 200
 
     except ValidationError as err:
