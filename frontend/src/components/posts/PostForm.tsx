@@ -197,10 +197,13 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
   };
 
   const handleVerificationSuccess = React.useCallback((token: string) => {
-    setFormData(prevData => ({
-      ...prevData,
-      captchaToken: token,
-    }));
+    // Validate token format
+    if (typeof token === 'string' && token.length > 0) {
+      setFormData(prevData => ({
+        ...prevData,
+        captchaToken: token,
+      }));
+    }
   }, []);
 
   const handleTagInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -356,7 +359,12 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
               ref={captchaRef}
               sitekey={CAPTCHA_SITE_KEY}
               onVerify={handleVerificationSuccess}
-              onError={(err) => console.warn('hCaptcha Error:', (err?.message || 'Unknown error').replace(/[\r\n\t]/g, ' '))}
+              onError={(err) => {
+                const errorMsg = err?.message || 'Unknown error';
+                if (typeof errorMsg === 'string') {
+                  console.warn('hCaptcha Error:', errorMsg.replace(/[\r\n\t<>"'&]/g, ' '));
+                }
+              }}
               onClose={() => setIsActive(false)}
             />
           )}

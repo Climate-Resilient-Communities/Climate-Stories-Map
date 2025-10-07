@@ -7,10 +7,20 @@ def init_admin(app, collection, user_collection, admin_required, moderator_requi
     class ProtectedAdminIndexView(AdminIndexView):
         def is_accessible(self):
             # Allow access to admin and moderator users
-            return 'user' in session and session['user'].get('role') in ['admin', 'moderator']
+            try:
+                return ('user' in session and 
+                        session['user'] is not None and 
+                        isinstance(session['user'], dict) and 
+                        session['user'].get('role') in ['admin', 'moderator'])
+            except (KeyError, AttributeError, TypeError):
+                return False
 
         def inaccessible_callback(self, name, **kwargs):
-            return redirect(url_for('login'))
+            try:
+                return redirect(url_for('login'))
+            except Exception:
+                from flask import abort
+                abort(403)
 
         @expose('/')
         def index(self):

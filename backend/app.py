@@ -93,12 +93,12 @@ def upload_image_to_imgbb(image_file):
         response = requests.post(cdn_url, files=files, data=data)
         result = response.json()
         
-        print(f"ImgBB response: {result}")
+
         
         if result.get('success'):
             return result['data']['url']
         else:
-            print(f"ImgBB upload failed: {result.get('error', 'Unknown error')}")
+            print("ImgBB upload failed")
             return None
     except Exception as e:
         print(f"Error uploading image: {e}")
@@ -160,15 +160,26 @@ def create():
         if 'image' in request.files:
             image_file = request.files['image']
             if image_file.filename:
+                # Validate file type
+                allowed_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.webp'}
+                file_ext = os.path.splitext(image_file.filename.lower())[1]
+                if file_ext not in allowed_extensions:
+                    return jsonify({'error': 'Invalid file type. Only images are allowed.'}), 400
+                
+                # Validate file size (5MB limit)
+                image_file.seek(0, 2)  # Seek to end
+                file_size = image_file.tell()
+                image_file.seek(0)  # Reset to beginning
+                if file_size > 5 * 1024 * 1024:
+                    return jsonify({'error': 'File too large. Maximum size is 5MB.'}), 400
+                
                 if not cdn_key:
                     print("CDN_KEY not configured, skipping image upload")
                 else:
-                    print(f"Uploading image: {image_file.filename}, size: {len(image_file.read())} bytes")
-                    image_file.seek(0)  # Reset file pointer after reading
                     image_url = upload_image_to_imgbb(image_file)
                     if image_url:
                         data['content']['image'] = image_url
-                        print(f"Image uploaded successfully: {image_url}")
+                        print("Image uploaded successfully")
                     else:
                         print("Failed to upload image to ImgBB, continuing without image")
 
@@ -355,4 +366,5 @@ def delete_post(id):
         return jsonify({'error': str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    debug_mode = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
+    app.run(debug=debug_mode)
