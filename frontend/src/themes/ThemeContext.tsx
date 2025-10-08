@@ -27,24 +27,34 @@ const getSeasonalTheme = (): Theme => {
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setThemeState] = useState<Theme>(() => {
     // Try to get theme from localStorage with expiration check
-    const savedData = localStorage.getItem('themeData');
-    if (savedData) {
-      try {
-        const { theme: savedTheme, expiry } = JSON.parse(savedData);
+    try {
+      const savedData = localStorage.getItem('themeData');
+      if (savedData) {
+        const parsed = JSON.parse(savedData);
+        const { theme: savedTheme, expiry } = parsed;
         if (Date.now() < expiry && availableThemes.includes(savedTheme)) {
           return savedTheme;
         }
-      } catch {}
+      }
+    } catch (error) {
+      console.warn('Failed to parse theme data from localStorage:', error);
+      localStorage.removeItem('themeData');
     }
     return getSeasonalTheme();
   });
 
   useEffect(() => {
     // Update data-theme attribute when theme changes
-    document.documentElement.setAttribute('data-theme', theme);
-    // Save theme with 1 week expiration
-    const expiry = Date.now() + (7 * 24 * 60 * 60 * 1000);
-    localStorage.setItem('themeData', JSON.stringify({ theme, expiry }));
+    if (availableThemes.includes(theme)) {
+      document.documentElement.setAttribute('data-theme', theme);
+      // Save theme with 1 week expiration
+      try {
+        const expiry = Date.now() + (7 * 24 * 60 * 60 * 1000);
+        localStorage.setItem('themeData', JSON.stringify({ theme, expiry }));
+      } catch (error) {
+        console.warn('Failed to save theme to localStorage:', error);
+      }
+    }
   }, [theme]);
 
   const setTheme = (newTheme: Theme) => {

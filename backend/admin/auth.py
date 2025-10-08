@@ -60,7 +60,13 @@ def init_auth(app, user_collection):
     def admin_required(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            if 'user' not in session or session['user']['role'] != 'admin':
+            try:
+                if ('user' not in session or 
+                    session['user'] is None or 
+                    not isinstance(session['user'], dict) or 
+                    session['user'].get('role') != 'admin'):
+                    return redirect(url_for('login'))
+            except (KeyError, AttributeError, TypeError):
                 return redirect(url_for('login'))
             return f(*args, **kwargs)
         return decorated_function
@@ -69,7 +75,13 @@ def init_auth(app, user_collection):
     def moderator_required(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            if 'user' not in session or session['user']['role'] not in ['admin', 'moderator']:
+            try:
+                if ('user' not in session or 
+                    session['user'] is None or 
+                    not isinstance(session['user'], dict) or 
+                    session['user'].get('role') not in ['admin', 'moderator']):
+                    return redirect(url_for('login'))
+            except (KeyError, AttributeError, TypeError):
                 return redirect(url_for('login'))
             return f(*args, **kwargs)
         return decorated_function

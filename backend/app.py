@@ -65,15 +65,15 @@ class PostSchema(Schema):
     content = fields.Dict(required=True)
     location = fields.Dict(required=True)
     tag = fields.Str(required=True, validate=validate.OneOf(['Positive', 'Neutral', 'Negative']))
-    optionalTags = fields.List(fields.Str(), required=False, missing=[]) # Make optional for backward compatibility
+    optionalTags = fields.List(fields.Str(), required=False, load_default=[]) # Make optional for backward compatibility
     captchaToken = fields.Str(required=True) # Add captcha token to schema
     createdAt = fields.DateTime()
-    status = fields.Str(required=False, default='pending')
+    status = fields.Str(required=False, load_default='pending')
 
 # Define a schema for tag validation
 class TagSchema(Schema):
     tag = fields.Str(required=False, allow_none=True, validate=validate.OneOf(['Positive', 'Neutral', 'Negative']))
-    optionalTags = fields.List(fields.Str(), required=False, missing=[])
+    optionalTags = fields.List(fields.Str(), required=False, load_default=[])
 
 # Initialize the schema instance
 post_schema = PostSchema()
@@ -85,10 +85,15 @@ def upload_image_to_imgbb(image_file):
     """Upload image to ImgBB and return the URL"""
     try:
         files = {'image': image_file}
-        data = {
-            'key': cdn_key,
-            'album': os.getenv('IMGBB_ALBUM_ID')  # Add your private album ID
-        }
+        data = {'key': cdn_key}
+        
+        # Extract album ID from URL if needed
+        album_id = os.getenv('IMGBB_ALBUM_ID')
+        if album_id and album_id.startswith('https://ibb.co/album/'):
+            album_id = album_id.split('/')[-1]
+        
+        if album_id:
+            data['album'] = album_id
         
         response = requests.post(cdn_url, files=files, data=data)
         result = response.json()
@@ -160,15 +165,26 @@ def create():
         if 'image' in request.files:
             image_file = request.files['image']
             if image_file.filename:
+                # Validate file type
+                allowed_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.webp'}
+                file_ext = os.path.splitext(image_file.filename.lower())[1]
+                if file_ext not in allowed_extensions:
+                    return jsonify({'error': 'Invalid file type. Only images are allowed.'}), 400
+                
+                # Validate file size (5MB limit)
+                image_file.seek(0, 2)  # Seek to end
+                file_size = image_file.tell()
+                image_file.seek(0)  # Reset to beginning
+                if file_size > 5 * 1024 * 1024:
+                    return jsonify({'error': 'File too large. Maximum size is 5MB.'}), 400
+                
                 if not cdn_key:
                     print("CDN_KEY not configured, skipping image upload")
                 else:
-                    print(f"Uploading image: {image_file.filename}, size: {len(image_file.read())} bytes")
-                    image_file.seek(0)  # Reset file pointer after reading
                     image_url = upload_image_to_imgbb(image_file)
                     if image_url:
                         data['content']['image'] = image_url
-                        print(f"Image uploaded successfully: {image_url}")
+                        print("Image uploaded successfully")
                     else:
                         print("Failed to upload image to ImgBB, continuing without image")
 
@@ -246,6 +262,22 @@ def get_posts():
         # Convert ObjectId to string to make it JSON serializable
         for post in posts:
             post['_id'] = str(post['_id'])
+            # Handle date field conversion - check both formats
+            if 'created_at' in post:
+                created_at = post.pop('created_at')
+                # Convert datetime object to ISO string if needed
+                if isinstance(created_at, datetime.datetime):
+                    post['createdAt'] = created_at.isoformat()
+                else:
+                    post['createdAt'] = created_at
+            elif 'createdAt' not in post:
+                # If no date field exists, use current time as fallback
+                post['createdAt'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+            # Convert optional_tags to optionalTags for frontend compatibility
+            if 'optional_tags' in post:
+                post['optionalTags'] = post.pop('optional_tags')
+            elif 'optionalTags' not in post:
+                post['optionalTags'] = []
         return jsonify(posts), 200
 
     except ValidationError as err:
@@ -355,4 +387,5 @@ def delete_post(id):
         return jsonify({'error': str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    debug_mode = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
+    app.run(debug=debug_mode)

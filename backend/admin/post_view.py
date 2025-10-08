@@ -7,12 +7,22 @@ from flask import session, redirect, url_for
 class PostView(ModelView):
     def is_accessible(self):
         # Allow access to admin and moderator users
-        return 'user' in session and session['user'].get('role') in ['admin', 'moderator']
+        try:
+            return ('user' in session and 
+                    session['user'] is not None and 
+                    isinstance(session['user'], dict) and 
+                    session['user'].get('role') in ['admin', 'moderator'])
+        except (KeyError, AttributeError, TypeError):
+            return False
 
     def inaccessible_callback(self, name, **kwargs):
-        from flask import redirect, url_for, flash
-        flash("You do not have permission to access this page.", "danger")
-        return redirect(url_for('login'))
+        try:
+            from flask import redirect, url_for, flash
+            flash("You do not have permission to access this page.", "danger")
+            return redirect(url_for('login'))
+        except Exception:
+            from flask import abort
+            abort(403)
 
     # Show the "Posts" button in the navigation bar for logged-in users
     def is_visible(self):
@@ -36,9 +46,11 @@ class PostView(ModelView):
     
     # Format the image display using a formatter function
     def _image_formatter(view, context, model, name):
+        from markupsafe import escape
         if model.get('content', {}).get('image'):
+            image_url = escape(model["content"]["image"])
             return Markup(
-                f'<img src="{model["content"]["image"]}" style="max-width: 100px; max-height: 100px;">'
+                f'<img src="{image_url}" style="max-width: 100px; max-height: 100px;">'
             )
         return ''
 
@@ -120,14 +132,17 @@ class PostView(ModelView):
         
         For MongoDB, we need to implement this method to handle filtering.
         """
-        # Define which filters to use for different field types
-        if name == 'title':
-            return [FilterLike(name, name), FilterEqual(name, name), FilterNotEqual(name, name)]
-        elif name == 'tag':
-            return [FilterEqual(name, name), FilterNotEqual(name, name)]
-        elif name == 'status':
-            return [FilterEqual(name, name), FilterNotEqual(name, name)]
-        elif name == 'created_at':
-            return [FilterGreater(name, name), FilterSmaller(name, name)]
-        
-        return []
+        try:
+            # Define which filters to use for different field types
+            if name == 'title':
+                return [FilterLike(name, name), FilterEqual(name, name), FilterNotEqual(name, name)]
+            elif name == 'tag':
+                return [FilterEqual(name, name), FilterNotEqual(name, name)]
+            elif name == 'status':
+                return [FilterEqual(name, name), FilterNotEqual(name, name)]
+            elif name == 'created_at':
+                return [FilterGreater(name, name), FilterSmaller(name, name)]
+            
+            return []
+        except Exception:
+            return []

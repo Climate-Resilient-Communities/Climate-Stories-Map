@@ -15,6 +15,11 @@ mkdir -p ../backend/static
 
 # Copy the frontend build files to the backend static directory
 echo "Copying frontend build to backend/static..."
-cp -R dist/* ../backend/static/
+if [ -d "dist" ] && [ "$(ls -A dist)" ]; then
+    cp -R dist/* ../backend/static/
+else
+    echo "Error: Frontend build directory is empty or doesn't exist"
+    exit 1
+fi
 
 echo "Build and copy complete!"

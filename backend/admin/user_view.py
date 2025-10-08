@@ -10,16 +10,32 @@ class UserView(ModelView):
 
     # Restrict access to admin users only
     def is_accessible(self):
-        return 'user' in session and session['user'].get('role') == 'admin'
+        try:
+            return ('user' in session and 
+                    session['user'] is not None and 
+                    isinstance(session['user'], dict) and 
+                    session['user'].get('role') == 'admin')
+        except (KeyError, AttributeError, TypeError):
+            return False
 
     def inaccessible_callback(self, name, **kwargs):
-        from flask import redirect, url_for, flash
-        flash("You do not have permission to access this page.", "danger")
-        return redirect(url_for('login'))
+        try:
+            from flask import redirect, url_for, flash
+            flash("You do not have permission to access this page.", "danger")
+            return redirect(url_for('login'))
+        except Exception:
+            from flask import abort
+            abort(403)
 
     # Show the "Users" button in the navigation bar only for admin users
     def is_visible(self):
-        return 'user' in session and session['user'].get('role') == 'admin'
+        try:
+            return ('user' in session and 
+                    session['user'] is not None and 
+                    isinstance(session['user'], dict) and 
+                    session['user'].get('role') == 'admin')
+        except (KeyError, AttributeError, TypeError):
+            return False
 
     # Use different forms for create and edit
     def get_create_form(self):
@@ -95,10 +111,13 @@ class UserView(ModelView):
         
         For MongoDB, we need to implement this method to handle filtering.
         """
-        # Define which filters to use for different field types
-        if name == 'role':
-            return [FilterEqual(name, name), FilterNotEqual(name, name)]
-        elif name in ('firstname', 'lastname', 'username'):
-            return [FilterLike(name, name), FilterEqual(name, name), FilterNotEqual(name, name)]
-        
-        return []
+        try:
+            # Define which filters to use for different field types
+            if name == 'role':
+                return [FilterEqual(name, name), FilterNotEqual(name, name)]
+            elif name in ('firstname', 'lastname', 'username'):
+                return [FilterLike(name, name), FilterEqual(name, name), FilterNotEqual(name, name)]
+            
+            return []
+        except Exception:
+            return []
