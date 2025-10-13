@@ -1,12 +1,12 @@
 @import './base.css';
 
 :root[data-theme='winter'] {
-  --primary-color: #4a90a4;
+  --primary-color: #1E498A;
   --primary-hover: #3a7a8a;
   --secondary-color: #6ba3b8;
   --background-color: #a8c8d8;
   --surface-color: #ffffff;
-  --text-primary: #2c4a54;
+  --text-primary: #000000;
   --text-secondary: #666666;
   --border-color: rgba(255, 255, 255, 0.3);
   --scrollbar-track: #c8d8e8;

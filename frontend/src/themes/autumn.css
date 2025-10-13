@@ -6,7 +6,7 @@
   --secondary-color: #92400e;
   --background-color: #fef7ed;
   --surface-color: #fed7aa;
-  --text-primary: #7c2d12;
+  --text-primary: #000000;
   --text-secondary: #9a3412;
   --border-color: #fdba74;
   --scrollbar-track: #fed7aa;
@@ -21,7 +21,7 @@
 }
 
 [data-theme='autumn'] .taskbar-title {
-  color: #ea580c;
+  color: #F7926A;
 }
 
 [data-theme='autumn'] .taskbar-button:hover {

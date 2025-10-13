@@ -1,12 +1,12 @@
 @import './base.css';
 
 :root[data-theme='spring'] {
-  --primary-color: #22c55e;
+  --primary-color: #489823;
   --primary-hover: #16a34a;
   --secondary-color: #65a30d;
   --background-color: #f0fdf4;
   --surface-color: #dcfce7;
-  --text-primary: #14532d;
+  --text-primary: #000000;
   --text-secondary: #166534;
   --border-color: #bbf7d0;
   --scrollbar-track: #dcfce7;
@@ -21,7 +21,7 @@
 }
 
 [data-theme='spring'] .taskbar-title {
-  color: #22c55e;
+  color: #489823;
 }
 
 [data-theme='spring'] .taskbar-button:hover {
