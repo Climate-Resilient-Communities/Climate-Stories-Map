@@ -189,7 +189,7 @@ def create():
                         print("Failed to upload image to ImgBB, continuing without image")
 
         data['created_at'] = datetime.datetime.now(datetime.timezone.utc)
-        data['status'] = 'pending'
+        data['status'] = 'approved' #TODO Temporary for alpha testing
         data['optional_tags'] = data.pop('optionalTags', [])
             
         # Insert the data into the collection
