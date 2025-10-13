@@ -590,7 +590,7 @@
 }
 
 [data-theme] .post-form-left {
-  width: 300px;
+  width: 230px;
   height: auto;
   min-height: 350px;
   background-size: cover;
@@ -615,9 +615,10 @@
 }
 
 [data-theme] .post-form-title {
-  font-size: 1.1rem;
+  font-size: 2rem;
   font-weight: bold;
   margin: 0;
+  padding-top: 4px;
   padding-bottom: 4px;
   margin-bottom: 6px;
   line-height: 1.2;
@@ -632,14 +633,14 @@
 [data-theme] .tag-checkbox {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 1rem;
+  gap: 3px;
+  font-size: 0.9rem;
   color: #666;
 }
 
 [data-theme] .tag-checkbox input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
+  width: 15px;
+  height: 15px;
   cursor: pointer;
 }
 
