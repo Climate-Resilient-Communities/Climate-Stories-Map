@@ -383,3 +383,341 @@
     font-size: 0.85em;
   }
 }
+
+/* Common theme styles */
+[data-theme] .taskbar {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: none;
+  margin: 20px;
+  padding: 10px;
+  width: 250px;
+  height: calc(100vh - 40px);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+[data-theme] .taskbar.hidden {
+  width: 100px;
+  padding: 10px;
+  transform: translateX(0) !important;
+  background-color: #FFFFFF;
+  left: 0px !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  overflow: hidden;
+}
+
+[data-theme] .taskbar-toggle-button.collapsed {
+  left: 107px;
+  top: 15%;
+}
+
+[data-theme] .taskbar.hidden .taskbar-title,
+[data-theme] .taskbar.hidden .theme-label {
+  display: none;
+}
+
+[data-theme] .taskbar.hidden .theme-selector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  margin-top: auto;
+}
+
+[data-theme] .taskbar.hidden .theme-options {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  border-left: none;
+  padding-left: 0;
+}
+
+[data-theme] .taskbar.hidden .theme-option {
+  font-size: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  width: 40px;
+  padding: 0;
+}
+
+[data-theme] .taskbar.hidden .taskbar-button {
+  font-size: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  width: 40px;
+}
+
+[data-theme] .taskbar.hidden .taskbar-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  align-items: center;
+}
+
+[data-theme] .taskbar.hidden .taskbar-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: auto;
+  width: 100%;
+}
+
+[data-theme] .taskbar.hidden .taskbar-create-post,
+[data-theme] .taskbar.hidden .taskbar-filter {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+[data-theme] .taskbar.hidden .taskbar-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+  width: 100%;
+}
+
+[data-theme] .taskbar-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+[data-theme] .taskbar-title {
+  font-size: 30px;
+  font-weight: bold;
+  margin: 0 0 10px 0;
+  line-height: 1.1;
+  white-space: normal;
+  word-break: break-word;
+}
+
+[data-theme] .taskbar-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+[data-theme] .taskbar-button {
+  background: transparent;
+  border: none;
+  color: #666666;
+  font-size: 16px;
+  padding: 0;
+  text-align: left;
+  width: 100%;
+  border-radius: 0;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+[data-theme] .taskbar-button:hover {
+  background: transparent;
+}
+
+[data-theme] .theme-selector {
+  width: 100%;
+}
+
+[data-theme] .theme-options {
+  padding-left: var(--spacing-sm);
+}
+
+[data-theme] .theme-label {
+  color: #000000;
+  font-weight: bold;
+  font-size: 16px;
+  margin-bottom: var(--spacing-sm);
+  padding: var(--spacing-xs) 0;
+}
+
+[data-theme] .theme-option {
+  width: 100%;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: none;
+  background: transparent;
+  color: #666666;
+  text-align: left;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 400;
+  border-radius: 0;
+  transition: all var(--transition-fast);
+  margin-bottom: var(--spacing-xs);
+}
+
+[data-theme] .theme-option:hover {
+  background: transparent;
+}
+
+[data-theme] .theme-option.active {
+  font-weight: bold;
+}
+
+[data-theme] .modal-content,
+[data-theme] .filter-overlay,
+[data-theme] .story-form {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: none;
+}
+
+[data-theme] .post-form {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: none;
+  padding: 0;
+  display: flex;
+  flex-direction: row;
+  gap: 0;
+  max-width: 900px;
+  width: 100%;
+  min-height: 350px;
+}
+
+[data-theme] .post-form-left {
+  width: 300px;
+  height: auto;
+  min-height: 350px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 20px 0 0 20px;
+  flex-shrink: 0;
+  align-self: stretch;
+}
+
+[data-theme] .post-form-icon {
+  font-size: 4rem;
+  color: white;
+}
+
+[data-theme] .post-form-right {
+  flex: 1;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+[data-theme] .post-form-title {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin: 0;
+  padding-bottom: 4px;
+  margin-bottom: 6px;
+  line-height: 1.2;
+}
+
+[data-theme] .tag-checkboxes {
+  display: flex;
+  gap: 20px;
+  margin: 6px 0;
+}
+
+[data-theme] .tag-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  color: #666;
+}
+
+[data-theme] .tag-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+[data-theme] .post-form input,
+[data-theme] .post-form textarea {
+  border: 2px solid #E0E0E0;
+  border-radius: 4px;
+  padding: 6px;
+  font-size: 13px;
+  background: white;
+  color: #333;
+  line-height: 1.2;
+}
+
+[data-theme] .post-form input:focus,
+[data-theme] .post-form textarea:focus {
+  outline: none;
+}
+
+[data-theme] .post-form textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+[data-theme] .checkbox-container {
+  background: #F8F9FA;
+  border-radius: 4px;
+  padding: 6px;
+  border: 1px solid #E0E0E0;
+  font-size: 12px;
+}
+
+[data-theme] .form-buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+[data-theme] .post-form button {
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+[data-theme] .post-form button[type="submit"] {
+  background: white;
+}
+
+[data-theme] .post-form button[type="button"] {
+  display: none;
+}
+
+[data-theme] .h-captcha {
+  margin: 15px 0;
+  display: flex;
+  justify-content: flex-start;
+}
+
+[data-theme] .modal-close-button {
+  top: 2px;
+}
+
+[data-theme] .create-post-button {
+  top: 20px;
+  left: 160px;
+}
+
+[data-theme] .filter-toggle-button {
+  top: 70px;
+  left: 160px;
+}
+
+[data-theme] .leaflet-container {
+  border-radius: 20px;
+  height: 100%;
+}
