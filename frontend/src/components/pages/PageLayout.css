@@ -183,7 +183,7 @@
   }
 }
 .about-page-content {
-  padding: 50px 60px;
+  padding: 30px 50px;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -192,7 +192,8 @@
 .about-page-content h1 {
   color: var(--primary-color);
   font-size: 3rem;
-  margin-bottom: 60px;
+  margin-top: 0px;
+  margin-bottom: 5px;
   font-weight: bold;
 }
 
@@ -230,7 +231,7 @@
 }
 /* FAQ page specific styles */
 .faq-page-content {
-  padding: 40px 60px;
+  padding: 30px 50px;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -239,8 +240,10 @@
 
 .faq-page-content h1 {
   color: var(--primary-color);
-  font-size: 2.5rem;
+  font-size: 3rem;
   font-weight: bold;
+  margin-top: 0px;
+  margin-bottom: 5px;
 }
 
 .faq-layout {
@@ -331,7 +334,7 @@
 
 /* Moderation page specific styles */
 .moderation-page-content {
-  padding: 40px 60px;
+  padding: 30px 50px;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -340,7 +343,9 @@
 
 .moderation-page-content h1 {
   color: var(--primary-color);
-  font-size: 2.5rem;
+  font-size: 3rem;
+  margin-top: 0px;
+  margin-bottom: 5px;
   font-weight: bold;
 }
 
@@ -349,17 +354,17 @@
   align-items: center;
   justify-content: space-between;
   flex: 1;
-  gap: 20px;
+  gap: 10px;
   width: 100%;
   height: 100%;
   min-height: calc(100vh - 200px);
-  padding: 0 40px;
+  padding: 0 0px;
 }
 
 .moderation-layout .moderation-content-area:has(.moderation-grid-layout) {
   align-items: flex-start;
   justify-content: flex-start;
-  margin-top: 40px;
+  margin-top: 20px;
 }
 
 .moderation-nav-left,
@@ -436,7 +441,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 0px;
   max-width: 800px;
   width: 100%;
 }
@@ -444,11 +449,11 @@
 .moderation-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  gap: 5px;
 }
 
 .moderation-grid-item {
-  padding: 15px;
+  padding: 5px;
   min-height: 160px;
   border-right: 2px dotted var(--primary-color);
 }
@@ -482,7 +487,8 @@
 .moderation-blackbox h4 {
   color: white;
   font-size: 1.15rem;
-  margin-bottom: 12px;
+  margin-top: 5px;
+  margin-bottom: 5px;
   font-weight: bold;
 }
 
