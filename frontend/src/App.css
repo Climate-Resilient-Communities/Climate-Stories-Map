@@ -20,3 +20,54 @@
   display: flex;
   flex-direction: column;
 }
+
+/* Mobile optimizations */
+@media screen and (max-width: 768px) {
+  .app-container {
+    /* Prevent overscroll bounce on iOS */
+    overscroll-behavior: none;
+  }
+
+  /* Portrait mode adjustments */
+  @media screen and (orientation: portrait) {
+    .app-main {
+      margin-top: 0;
+      padding-top: 0;
+    }
+  }
+
+  /* Landscape mode adjustments */
+  @media screen and (orientation: landscape) {
+    .app-main {
+      margin-left: 0;
+    }
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  /* Improve tap targets */
+  button, 
+  .taskbar-button,
+  .nav-button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Prevent text selection on touch */
+  .taskbar-title,
+  .nav-button,
+  .taskbar-button {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  /* Improve scrolling performance */
+  .app-container,
+  .app-main {
+    -webkit-overflow-scrolling: touch;
+  }
+}

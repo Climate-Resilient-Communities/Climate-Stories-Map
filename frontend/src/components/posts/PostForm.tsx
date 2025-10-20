@@ -360,10 +360,8 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
               sitekey={CAPTCHA_SITE_KEY}
               onVerify={handleVerificationSuccess}
               onError={(err) => {
-                const errorMsg = err?.message || 'Unknown error';
-                if (typeof errorMsg === 'string') {
-                  console.warn('hCaptcha Error:', errorMsg.replace(/[\r\n\t<>"'&]/g, ' '));
-                }
+                const errorMsg = typeof err === 'string' ? err : (err?.message || 'Unknown error');
+                console.warn('hCaptcha Error:', errorMsg.replace(/[\r\n\t<>"'&]/g, ' '));
               }}
               onClose={() => setIsActive(false)}
             />

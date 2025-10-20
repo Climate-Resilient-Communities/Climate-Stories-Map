@@ -6,3 +6,81 @@
   width: 100%;
   padding-top: 0px;
 }
+
+/* Mobile optimizations for map */
+@media screen and (max-width: 768px) {
+  .map-container {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Portrait mode */
+  @media screen and (orientation: portrait) {
+    .map-container {
+      height: calc(100vh - 54px);
+      margin-top: 54px;
+    }
+  }
+
+  /* Landscape mode */
+  @media screen and (orientation: landscape) {
+    .map-container {
+      margin-left: 200px;
+      width: calc(100vw - 200px);
+      height: 100vh;
+    }
+  }
+}
+
+/* Touch device optimizations for map controls */
+@media (hover: none) and (pointer: coarse) {
+  /* Make map controls more touch-friendly */
+  .leaflet-control-zoom a {
+    width: 44px !important;
+    height: 44px !important;
+    line-height: 44px !important;
+    font-size: 18px !important;
+  }
+
+  .leaflet-control-layers-toggle {
+    width: 44px !important;
+    height: 44px !important;
+  }
+
+  /* Improve popup interaction */
+  .leaflet-popup-content {
+    font-size: 16px !important;
+    line-height: 1.5 !important;
+  }
+
+  .leaflet-popup-close-button {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 20px !important;
+  }
+
+  /* Better marker interaction */
+  .leaflet-marker-icon {
+    cursor: pointer !important;
+  }
+}
+
+/* Very small screens */
+@media screen and (max-width: 480px) {
+  .map-container {
+    padding: 0;
+  }
+
+  /* Adjust map controls for small screens */
+  .leaflet-control-zoom {
+    margin-left: 5px !important;
+    margin-top: 5px !important;
+  }
+
+  .leaflet-control-layers {
+    margin-right: 5px !important;
+    margin-top: 5px !important;
+  }
+}
