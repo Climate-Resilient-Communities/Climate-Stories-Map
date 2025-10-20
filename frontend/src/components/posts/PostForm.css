@@ -1,114 +1,15 @@
-/* src/components/posts/PostForm.css */
-
-.post-form {
-  display: flex;
-  flex-direction: row;
-  background-color: var(--surface-color);
-  color: var(--text-primary);
-  border-radius: 8px;
-  border: 2px solid var(--primary-color);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  padding: 0;
-  gap: 0;
-  max-width: 900px;
-  width: 100%;
-  overflow: hidden;
-  min-height: 350px;
-}
-
-.post-form-left {
-  width: 300px;
-  min-height: 350px;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  border-radius: 8px 0 0 8px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.post-form-right {
-  flex: 1;
-  padding: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.post-form input,
 .post-form textarea {
-  padding: 6px;
-  border-radius: 4px;
-  border: 1px solid var(--primary-color);
-  width: 100%;
-  box-sizing: border-box;
-  color: var(--text-primary);
-  background-color: var(--surface-color);
-  font-size: 13px;
-  line-height: 1.2;
+  resize: vertical;
 }
 
-.post-form textarea {
-  resize: vertical; /* Allow vertical resizing */
-}
-
-.post-form button {
-  padding: 8px 12px;
-  background-color: var(--primary-color);
-  color: var(--surface-color);
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s;
-  margin-top: 2px;
-}
-
-.post-form button:hover {
-  background-color: var(--primary-hover);
-}
-
-.post-form-title {
-  color: var(--primary-color);
-  margin-top: 0;
-  border-bottom: 2px solid var(--primary-color);
-  padding-bottom: 4px;
-  font-size: 1.1rem;
-  margin-bottom: 6px;
-  line-height: 1.2;
-}
-
-
-
-.form-buttons {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 6px;
-  gap: 8px;
-}
-
-/* Style select to match button theme */
 .post-form select {
   background-color: var(--surface-color);
   color: var(--text-primary);
   border-radius: 4px;
   border: 2px solid var(--primary-color);
   cursor: pointer;
-  padding: 5px 5px;
+  padding: 5px;
   font-size: 16px;
-}
-
-/* Agreement checkbox styles */
-.checkbox-container {
-  margin: 6px 0;
-  padding: 6px;
-  border: 1px solid var(--primary-color);
-  border-radius: 4px;
-  background-color: var(--surface-color);
-  font-size: 12px;
 }
 
 .checkbox-row {
