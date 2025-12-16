@@ -6,8 +6,10 @@ import { ThemeProvider } from './themes/ThemeContext';
 import { BrowserRouter as Router, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import './App.css';
 import './components/Overlay.css';
+import './components/MobileOrientationPrompt.css';
 import MapWithForm from './components/MapWithForm';
 import Taskbar from './components/Taskbar';
+import DeveloperSettings from './components/DeveloperSettings';
 import { createPost, fetchPosts } from './services/postService';
 import { Post } from './components/posts/types';
 import Home from './components/Home';
@@ -18,6 +20,7 @@ import Moderation from './components/pages/Moderation';
 import TermsOfUsePopUp from './components/TermsOfUsePopUp';
 import PrivacyPolicyPopup from './components/PrivacyPolicyPopup';
 import CreatePostInstructionsPopup from './components/CreatePostInstructionsPopup';
+import { MobileOrientationManager } from './utils/mobileOrientationManager';
 
 const AppContent: React.FC = () => {
   const location = useLocation();
@@ -47,6 +50,9 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     loadPosts();
     setIsWelcomePopupOpen(true);
+    
+    // Initialize mobile orientation manager
+    MobileOrientationManager.getInstance();
   }, [loadPosts]);
     
   const handlePostSubmit = async (formData: any): Promise<void> => {
@@ -116,6 +122,7 @@ const AppContent: React.FC = () => {
             {isWelcomePopupOpen && (
               <div className="welcome-overlay" />
             )}
+            <DeveloperSettings />
             <Taskbar 
               onPrivacyPolicyClick={openPrivacyPolicyPopup}
               onTermsOfUseClick={openTermsOfUsePopup}
