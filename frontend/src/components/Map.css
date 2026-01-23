@@ -10,6 +10,123 @@
   will-change: width, left;
 }
 
+/* Location search (Mapbox Geocoder) */
+.map-geocoder {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 1002;
+  width: min(360px, calc(100% - 40px));
+}
+
+.map-geocoder .mapboxgl-ctrl-geocoder {
+  min-width: 100%;
+  width: 100%;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  border-radius: 10px;
+  transition: width 160ms ease, min-width 160ms ease;
+}
+
+/* Collapsed state: icon-only */
+.map-geocoder.collapsed {
+  width: 36px;
+  height: 36px;
+}
+
+.map-geocoder.collapsed .mapboxgl-ctrl-geocoder {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  max-width: 36px;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  background: #fff;
+  border: 2px solid rgba(0,0,0,0.1);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.map-geocoder.collapsed .mapboxgl-ctrl-geocoder--input,
+.map-geocoder.collapsed .mapboxgl-ctrl-geocoder--button,
+.map-geocoder.collapsed .suggestions {
+  display: none;
+}
+
+.map-geocoder.collapsed .mapboxgl-ctrl-geocoder--icon-search {
+  margin: 0;
+  position: static;
+  width: 20px;
+  height: 20px;
+  color: inherit;
+  fill: currentColor;
+  stroke: currentColor;
+}
+
+/* Force the magnifying glass SVG to follow theme color (Mapbox ships hard-coded fills) */
+.map-geocoder.collapsed .mapboxgl-ctrl-geocoder--icon-search,
+.map-geocoder.collapsed .mapboxgl-ctrl-geocoder--icon-search * {
+  fill: currentColor !important;
+  stroke: currentColor !important;
+}
+
+/* Expanded state: normal search bar */
+.map-geocoder.expanded {
+  width: min(360px, calc(100% - 40px));
+}
+
+/* Theme the expanded search bar + dropdown */
+.map-geocoder.expanded .mapboxgl-ctrl-geocoder {
+  background: #fff;
+  border: 2px solid rgba(0,0,0,0.1);
+  color: #333;
+}
+
+/* Make geocoder icons follow theme colors in expanded mode */
+.map-geocoder.expanded .mapboxgl-ctrl-geocoder--icon-search,
+.map-geocoder.expanded .mapboxgl-ctrl-geocoder--icon-close,
+.map-geocoder.expanded .mapboxgl-ctrl-geocoder--icon-search *,
+.map-geocoder.expanded .mapboxgl-ctrl-geocoder--icon-close * {
+  fill: currentColor !important;
+  stroke: currentColor !important;
+}
+
+.map-geocoder.expanded .mapboxgl-ctrl-geocoder--input {
+  color: inherit;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.map-geocoder.expanded .mapboxgl-ctrl-geocoder--input::placeholder {
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.map-geocoder.expanded .suggestions {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.map-geocoder.expanded .suggestions li a {
+  color: inherit;
+}
+
+@media screen and (max-width: 768px) {
+  .map-geocoder {
+    top: 10px;
+    left: 10px;
+    width: calc(100% - 20px);
+  }
+
+  .map-geocoder.collapsed {
+    width: 36px;
+    height: 36px;
+  }
+}
+
 .map-container.taskbar-hidden {
   left: 0;
   width: 100%;
