@@ -3,6 +3,7 @@ import Map, { Marker, Popup, NavigationControl, Source, Layer } from 'react-map-
 import 'mapbox-gl/dist/mapbox-gl.css';
 import './Map.css';
 import './MapPopup.css';
+import { MdMyLocation } from 'react-icons/md';
 import { Post } from './posts/types';
 import { isPointInPolygon } from '../utils/map-utils';
 import { useNotification } from './common/NotificationContext';
@@ -156,7 +157,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
         }}
         title="Go to my location"
       >
-        ⊕
+      <MdMyLocation size={20} />
       </button>
       <Map
         ref={mapRef}
