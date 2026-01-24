@@ -638,7 +638,7 @@
   color: #666;
 }
 
-[data-theme] .tag-checkbox input[type="checkbox"] {
+[data-theme] .tag-checkbox input[type="radio"] {
   width: 15px;
   height: 15px;
   cursor: pointer;
