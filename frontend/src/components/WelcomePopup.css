@@ -56,17 +56,20 @@
 .welcome-popup p {
   margin-bottom: 15px;
   line-height: 1.5;
+  text-align: center;
 }
 
 .welcome-btn {
   background: var(--primary-color);
-  color: var(--text-on-primary);
+  color: #fff;
   border: none;
   padding: var(--spacing-sm) var(--spacing-lg);
   border-radius: var(--border-radius-sm);
   cursor: pointer;
   font-size: 1rem;
-  margin-top: var(--spacing-sm);
+  display: block;
+  width: fit-content;
+  margin: var(--spacing-sm) auto 0 auto;
   transition: background-color var(--transition-fast);
 }
 

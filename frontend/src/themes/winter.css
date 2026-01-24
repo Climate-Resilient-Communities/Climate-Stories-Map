@@ -63,3 +63,25 @@
   color: white;
   border: 2px solid #1E498A;
 }
+
+/* Mapbox Geocoder (Map search) */
+:root[data-theme='winter'] .map-geocoder.collapsed .mapboxgl-ctrl-geocoder {
+  background: #ffffff;
+  border-color: #4a90a4;
+  color: #4a90a4;
+}
+
+:root[data-theme='winter'] .map-geocoder.expanded .mapboxgl-ctrl-geocoder {
+  background: #ffffff;
+  border-color: #4a90a4;
+  color: #333;
+}
+
+:root[data-theme='winter'] .map-geocoder.expanded .mapboxgl-ctrl-geocoder--icon-search,
+:root[data-theme='winter'] .map-geocoder.expanded .mapboxgl-ctrl-geocoder--icon-close {
+  color: #4a90a4;
+}
+
+:root[data-theme='winter'] .map-geocoder.expanded .suggestions .active a {
+  background: rgba(74, 144, 164, 0.14);
+}

@@ -122,14 +122,20 @@
   border-radius: 8px;
   width: 36px;
   height: 36px;
+  padding: 0;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 16px;
+  line-height: 0;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   color: #333;
   transition: all 0.2s ease;
+}
+
+.location-button svg {
+  display: block;
 }
 
 .location-button:hover {

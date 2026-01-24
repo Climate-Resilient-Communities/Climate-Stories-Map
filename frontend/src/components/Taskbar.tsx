@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTheme } from '../themes/ThemeContext';
 import { Link, useLocation } from 'react-router-dom';
 // Fixed icons for hidden taskbar
-import { Plus, Info, Question, Eye, Snowflake, Flower, Sun, Leaf, MapPin, Share, BookOpen, Notepad, ArrowLeft, MapTrifold } from 'phosphor-react';
+import { Plus, Info, Question, Eye, Leaf, MapPin, Share, BookOpen, Notepad, MapTrifold } from 'phosphor-react';
 import TagFilter from './posts/TagFilter';
 import { Post } from './posts/types';
 import './Taskbar.css';
@@ -44,17 +44,61 @@ const Taskbar: React.FC<TaskbarProps> = ({
   onGoBackToMap
 }) => {
   const [isVisible, setIsVisible] = useState(true);
+  const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
   const { theme, setTheme, availableThemes } = useTheme();
   const location = useLocation();
+  const themeSelectorRef = useRef<HTMLDivElement | null>(null);
+
+  const otherThemes = useMemo(
+    () => availableThemes.filter((themeName) => themeName !== theme),
+    [availableThemes, theme]
+  );
+
+  useEffect(() => {
+    if (!isThemeMenuOpen) return;
+
+    const onMouseDown = (event: MouseEvent) => {
+      const target = event.target as Node | null;
+      if (!target) return;
+
+      const container = themeSelectorRef.current;
+      if (!container) return;
+      if (!container.contains(target)) {
+        setIsThemeMenuOpen(false);
+      }
+    };
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsThemeMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', onMouseDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', onMouseDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isThemeMenuOpen]);
+
   const toggleVisibility = () => {
     const newVisibility = !isVisible;
     setIsVisible(newVisibility);
     onVisibilityChange?.(newVisibility);
+    setIsThemeMenuOpen(false);
   };
 
   const handleThemeSelect = (newTheme: string) => {
     setTheme(newTheme as any);
+    setIsThemeMenuOpen(false);
   };
+
+  const toggleThemeMenu = () => {
+    setIsThemeMenuOpen((value) => !value);
+  };
+
+  const themeTitle = theme.charAt(0).toUpperCase() + theme.slice(1);
 
   return (
     <>
@@ -138,19 +182,51 @@ const Taskbar: React.FC<TaskbarProps> = ({
               {isVisible && 'Moderation'}
             </Link>
             <div className="theme-selector">
-              {isVisible && <div className="theme-label">Mode</div>}
-              <div className="theme-options">
-                {availableThemes.map((themeName) => (
-                  <button
-                    key={themeName}
-                    className={`taskbar-button theme-option ${theme === themeName ? 'active' : ''}`}
-                    onClick={() => handleThemeSelect(themeName)}
-                    title={themeName.charAt(0).toUpperCase() + themeName.slice(1)}
-                  >
-                    {!isVisible && <Leaf size={16} color={themeLeafColors[themeName as keyof typeof themeLeafColors]} weight={theme === themeName ? 'bold' : 'regular'} />}
-                    {isVisible && themeName.charAt(0).toUpperCase() + themeName.slice(1)}
-                  </button>
-                ))}
+              <div
+                ref={themeSelectorRef}
+                className={`theme-selector-inner ${isThemeMenuOpen ? 'open' : 'closed'}`}
+              >
+                <button
+                  type="button"
+                  className="taskbar-button theme-toggle"
+                  onClick={toggleThemeMenu}
+                  aria-haspopup="menu"
+                  aria-expanded={isThemeMenuOpen}
+                  title={isThemeMenuOpen ? 'Close theme selection' : 'Open theme selection'}
+                >
+                  <Leaf
+                    size={16}
+                    color={themeLeafColors[theme as keyof typeof themeLeafColors]}
+                    weight="bold"
+                  />
+                  {isVisible && (
+                    <span className="theme-toggle-text">
+                      Mode: {themeTitle}
+                    </span>
+                  )}
+                </button>
+
+                <div className="theme-options" role="menu">
+                  {otherThemes.map((themeName) => (
+                    <button
+                      key={themeName}
+                      type="button"
+                      className="taskbar-button theme-option"
+                      onClick={() => handleThemeSelect(themeName)}
+                      title={themeName.charAt(0).toUpperCase() + themeName.slice(1)}
+                      role="menuitem"
+                    >
+                      {!isVisible && (
+                        <Leaf
+                          size={16}
+                          color={themeLeafColors[themeName as keyof typeof themeLeafColors]}
+                          weight="regular"
+                        />
+                      )}
+                      {isVisible && themeName.charAt(0).toUpperCase() + themeName.slice(1)}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

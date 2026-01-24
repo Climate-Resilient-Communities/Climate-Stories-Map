@@ -1,8 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Map, { Marker, Popup, NavigationControl, Source, Layer } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 import './Map.css';
 import './MapPopup.css';
+import { MdMyLocation } from 'react-icons/md';
+import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
+import mapboxgl from 'mapbox-gl';
 import { Post } from './posts/types';
 import { isPointInPolygon } from '../utils/map-utils';
 import { useNotification } from './common/NotificationContext';
@@ -36,9 +40,12 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
     latitude: 62.3947,
     zoom: 4
   });
+  const [isGeocoderExpanded, setIsGeocoderExpanded] = useState(false);
   const { showNotification } = useNotification();
   const { theme } = useTheme();
   const mapRef = useRef<any>(null);
+  const geocoderContainerRef = useRef<HTMLDivElement | null>(null);
+  const geocoderRef = useRef<MapboxGeocoder | null>(null);
 
   const getMapStyle = () => {
     return MONOCHROME_MAP;
@@ -102,6 +109,98 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
     }
   }, [taskbarVisible]);
 
+  useEffect(() => {
+    if (!MAPBOX_TOKEN) return;
+
+    let cancelled = false;
+
+    const attachGeocoder = () => {
+      if (cancelled) return;
+
+      const map = mapRef.current?.getMap?.();
+      if (!map || !geocoderContainerRef.current) {
+        requestAnimationFrame(attachGeocoder);
+        return;
+      }
+
+      if (geocoderRef.current) return;
+
+      const geocoder = new MapboxGeocoder({
+        accessToken: MAPBOX_TOKEN,
+        mapboxgl,
+        marker: false,
+        flyTo: false,
+        countries: 'ca',
+        placeholder: 'Search a location in Canada',
+        zoom: 10
+      });
+
+      geocoder.addTo(geocoderContainerRef.current);
+      geocoder.on('result', (event: any) => {
+        const center = event?.result?.center;
+        if (Array.isArray(center) && center.length === 2 && mapRef.current) {
+          mapRef.current.flyTo({
+            center,
+            zoom: 10,
+            duration: 1500
+          });
+          setIsGeocoderExpanded(false);
+        }
+      });
+
+      geocoderRef.current = geocoder;
+    };
+
+    attachGeocoder();
+
+    return () => {
+      cancelled = true;
+      if (geocoderRef.current) {
+        geocoderRef.current.onRemove();
+        geocoderRef.current = null;
+      }
+      if (geocoderContainerRef.current) {
+        geocoderContainerRef.current.innerHTML = '';
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isGeocoderExpanded) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const targetNode = event.target as Node | null;
+      if (!targetNode) return;
+
+      if (!geocoderContainerRef.current?.contains(targetNode)) {
+        setIsGeocoderExpanded(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsGeocoderExpanded(false);
+        (document.activeElement as HTMLElement | null)?.blur?.();
+      }
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown, true);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown, true);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isGeocoderExpanded]);
+
+  const focusGeocoderInput = () => {
+    const input = geocoderContainerRef.current?.querySelector<HTMLInputElement>('input');
+    if (input) {
+      input.focus();
+      input.select();
+    }
+  };
+
 
 
   const handleClick = (event: any) => {
@@ -122,6 +221,25 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
 
   return (
     <div className={`map-container ${taskbarVisible ? '' : 'taskbar-hidden'}${isCreatePostMode ? ' create-post-mode' : ''}`} style={{ position: 'relative' }}>
+      {/* Location Search */}
+      <div
+        className={`map-geocoder ${isGeocoderExpanded ? 'expanded' : 'collapsed'} theme-${theme}`}
+        ref={geocoderContainerRef}
+        onMouseEnter={() => setIsGeocoderExpanded(true)}
+        onMouseLeave={() => {
+          const isFocusedWithin = !!geocoderContainerRef.current?.contains(document.activeElement);
+          if (!isFocusedWithin) setIsGeocoderExpanded(false);
+        }}
+        onClick={() => {
+          if (!isGeocoderExpanded) {
+            setIsGeocoderExpanded(true);
+            requestAnimationFrame(focusGeocoderInput);
+          }
+        }}
+        onFocusCapture={() => setIsGeocoderExpanded(true)}
+        aria-label="Search for a location"
+      />
+
       {/* My Location Button */}
       <button
         className={`location-button theme-${theme}`}
@@ -156,7 +274,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
         }}
         title="Go to my location"
       >
-        ⊕
+        <MdMyLocation size={20} />
       </button>
       <Map
         ref={mapRef}
@@ -180,9 +298,6 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
         ]}
       >
         <NavigationControl />
-
-
-        
         {posts.map((post) => {
           // Use the stored color from colorMapRef if available, otherwise calculate it
           // This ensures colors stay consistent when filtering
