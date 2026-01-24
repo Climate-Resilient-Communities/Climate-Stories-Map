@@ -12,6 +12,13 @@
   font-size: 16px;
 }
 
+.tag-checkbox input[type="radio"] {
+  width: auto;
+  margin-right: 8px;
+  cursor: pointer;
+  accent-color: var(--primary-color);
+}
+
 .checkbox-row {
   display: flex;
   align-items: center;
