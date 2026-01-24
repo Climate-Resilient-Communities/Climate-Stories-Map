@@ -259,9 +259,11 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
           {MAIN_TAGS.map((tag) => (
             <label key={tag} className="tag-checkbox">
               <input
-                type="checkbox"
+                type="radio"
+                name="tag"
+                value={tag}
                 checked={formData.tag === tag}
-                onChange={() => setFormData(prev => ({ ...prev, tag: formData.tag === tag ? '-' : tag }))}
+                onChange={handleChange}
               />
               {tag}
             </label>
