@@ -298,9 +298,6 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
         ]}
       >
         <NavigationControl />
-
-
-        
         {posts.map((post) => {
           // Use the stored color from colorMapRef if available, otherwise calculate it
           // This ensures colors stay consistent when filtering
