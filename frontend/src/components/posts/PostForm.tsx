@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MAIN_TAGS } from '../../utils/tag-constants';
+import { MAIN_TAGS, TOPIC_TAGS } from '../../utils/tag-constants';
 import HCaptcha from '@hcaptcha/react-hcaptcha';
 import { PostFormData } from './types';
 import './PostForm.css';
@@ -29,7 +29,6 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
-  const [tagInput, setTagInput] = useState('');
 
   const handleAgreementCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsAgreedToAll(e.target.checked);
@@ -80,10 +79,6 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
       }));
     }
   }, [initialCoordinates]);
-
-  React.useEffect(() => {
-    setTagInput(formData.optionalTags.join(', '));
-  }, [formData.optionalTags]);
 
   const handleModalClose = React.useCallback(() => {
     setIsActive(false);
@@ -149,6 +144,12 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
           tag: value as PostFormData['tag'],
         }));
         break;
+      case 'topicTag':
+        setFormData(prevData => ({
+          ...prevData,
+          optionalTags: value === '-' ? [] : [value],
+        }));
+        break;
       default:
         setFormData(prevData => ({ ...prevData, [name]: value }));
     }
@@ -206,39 +207,12 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
     }
   }, []);
 
-  const handleTagInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTagInput(e.target.value);
-  };
-
-  const handleTagInputBlur = () => {
-    const tags = tagInput ? tagInput.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
-    const longTag = tags.find(tag => tag.length > 50);
-    if (longTag) {
-      showNotification('Each tag must be 50 characters or less', true);
-      return;
-    }
-    if (tags.length > 3) {
-      showNotification('Maximum 3 optional tags allowed', true);
-      return;
-    }
-    setFormData(prevData => ({
-      ...prevData,
-      optionalTags: tags,
-    }));
-  };
-
   const isFormValid = () => {
-    const tags = tagInput ? tagInput.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
-    const hasLongTag = tags.some(tag => tag.length > 50);
-    const hasTooManyTags = tags.length > 3;
-    
     return formData.title.trim() !== '' &&
            formData.content.description.trim() !== '' &&
            formData.tag !== '-' &&
            isAgreedToAll &&
-           formData.captchaToken !== '' &&
-           !hasLongTag &&
-           !hasTooManyTags;
+           formData.captchaToken !== '';
   };
 
 
@@ -255,16 +229,33 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
       <div className="post-form-right">
         <h2 className="post-form-title">Share your Climate Story</h2>
 
-        <select name="tag" value={formData.tag} onChange={handleChange} required>
-          <option value="-" disabled>
-            Select an emotion
-          </option>
-          {MAIN_TAGS.map((tag) => (
-            <option key={tag} value={tag}>
-              {tag}
+        <div className="post-form-select">
+          <select name="tag" value={formData.tag} onChange={handleChange} required>
+            <option value="-" disabled>
+              Select an emotion
             </option>
-          ))}
-        </select>
+            {MAIN_TAGS.map((tag) => (
+              <option key={tag} value={tag}>
+                {tag}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="post-form-select">
+          <select
+            name="topicTag"
+            value={formData.optionalTags[0] ?? '-'}
+            onChange={handleChange}
+          >
+            <option value="-">Select a topic (optional)</option>
+            {TOPIC_TAGS.map((topic) => (
+              <option key={topic} value={topic}>
+                {topic}
+              </option>
+            ))}
+          </select>
+        </div>
 
         <input
           type="text"
@@ -323,15 +314,6 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
             )}
           </div>
         </div>
-        
-        <input
-          type="text"
-          name="optionalTags"
-          placeholder="Add Tags (max 3, comma separated)"
-          value={tagInput}
-          onChange={handleTagInputChange}
-          onBlur={handleTagInputBlur}
-        />
         <div className="checkbox-container">
           <div className="checkbox-row">
             <label className="checkbox-label">

@@ -61,3 +61,18 @@ export const hexToRgba = (hex: string, alpha: number): string => {
   const b = parseInt(normalized.slice(4, 6), 16);
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
+
+export const TOPIC_TAGS = [
+  'Extreme heat',
+  'Flooding',
+  'Wildfire',
+  'Air quality',
+  'Food & water',
+  'Housing',
+  'Renewable energy',
+  'Health',
+  'Equity',
+  'Climate action',
+] as const;
+
+export type TopicTagType = typeof TOPIC_TAGS[number];

@@ -375,7 +375,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
                   {popupInfo.optionalTags && popupInfo.optionalTags.length > 0 && popupInfo.optionalTags
                     .filter(tag => tag && tag.trim() !== '')
                     .map(tag => (
-                      <span key={tag} className="map-popup-tag optional">#{tag}</span>
+                      <span key={tag} className="map-popup-tag optional">{tag}</span>
                     ))
                   }
                 </div>
