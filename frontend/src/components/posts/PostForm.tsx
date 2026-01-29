@@ -64,7 +64,7 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
     title: '',
     content: { description: '' },
     location: { type: 'Point', coordinates: initialCoordinates },
-    tag: '-', // Default to "-", but will validate to Positive/Neutral/Negative on submit
+    tag: '-', // Default to "-", but must be set to a valid Emotion Tag on submit
     optionalTags: [],
     captchaToken: '',
   });
@@ -146,7 +146,7 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
       case 'tag':
         setFormData(prevData => ({
           ...prevData,
-          tag: value as '-' | 'Positive' | 'Neutral' | 'Negative',
+          tag: value as PostFormData['tag'],
         }));
         break;
       default:
@@ -161,7 +161,7 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
       return;
     }
     if (formData.tag === '-') {
-      showNotification('Please select a valid tag (Positive, Neutral, or Negative).', true);
+      showNotification('Please select an emotion tag.', true);
       return;
     }
     
@@ -254,21 +254,17 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
       ></div>
       <div className="post-form-right">
         <h2 className="post-form-title">Share your Climate Story</h2>
-        
-        <div className="tag-checkboxes">
+
+        <select name="tag" value={formData.tag} onChange={handleChange} required>
+          <option value="-" disabled>
+            Select an emotion
+          </option>
           {MAIN_TAGS.map((tag) => (
-            <label key={tag} className="tag-checkbox">
-              <input
-                type="radio"
-                name="tag"
-                value={tag}
-                checked={formData.tag === tag}
-                onChange={handleChange}
-              />
+            <option key={tag} value={tag}>
               {tag}
-            </label>
+            </option>
           ))}
-        </div>
+        </select>
 
         <input
           type="text"
@@ -362,7 +358,7 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
               sitekey={CAPTCHA_SITE_KEY}
               onVerify={handleVerificationSuccess}
               onError={(err) => {
-                const errorMsg = typeof err === 'string' ? err : (err?.message || 'Unknown error');
+                const errorMsg = typeof err === 'string' ? err : 'Unknown error';
                 console.warn('hCaptcha Error:', errorMsg.replace(/[\r\n\t<>"'&]/g, ' '));
               }}
               onClose={() => setIsActive(false)}

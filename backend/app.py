@@ -64,7 +64,32 @@ class PostSchema(Schema):
     title = fields.Str(required=True)
     content = fields.Dict(required=True)
     location = fields.Dict(required=True)
-    tag = fields.Str(required=True, validate=validate.OneOf(['Positive', 'Neutral', 'Negative']))
+    tag = fields.Str(
+        required=True,
+        validate=validate.OneOf(
+            [
+                # Emotion tags
+                'Anxious',
+                'Overwhelmed',
+                'Hopeful',
+                'Empowered',
+                'Frustrated',
+                'Angry',
+                'Concerned',
+                'Sad/Grief',
+                'Motivated',
+                'Inspired',
+                'Determined',
+                'Resilient',
+                'Fearful',
+                'Curious',
+                # Legacy tags (backward compatibility)
+                'Positive',
+                'Neutral',
+                'Negative',
+            ]
+        ),
+    )
     optionalTags = fields.List(fields.Str(), required=False, load_default=[]) # Make optional for backward compatibility
     captchaToken = fields.Str(required=True) # Add captcha token to schema
     createdAt = fields.DateTime()
@@ -72,7 +97,33 @@ class PostSchema(Schema):
 
 # Define a schema for tag validation
 class TagSchema(Schema):
-    tag = fields.Str(required=False, allow_none=True, validate=validate.OneOf(['Positive', 'Neutral', 'Negative']))
+    tag = fields.Str(
+        required=False,
+        allow_none=True,
+        validate=validate.OneOf(
+            [
+                # Emotion tags
+                'Anxious',
+                'Overwhelmed',
+                'Hopeful',
+                'Empowered',
+                'Frustrated',
+                'Angry',
+                'Concerned',
+                'Sad/Grief',
+                'Motivated',
+                'Inspired',
+                'Determined',
+                'Resilient',
+                'Fearful',
+                'Curious',
+                # Legacy tags (backward compatibility)
+                'Positive',
+                'Neutral',
+                'Negative',
+            ]
+        ),
+    )
     optionalTags = fields.List(fields.Str(), required=False, load_default=[])
 
 # Initialize the schema instance

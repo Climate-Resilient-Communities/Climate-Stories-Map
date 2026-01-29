@@ -1,3 +1,5 @@
+import type { MainTagType } from '../../utils/tag-constants';
+
 export interface Location {
   type: 'Point';
   coordinates: [number, number]; // [longitude, latitude]
@@ -5,6 +7,7 @@ export interface Location {
 
 export interface PostContent {
   description: string;
+  image?: string;
 }
 
 export interface Post {
@@ -27,6 +30,6 @@ export interface PostFormData {
     coordinates: [number, number];
   };
   optionalTags: string[];
-  tag: '-' | 'Positive' | 'Neutral' | 'Negative';
+  tag: '-' | MainTagType;
   captchaToken: string;
 }

@@ -34,9 +34,24 @@ class PostForm(form.Form):
     location_latitude = fields.FloatField('Latitude')  # Renamed field
     location_longitude = fields.FloatField('Longitude')  # Renamed field
     tag = fields.SelectField('Tag', choices=[
+        ('Anxious', 'Anxious'),
+        ('Overwhelmed', 'Overwhelmed'),
+        ('Hopeful', 'Hopeful'),
+        ('Empowered', 'Empowered'),
+        ('Frustrated', 'Frustrated'),
+        ('Angry', 'Angry'),
+        ('Concerned', 'Concerned'),
+        ('Sad/Grief', 'Sad/Grief'),
+        ('Motivated', 'Motivated'),
+        ('Inspired', 'Inspired'),
+        ('Determined', 'Determined'),
+        ('Resilient', 'Resilient'),
+        ('Fearful', 'Fearful'),
+        ('Curious', 'Curious'),
+        # Legacy tags (backward compatibility)
         ('Positive', 'Positive'),
         ('Neutral', 'Neutral'),
-        ('Negative', 'Negative')
+        ('Negative', 'Negative'),
     ])
     optionalTags = fields.StringField('Optional Tags', description='Comma-separated list of tags. Sentences are allowed within each tag.')
     status = fields.SelectField('Status', choices=[

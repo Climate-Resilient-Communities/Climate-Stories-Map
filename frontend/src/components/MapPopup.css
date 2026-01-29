@@ -80,24 +80,6 @@
   border: 1px solid #e0e0e0;
 }
 
-.map-popup-tag.positive {
-  background-color: rgba(104, 244, 132, 0.2);
-  border-color: rgba(104, 244, 132, 0.4);
-  color: #16a34a;
-}
-
-.map-popup-tag.negative {
-  background-color: rgba(225, 81, 81, 0.2);
-  border-color: rgba(225, 81, 81, 0.4);
-  color: #dc2626;
-}
-
-.map-popup-tag.neutral {
-  background-color: rgba(74, 163, 192, 0.2);
-  border-color: rgba(74, 163, 192, 0.4);
-  color: #0369a1;
-}
-
 .map-popup-tag.optional {
   background-color: #f8f9fa;
   border-color: #dee2e6;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Post } from './types';
-import { MAIN_TAGS } from '../../utils/tag-constants';
+import { MAIN_TAGS, getTagColor, hexToRgba } from '../../utils/tag-constants';
 import './TagFilter.css';
 
 interface TagFilterProps {
@@ -71,7 +71,20 @@ const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect,
               className="tag-option"
               onClick={() => handleTagToggle(tag)}
             >
-              <span className={`tag-label ${tag} ${selectedTags.includes(tag) ? 'selected' : ''}`}>
+              <span
+                className={`tag-label ${selectedTags.includes(tag) ? 'selected' : ''}`}
+                style={
+                  MAIN_TAGS.includes(tag)
+                    ? {
+                        backgroundColor: selectedTags.includes(tag)
+                          ? hexToRgba(getTagColor(tag), 0.25)
+                          : 'transparent',
+                        borderColor: getTagColor(tag),
+                        color: getTagColor(tag),
+                      }
+                    : undefined
+                }
+              >
                 {tag}
               </span>
             </div>

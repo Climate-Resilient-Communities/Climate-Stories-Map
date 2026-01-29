@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import Map, { Marker, Popup, NavigationControl, Source, Layer } from 'react-map-gl';
+import Map, { Marker, Popup, NavigationControl } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 import './Map.css';
@@ -12,17 +12,11 @@ import { isPointInPolygon } from '../utils/map-utils';
 import { useNotification } from './common/NotificationContext';
 import { useTheme } from '../themes/ThemeContext';
 import ImageModal from './common/ImageModal';
+import { getTagColor, hexToRgba } from '../utils/tag-constants';
 
 // Replace this with your actual Mapbox access token
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 const MONOCHROME_MAP = import.meta.env.VITE_MONOCHROME_MAP;
-
-// Marker color constants
-const MARKER_COLORS = {
-  'Neutral': "rgb(74, 163, 192)",
-  'Negative': "rgb(225, 81, 81)",
-  'Positive': "rgb(104, 244, 132)"
-} as const;
 
 interface MapProps {
   posts: Post[];
@@ -78,7 +72,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
 
   const getMarkerColorByTag = (post: Post): string => {
     const { tag } = post;
-    return MARKER_COLORS[tag as keyof typeof MARKER_COLORS] || MARKER_COLORS['Neutral'];
+    return getTagColor(tag);
   };
 
   useEffect(() => {
@@ -367,7 +361,16 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
               <div className="map-popup-footer">
                 <div className="map-popup-tags">
                   {popupInfo.tag && popupInfo.tag !== '-' && popupInfo.tag.trim() !== '' && (
-                    <span className={`map-popup-tag ${popupInfo.tag.toLowerCase()}`}>{popupInfo.tag}</span>
+                    <span
+                      className="map-popup-tag"
+                      style={{
+                        backgroundColor: hexToRgba(getTagColor(popupInfo.tag), 0.15),
+                        borderColor: getTagColor(popupInfo.tag),
+                        color: getTagColor(popupInfo.tag),
+                      }}
+                    >
+                      {popupInfo.tag}
+                    </span>
                   )}
                   {popupInfo.optionalTags && popupInfo.optionalTags.length > 0 && popupInfo.optionalTags
                     .filter(tag => tag && tag.trim() !== '')
