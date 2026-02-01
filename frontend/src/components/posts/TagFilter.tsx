@@ -1,6 +1,6 @@
 import React from 'react';
 import { Post } from './types';
-import { MAIN_TAGS, getTagColor, hexToRgba } from '../../utils/tag-constants';
+import { MAIN_TAGS, TOPIC_TAGS, getTagColor, hexToRgba } from '../../utils/tag-constants';
 import './TagFilter.css';
 
 interface TagFilterProps {
@@ -14,34 +14,22 @@ interface TagFilterProps {
 const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect, showToggle = true, taskbarVisible = true }) => {
   const [isOpen, setIsOpen] = React.useState(false);
 
-  const getAllTags = () => {
+  const legacyTags = React.useMemo(() => {
     const tagSet = new Set<string>();
-    
     posts.forEach(post => {
-      if (post.tag && post.tag.trim()) {
-        tagSet.add(post.tag);
-      }
-      
+      if (post.tag && post.tag.trim()) tagSet.add(post.tag);
       post.optionalTags.forEach(tag => {
-        if (tag && tag.trim()) {
-          tagSet.add(tag);
-        }
+        if (tag && tag.trim()) tagSet.add(tag);
       });
     });
-    
-    return Array.from(tagSet).sort((a, b) => {
-      const aIsMain = MAIN_TAGS.includes(a);
-      const bIsMain = MAIN_TAGS.includes(b);
-      if (aIsMain && !bIsMain) return -1;
-      if (!aIsMain && bIsMain) return 1;
-      if (aIsMain && bIsMain) {
-        return MAIN_TAGS.indexOf(a) - MAIN_TAGS.indexOf(b);
-      }
-      return a.localeCompare(b);
-    });
-  };
 
-  const allTags = getAllTags();
+    const known = new Set<string>([...MAIN_TAGS, ...TOPIC_TAGS]);
+    return Array.from(tagSet)
+      .filter(tag => !known.has(tag))
+      .sort((a, b) => a.localeCompare(b));
+  }, [posts]);
+
+  const getTopicColor = () => '#6b7280';
 
   const handleTagToggle = (tag: string) => {
     if (selectedTags.includes(tag)) {
@@ -65,30 +53,52 @@ const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect,
       
       {(isOpen || !showToggle) && (
         <div className="filter-dropdown">
-          {allTags.map(tag => (
-            <div 
-              key={tag} 
-              className="tag-option"
-              onClick={() => handleTagToggle(tag)}
-            >
+          <div className="tag-section-title">Emotion</div>
+          {MAIN_TAGS.map(tag => (
+            <div key={tag} className="tag-option" onClick={() => handleTagToggle(tag)}>
               <span
                 className={`tag-label ${selectedTags.includes(tag) ? 'selected' : ''}`}
-                style={
-                  MAIN_TAGS.includes(tag)
-                    ? {
-                        backgroundColor: selectedTags.includes(tag)
-                          ? hexToRgba(getTagColor(tag), 0.25)
-                          : 'transparent',
-                        borderColor: getTagColor(tag),
-                        color: getTagColor(tag),
-                      }
-                    : undefined
-                }
+                style={{
+                  backgroundColor: selectedTags.includes(tag)
+                    ? hexToRgba(getTagColor(tag), 0.25)
+                    : 'transparent',
+                  borderColor: getTagColor(tag),
+                  color: getTagColor(tag),
+                }}
               >
                 {tag}
               </span>
             </div>
           ))}
+
+          <div className="tag-section-title">Topic</div>
+          {TOPIC_TAGS.map(tag => (
+            <div key={tag} className="tag-option" onClick={() => handleTagToggle(tag)}>
+              <span
+                className={`tag-label ${selectedTags.includes(tag) ? 'selected' : ''}`}
+                style={{
+                  backgroundColor: selectedTags.includes(tag)
+                    ? hexToRgba(getTopicColor(), 0.12)
+                    : 'transparent',
+                  borderColor: getTopicColor(),
+                  color: getTopicColor(),
+                }}
+              >
+                {tag}
+              </span>
+            </div>
+          ))}
+
+          {legacyTags.length > 0 && (
+            <>
+              <div className="tag-section-title">Other</div>
+              {legacyTags.map(tag => (
+                <div key={tag} className="tag-option" onClick={() => handleTagToggle(tag)}>
+                  <span className={`tag-label ${selectedTags.includes(tag) ? 'selected' : ''}`}>{tag}</span>
+                </div>
+              ))}
+            </>
+          )}
         </div>
       )}
     </div>
