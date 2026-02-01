@@ -229,34 +229,6 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
       <div className="post-form-right">
         <h2 className="post-form-title">Share your Climate Story</h2>
 
-        <div className="post-form-select">
-          <select name="tag" value={formData.tag} onChange={handleChange} required>
-            <option value="-" disabled>
-              Select an emotion
-            </option>
-            {MAIN_TAGS.map((tag) => (
-              <option key={tag} value={tag}>
-                {tag}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="post-form-select">
-          <select
-            name="topicTag"
-            value={formData.optionalTags[0] ?? '-'}
-            onChange={handleChange}
-          >
-            <option value="-">Select a topic (optional)</option>
-            {TOPIC_TAGS.map((topic) => (
-              <option key={topic} value={topic}>
-                {topic}
-              </option>
-            ))}
-          </select>
-        </div>
-
         <input
           type="text"
           name="title"
@@ -314,6 +286,35 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
             )}
           </div>
         </div>
+
+        <div className="post-form-select">
+          <select name="tag" value={formData.tag} onChange={handleChange} required>
+            <option value="-" disabled>
+              Select an emotion
+            </option>
+            {MAIN_TAGS.map((tag) => (
+              <option key={tag} value={tag}>
+                {tag}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="post-form-select">
+          <select
+            name="topicTag"
+            value={formData.optionalTags[0] ?? '-'}
+            onChange={handleChange}
+          >
+            <option value="-">Select a topic (optional)</option>
+            {TOPIC_TAGS.map((topic) => (
+              <option key={topic} value={topic}>
+                {topic}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <div className="checkbox-container">
           <div className="checkbox-row">
             <label className="checkbox-label">
