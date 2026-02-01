@@ -76,3 +76,12 @@ export const TOPIC_TAGS = [
 ] as const;
 
 export type TopicTagType = typeof TOPIC_TAGS[number];
+
+export const isTopicTag = (tag: string): tag is TopicTagType => {
+  return TOPIC_TAGS.includes(tag as TopicTagType);
+};
+
+export const getFirstTopicTag = (tags?: string[] | null): TopicTagType | undefined => {
+  if (!tags || tags.length === 0) return undefined;
+  return tags.find((t): t is TopicTagType => typeof t === 'string' && isTopicTag(t.trim()))?.trim() as TopicTagType | undefined;
+};

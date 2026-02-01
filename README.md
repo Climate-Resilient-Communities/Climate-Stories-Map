@@ -30,9 +30,10 @@ The frontend makes API calls to `/api/...` endpoints, which are handled by the F
 
 ## Commands
 
-- **Build for deployment**: `./build.sh`
+- **Build for deployment (macOS/Linux/Git Bash/WSL)**: `./build.sh`
+- **Build for deployment (Windows PowerShell)**: `./build.ps1`
 - **Run locally**: 
-  1. `./build.sh` 
+   1. `./build.sh` (or `./build.ps1` on Windows PowerShell)
   2. `cd backend && flask run`
 
 ## Environment Variables

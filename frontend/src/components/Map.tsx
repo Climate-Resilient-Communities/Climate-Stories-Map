@@ -12,7 +12,8 @@ import { isPointInPolygon } from '../utils/map-utils';
 import { useNotification } from './common/NotificationContext';
 import { useTheme } from '../themes/ThemeContext';
 import ImageModal from './common/ImageModal';
-import { getTagColor, hexToRgba } from '../utils/tag-constants';
+import { getFirstTopicTag, getTagColor, hexToRgba } from '../utils/tag-constants';
+import TopicMarkerIcon from './markers/TopicMarkerIcon';
 
 // Replace this with your actual Mapbox access token
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
@@ -307,7 +308,6 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
               longitude={post.location.coordinates[0]}
               latitude={post.location.coordinates[1]}
               anchor="bottom"
-              color={color}
               onClick={e => {
                 e.originalEvent.stopPropagation();
                 setPopupInfo(post);
@@ -325,7 +325,34 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
                   });
                 }
               }}
-            />
+            >
+              <div
+                className="topic-marker"
+                style={{ ['--marker-color' as any]: color } as React.CSSProperties}
+                aria-label={
+                  `${post.title}. ` +
+                  `${post.tag && post.tag !== '-' ? `Emotion: ${post.tag}. ` : ''}` +
+                  `${getFirstTopicTag(post.optionalTags) ? `Topic: ${getFirstTopicTag(post.optionalTags)}.` : ''}`
+                }
+              >
+                <svg
+                  className="topic-marker__pin"
+                  viewBox="0 0 24 24"
+                  role="presentation"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M12 2C8.134 2 5 5.134 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.866-3.134-7-7-7z"
+                    fill="var(--marker-color)"
+                    stroke="rgba(255, 255, 255, 0.95)"
+                    strokeWidth="1.6"
+                  />
+                </svg>
+                <span className="topic-marker__icon" aria-hidden="true">
+                  <TopicMarkerIcon topicTag={getFirstTopicTag(post.optionalTags)} size={14} />
+                </span>
+              </div>
+            </Marker>
           );
         })}
 
