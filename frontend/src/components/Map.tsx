@@ -40,7 +40,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
   const { theme } = useTheme();
   const mapRef = useRef<any>(null);
   const geocoderContainerRef = useRef<HTMLDivElement | null>(null);
-  const geocoderRef = useRef<MapboxGeocoder | null>(null);
+  const geocoderRef = useRef<any | null>(null);
 
   const getMapStyle = () => {
     return MONOCHROME_MAP;
@@ -68,6 +68,91 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [modalImageSrc, setModalImageSrc] = useState('');
   const [modalImageAlt, setModalImageAlt] = useState('');
+
+  const POPUP_MIN_W = 280;
+  const POPUP_MIN_H = 240;
+  const POPUP_MAX_W = 820;
+  const POPUP_MAX_H = 700;
+  const POPUP_DEFAULT_W = 350;
+  const POPUP_DEFAULT_H = 400;
+
+  const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
+
+  const [popupSize, setPopupSize] = useState<{ width: number; height: number }>({
+    width: POPUP_DEFAULT_W,
+    height: POPUP_DEFAULT_H,
+  });
+
+  const resizeSessionRef = useRef<null | {
+    startX: number;
+    startY: number;
+    startW: number;
+    startH: number;
+  }>(null);
+
+  const isResizingRef = useRef(false);
+
+  const onResizeMove = React.useCallback((event: PointerEvent) => {
+    const session = resizeSessionRef.current;
+    if (!session) return;
+
+    const nextWidth = clamp(session.startW + (event.clientX - session.startX), POPUP_MIN_W, POPUP_MAX_W);
+    const nextHeight = clamp(session.startH + (event.clientY - session.startY), POPUP_MIN_H, POPUP_MAX_H);
+    setPopupSize({ width: nextWidth, height: nextHeight });
+  }, []);
+
+  const onResizeEnd = React.useCallback(() => {
+    resizeSessionRef.current = null;
+    isResizingRef.current = false;
+    document.body.classList.remove('popup-resizing');
+
+    try {
+      mapRef.current?.getMap?.()?.dragPan?.enable?.();
+    } catch {
+      // ignore
+    }
+
+    document.removeEventListener('pointermove', onResizeMove, true);
+    document.removeEventListener('pointerup', onResizeEnd, true);
+    document.removeEventListener('pointercancel', onResizeEnd, true);
+  }, [onResizeMove]);
+
+  useEffect(() => {
+    return () => {
+      onResizeEnd();
+    };
+  }, [onResizeEnd]);
+
+  const startResize = (event: React.PointerEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    } catch {
+      // Ignore if pointer capture isn't supported
+    }
+
+    resizeSessionRef.current = {
+      startX: event.clientX,
+      startY: event.clientY,
+      startW: popupSize.width,
+      startH: popupSize.height,
+    };
+
+    isResizingRef.current = true;
+
+    try {
+      mapRef.current?.getMap?.()?.dragPan?.disable?.();
+    } catch {
+      // ignore
+    }
+
+    document.body.classList.add('popup-resizing');
+    document.addEventListener('pointermove', onResizeMove, true);
+    document.addEventListener('pointerup', onResizeEnd, true);
+    document.addEventListener('pointercancel', onResizeEnd, true);
+  };
   
   const colorMapRef = useRef<Record<string, string>>({});
 
@@ -311,6 +396,8 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
               onClick={e => {
                 e.originalEvent.stopPropagation();
                 setPopupInfo(post);
+                setPopupSize({ width: POPUP_DEFAULT_W, height: POPUP_DEFAULT_H });
+                onResizeEnd();
                 if (mapRef.current) {
                   const map = mapRef.current.getMap();
                   const bounds = map.getBounds();
@@ -362,9 +449,19 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
             latitude={popupInfo.location.coordinates[1]}
             anchor="bottom"
             offset={[0, -60]}
-            onClose={() => setPopupInfo(null)}
+            onClose={() => {
+              setPopupInfo(null);
+              onResizeEnd();
+            }}
+            maxWidth="none"
           >
-            <div className={`map-popup-content theme-${theme}`}>
+            <div
+              className={`map-popup-content theme-${theme} map-popup-resizable`}
+              style={{
+                width: popupSize.width,
+                height: popupSize.height,
+              }}
+            >
               <div className="map-popup-header">
                 <h3 className="map-popup-title">{popupInfo.title}</h3>
               </div>
@@ -410,6 +507,13 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
                   {new Date(popupInfo.createdAt).toLocaleDateString()}
                 </div>
               </div>
+
+              <div
+                className="map-popup-resize-handle"
+                role="separator"
+                aria-label="Resize popup"
+                onPointerDown={startResize}
+              />
             </div>
           </Popup>
         )}
