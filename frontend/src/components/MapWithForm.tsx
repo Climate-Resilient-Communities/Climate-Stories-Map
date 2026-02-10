@@ -117,7 +117,7 @@ const MapWithForm: React.FC<MapWithFormProps> = ({
       <SubmissionPopup
         isOpen={isSubmissionConfirm} 
         onClose={() => {
-          setIsSubmissionConfirm(false);s
+          setIsSubmissionConfirm(false);
         }}
       />
     </div>
