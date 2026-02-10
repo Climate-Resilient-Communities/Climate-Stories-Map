@@ -4,6 +4,7 @@ import PostForm from './posts/PostForm';
 import './MapWithForm.css';
 import Modal from './common/Modal';
 import { Post } from './posts/types';
+import SubmissionPopup from './SubmissionPopup';
 
 interface MapWithFormProps {
   posts: Post[];
@@ -28,7 +29,7 @@ const MapWithForm: React.FC<MapWithFormProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [coordinates, setCoordinates] = useState<[number, number] | undefined>(undefined);
   const [selectedTags, setSelectedTags] = useState<string[]>(externalSelectedTags || []);
-
+  const [isSubmissionConfirm, setIsSubmissionConfirm] = useState(false);
   const [isCreatePostMode, setIsCreatePostMode] = useState(false);
 
   React.useEffect(() => {
@@ -58,8 +59,6 @@ const MapWithForm: React.FC<MapWithFormProps> = ({
     if (externalOnTagSelect) externalOnTagSelect(tags);
   };
 
-
-
   const handleMapRightClick = () => {
     if (isCreatePostMode) {
       setIsCreatePostMode(false);
@@ -69,10 +68,14 @@ const MapWithForm: React.FC<MapWithFormProps> = ({
 
   const handleClose = React.useCallback(() => {
     setIsModalOpen(false);
+    setIsSubmissionConfirm(true);
   }, []);
 
+  // Don't think handlesubmit is being reached
   const handleSubmit = React.useCallback((formData: any) => {
     onPostSubmit(formData);
+    setIsSubmissionConfirm(true);
+    console.log(isSubmissionConfirm)
     setIsModalOpen(false);
   }, [onPostSubmit]);
 
@@ -111,6 +114,12 @@ const MapWithForm: React.FC<MapWithFormProps> = ({
       <Modal isOpen={isModalOpen} onClose={handleClose}>
           <PostForm onSubmit={handleSubmit} onClose={handleClose} initialCoordinates={coordinates}/>
       </Modal>
+      <SubmissionPopup
+        isOpen={isSubmissionConfirm} 
+        onClose={() => {
+          setIsSubmissionConfirm(false);s
+        }}
+      />
     </div>
   );
 };
