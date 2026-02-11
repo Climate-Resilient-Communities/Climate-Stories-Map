@@ -30,12 +30,13 @@ class PostView(ModelView):
         return False #'user' in session and session['user'].get('role') in ['admin', 'moderator']
 
     # List of columns to display
-    column_list = ('title', 'content_image_display', 'content_description', 'location', 'tag', 'optionalTags', 'created_at', 'status')
+    column_list = ('title', 'content_image_display', 'content_description', 'location', 'tag', 'optionalTags', 'story_prompt', 'created_at', 'status')
     
     # Rename columns for display
     column_labels = {
         'content_image_display': 'Image',
-        'content_description': 'Description'
+        'content_description': 'Description',
+        'story_prompt': 'Story Prompt'
     }
     
     # Sortable columns
@@ -97,6 +98,9 @@ class PostView(ModelView):
             'type': 'Point',
             'coordinates': [form.location_longitude.data, form.location_latitude.data]
         }
+
+        # Story prompt
+        model['story_prompt'] = form.story_prompt.data if form.story_prompt.data else None
         
         # Remove temporary fields
         fields_to_remove = [
@@ -124,6 +128,9 @@ class PostView(ModelView):
         if 'location' in model and 'coordinates' in model['location']:
             form.location_longitude.data = model['location']['coordinates'][0]
             form.location_latitude.data = model['location']['coordinates'][1]
+
+        if 'story_prompt' in model:
+            form.story_prompt.data = model.get('story_prompt') or ''
             
     # Implement scaffold_filters method to fix NotImplementedError
     def scaffold_filters(self, name):
@@ -142,6 +149,8 @@ class PostView(ModelView):
                 return [FilterEqual(name, name), FilterNotEqual(name, name)]
             elif name == 'created_at':
                 return [FilterGreater(name, name), FilterSmaller(name, name)]
+            elif name == 'story_prompt':
+                return [FilterEqual(name, name), FilterNotEqual(name, name), FilterLike(name, name)]
             
             return []
         except Exception:

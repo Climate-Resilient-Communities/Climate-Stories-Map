@@ -60,6 +60,22 @@ def protected_route():
     return 'This is a protected route.'
 
 # Define the schema for input validation using Marshmallow
+STORY_PROMPTS = [
+    'A moment that stayed with me',
+    "A change I've noticed over time",
+    "A challenge I'm facing",
+    'Something I lost',
+    "Something I'm protecting",
+    "Something I'm proud of",
+    'A solution I believe in',
+    'A question I have',
+    'Lived experience / One-time event',
+    'Personal action I took',
+    'Community action',
+    "Something I'm worried about",
+    'Something that gives me hope',
+]
+
 class PostSchema(Schema):
     title = fields.Str(required=True)
     content = fields.Dict(required=True)
@@ -91,6 +107,7 @@ class PostSchema(Schema):
         ),
     )
     optionalTags = fields.List(fields.Str(), required=False, load_default=[]) # Make optional for backward compatibility
+    storyPrompt = fields.Str(required=False, allow_none=True, load_default=None, validate=validate.OneOf(STORY_PROMPTS))
     captchaToken = fields.Str(required=True) # Add captcha token to schema
     createdAt = fields.DateTime()
     status = fields.Str(required=False, load_default='pending')
@@ -125,6 +142,7 @@ class TagSchema(Schema):
         ),
     )
     optionalTags = fields.List(fields.Str(), required=False, load_default=[])
+    storyPrompt = fields.Str(required=False, allow_none=True, validate=validate.OneOf(STORY_PROMPTS))
 
 # Initialize the schema instance
 post_schema = PostSchema()
@@ -242,6 +260,9 @@ def create():
         data['created_at'] = datetime.datetime.now(datetime.timezone.utc)
         data['status'] = 'approved' #TODO Temporary for alpha testing
         data['optional_tags'] = data.pop('optionalTags', [])
+        story_prompt = data.pop('storyPrompt', None)
+        if story_prompt:
+            data['story_prompt'] = story_prompt
             
         # Insert the data into the collection
         result = collection.insert_one(data)
@@ -287,27 +308,30 @@ def get_posts():
         
         # Get optional tags list if provided
         raw_optional_tags = request.args.getlist('optionalTags')  # This returns a list directly
+
+        # Get story prompt if provided
+        story_prompt = request.args.get('storyPrompt')
         
-        # Validate and load both tag and optional tags
-        args = tag_schema.load({'tag': tag, 'optionalTags': raw_optional_tags})  # Pass both as a dictionary
+        # Validate and load filters
+        args = tag_schema.load({'tag': tag, 'optionalTags': raw_optional_tags, 'storyPrompt': story_prompt})
         tag = args.get('tag')
         optional_tags = args.get('optionalTags', [])
+        story_prompt = args.get('storyPrompt')
 
         query = {'status': 'approved'}  # Only return approved posts by default
         
-        # Apply tag filters sequentially
-        if tag and optional_tags:
-            # Both tag and optional tags are provided
-            query['$and'] = [
-                {'tag': tag},
-                {'optional_tags': {'$all': optional_tags}}
-            ]
-        elif tag:
-            # Only single tag is provided
-            query['tag'] = tag
-        elif optional_tags:
-            # Only optional tags are provided
-            query['optional_tags'] = {'$all': optional_tags}
+        and_filters = []
+        if tag:
+            and_filters.append({'tag': tag})
+        if optional_tags:
+            and_filters.append({'optional_tags': {'$all': optional_tags}})
+        if story_prompt:
+            and_filters.append({'story_prompt': story_prompt})
+
+        if len(and_filters) == 1:
+            query.update(and_filters[0])
+        elif len(and_filters) > 1:
+            query['$and'] = and_filters
         
         posts = list(collection.find(query))
         # Convert ObjectId to string to make it JSON serializable
@@ -329,6 +353,10 @@ def get_posts():
                 post['optionalTags'] = post.pop('optional_tags')
             elif 'optionalTags' not in post:
                 post['optionalTags'] = []
+
+            # Convert story_prompt to storyPrompt for frontend compatibility
+            if 'story_prompt' in post:
+                post['storyPrompt'] = post.pop('story_prompt')
         return jsonify(posts), 200
 
     except ValidationError as err:
@@ -385,6 +413,14 @@ def update_post(id):
         # Handle optional tags conversion 
         if 'optionalTags' in data:
             data['optional_tags'] = data.pop('optionalTags', [])
+
+        # Handle story prompt conversion
+        if 'storyPrompt' in data:
+            story_prompt = data.pop('storyPrompt')
+            if story_prompt:
+                data['story_prompt'] = story_prompt
+            else:
+                data['story_prompt'] = None
 
         # Find the post and update it
         result = collection.update_one(

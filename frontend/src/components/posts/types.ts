@@ -17,6 +17,7 @@ export interface Post {
   location: Location;
   tag: string;
   optionalTags: string[];
+  storyPrompt?: string;
   createdAt: string;
 }
 
@@ -31,5 +32,6 @@ export interface PostFormData {
   };
   optionalTags: string[];
   tag: '-' | MainTagType;
+  storyPrompt?: string;
   captchaToken: string;
 }

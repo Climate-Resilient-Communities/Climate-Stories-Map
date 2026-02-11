@@ -13,6 +13,7 @@ interface MapWithFormProps {
   onCreatePostTriggered?: () => void;
   selectedTags?: string[];
   onTagSelect?: (tags: string[]) => void;
+  selectedStoryPrompt?: string;
   isFilterVisible?: boolean;
 }
 
@@ -23,7 +24,8 @@ const MapWithForm: React.FC<MapWithFormProps> = ({
   createPostTrigger,
   onCreatePostTriggered,
   selectedTags: externalSelectedTags,
-  onTagSelect: externalOnTagSelect
+  onTagSelect: externalOnTagSelect,
+  selectedStoryPrompt
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [coordinates, setCoordinates] = useState<[number, number] | undefined>(undefined);
@@ -78,25 +80,23 @@ const MapWithForm: React.FC<MapWithFormProps> = ({
 
   // Filter posts based on selected tags
   const filteredPosts = React.useMemo(() => {
-    // If no tags are selected, show all posts
-    if (selectedTags.length === 0) {
-      return posts;
-    }
+    const hasTagFilters = selectedTags.length > 0;
+    const hasPromptFilter = typeof selectedStoryPrompt === 'string' && selectedStoryPrompt.trim() !== '';
 
-    // Otherwise, filter posts that have any of the selected tags
+    if (!hasTagFilters && !hasPromptFilter) return posts;
+
     return posts.filter(post => {
-      // Check if the main tag is in selectedTags
+      const promptMatches = !hasPromptFilter || post.storyPrompt === selectedStoryPrompt;
+
+      if (!hasTagFilters) return promptMatches;
+
       const mainTagMatches = selectedTags.includes(post.tag);
-      
-      // Check if any optional tag is in selectedTags
-      const optionalTagMatches = post.optionalTags.some(tag => 
-        selectedTags.includes(tag)
-      );
-      
-      // Return true if either main or any optional tag matches
-      return mainTagMatches || optionalTagMatches;
+      const optionalTagMatches = post.optionalTags.some(tag => selectedTags.includes(tag));
+      const tagMatches = mainTagMatches || optionalTagMatches;
+
+      return promptMatches && tagMatches;
     });
-  }, [posts, selectedTags]);
+  }, [posts, selectedTags, selectedStoryPrompt]);
 
   return (  
     <div className={`map-container${isCreatePostMode ? ' create-post-mode' : ''}`}>
@@ -109,7 +109,7 @@ const MapWithForm: React.FC<MapWithFormProps> = ({
         isCreatePostMode={isCreatePostMode}
       />
       <Modal isOpen={isModalOpen} onClose={handleClose}>
-          <PostForm onSubmit={handleSubmit} onClose={handleClose} initialCoordinates={coordinates}/>
+          <PostForm onClose={handleClose} initialCoordinates={coordinates}/>
       </Modal>
     </div>
   );

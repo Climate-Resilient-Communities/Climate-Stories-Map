@@ -8,16 +8,16 @@ import { useTheme } from '../../themes/ThemeContext';
 import PrivacyPolicyPopup from '../PrivacyPolicyPopup';
 import TermsOfUsePopUp from '../TermsOfUsePopUp';
 import ImageModal from '../common/ImageModal';
+import { STORY_PROMPTS } from '../../utils/story-prompts';
 
 interface PostFormProps {
-  onSubmit: (formData: PostFormData) => void;
   onClose: () => void;
   initialCoordinates?: [number, number];
 }
 
 const CAPTCHA_SITE_KEY = import.meta.env.VITE_CAPTCHA_SITE_KEY || "10000000-ffff-ffff-ffff-000000000001";
 
-const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinates = [0, 0] }) => {
+const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0] }) => {
   const captchaRef = React.useRef<HCaptcha>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isActive, setIsActive] = useState(true);
@@ -65,6 +65,7 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
     location: { type: 'Point', coordinates: initialCoordinates },
     tag: '-', // Default to "-", but must be set to a valid Emotion Tag on submit
     optionalTags: [],
+    storyPrompt: undefined,
     captchaToken: '',
   });
 
@@ -150,6 +151,12 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
           optionalTags: value === '-' ? [] : [value],
         }));
         break;
+      case 'storyPrompt':
+        setFormData(prevData => ({
+          ...prevData,
+          storyPrompt: value === '-' ? undefined : value,
+        }));
+        break;
       default:
         setFormData(prevData => ({ ...prevData, [name]: value }));
     }
@@ -163,6 +170,10 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
     }
     if (formData.tag === '-') {
       showNotification('Please select an emotion tag.', true);
+      return;
+    }
+    if (!formData.optionalTags || formData.optionalTags.length === 0) {
+      showNotification('Please select a topic tag.', true);
       return;
     }
     
@@ -211,6 +222,7 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
     return formData.title.trim() !== '' &&
            formData.content.description.trim() !== '' &&
            formData.tag !== '-' &&
+           !!formData.optionalTags?.length &&
            isAgreedToAll &&
            formData.captchaToken !== '';
   };
@@ -229,6 +241,21 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
       <div className="post-form-right">
         <h2 className="post-form-title">Share your Climate Story</h2>
 
+        <div className="post-form-select">
+          <select
+            name="storyPrompt"
+            value={formData.storyPrompt ?? '-'}
+            onChange={handleChange}
+          >
+            <option value="-">Choose a story prompt (optional)</option>
+            {STORY_PROMPTS.map((prompt) => (
+              <option key={prompt} value={prompt}>
+                {prompt}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <input
           type="text"
           name="title"
@@ -240,7 +267,7 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
         
         <textarea
           name="description"
-          placeholder="Description"
+          placeholder={formData.storyPrompt ? `Prompt: ${formData.storyPrompt}` : 'Description'}
           value={formData.content.description}
           onChange={handleChange}
           required
@@ -305,8 +332,11 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
             name="topicTag"
             value={formData.optionalTags[0] ?? '-'}
             onChange={handleChange}
+            required
           >
-            <option value="-">Select a topic (optional)</option>
+            <option value="-" disabled>
+              Select a topic
+            </option>
             {TOPIC_TAGS.map((topic) => (
               <option key={topic} value={topic}>
                 {topic}

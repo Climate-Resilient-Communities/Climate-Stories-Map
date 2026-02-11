@@ -54,6 +54,22 @@ class PostForm(form.Form):
         ('Negative', 'Negative'),
     ])
     optionalTags = fields.StringField('Optional Tags', description='Comma-separated list of tags. Sentences are allowed within each tag.')
+    story_prompt = fields.SelectField('Story Prompt', choices=[
+        ('', '(none)'),
+        ('A moment that stayed with me', 'A moment that stayed with me'),
+        ("A change I've noticed over time", "A change I've noticed over time"),
+        ("A challenge I'm facing", "A challenge I'm facing"),
+        ('Something I lost', 'Something I lost'),
+        ("Something I'm protecting", "Something I'm protecting"),
+        ("Something I'm proud of", "Something I'm proud of"),
+        ('A solution I believe in', 'A solution I believe in'),
+        ('A question I have', 'A question I have'),
+        ('Lived experience / One-time event', 'Lived experience / One-time event'),
+        ('Personal action I took', 'Personal action I took'),
+        ('Community action', 'Community action'),
+        ("Something I'm worried about", "Something I'm worried about"),
+        ('Something that gives me hope', 'Something that gives me hope'),
+    ])
     status = fields.SelectField('Status', choices=[
         ('pending', 'Pending'),
         ('approved', 'Approved'),

@@ -34,6 +34,10 @@ def init_swagger(app):
                         },
                         "description": "Optional list of additional tags associated with the post",
                     },
+                    "storyPrompt": {
+                        "type": "string",
+                        "description": "Optional story prompt chosen by the author",
+                    },
                     "captchaToken": {
                         "type": "string",
                         "description": "CAPTCHA verification token",
