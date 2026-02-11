@@ -28,7 +28,7 @@ const PostList: React.FC<PostListProps> = ({ posts }) => {
           </div>
           <div className="post-list">
             {posts.map((post) => (
-              <div className={`post-item ${post.tag.toLowerCase()}`} key={post._id}>
+              <div className="post-item" key={post._id}>
                 <div className="post-title">{post.title}</div>
                 <div className="post-description">{post.content.description}</div>
                 <div className="post-image">

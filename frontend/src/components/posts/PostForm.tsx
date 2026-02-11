@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MAIN_TAGS } from '../../utils/tag-constants';
+import { MAIN_TAGS, TOPIC_TAGS } from '../../utils/tag-constants';
 import HCaptcha from '@hcaptcha/react-hcaptcha';
 import { PostFormData } from './types';
 import './PostForm.css';
@@ -8,16 +8,16 @@ import { useTheme } from '../../themes/ThemeContext';
 import PrivacyPolicyPopup from '../PrivacyPolicyPopup';
 import TermsOfUsePopUp from '../TermsOfUsePopUp';
 import ImageModal from '../common/ImageModal';
+import { STORY_PROMPTS } from '../../utils/story-prompts';
 
 interface PostFormProps {
-  onSubmit: (formData: PostFormData) => void;
   onClose: () => void;
   initialCoordinates?: [number, number];
 }
 
 const CAPTCHA_SITE_KEY = import.meta.env.VITE_CAPTCHA_SITE_KEY || "10000000-ffff-ffff-ffff-000000000001";
 
-const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinates = [0, 0] }) => {
+const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0] }) => {
   const captchaRef = React.useRef<HCaptcha>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isActive, setIsActive] = useState(true);
@@ -29,7 +29,6 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
-  const [tagInput, setTagInput] = useState('');
 
   const handleAgreementCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsAgreedToAll(e.target.checked);
@@ -64,8 +63,9 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
     title: '',
     content: { description: '' },
     location: { type: 'Point', coordinates: initialCoordinates },
-    tag: '-', // Default to "-", but will validate to Positive/Neutral/Negative on submit
+    tag: '-', // Default to "-", but must be set to a valid Emotion Tag on submit
     optionalTags: [],
+    storyPrompt: undefined,
     captchaToken: '',
   });
 
@@ -80,10 +80,6 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
       }));
     }
   }, [initialCoordinates]);
-
-  React.useEffect(() => {
-    setTagInput(formData.optionalTags.join(', '));
-  }, [formData.optionalTags]);
 
   const handleModalClose = React.useCallback(() => {
     setIsActive(false);
@@ -146,7 +142,19 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
       case 'tag':
         setFormData(prevData => ({
           ...prevData,
-          tag: value as '-' | 'Positive' | 'Neutral' | 'Negative',
+          tag: value as PostFormData['tag'],
+        }));
+        break;
+      case 'topicTag':
+        setFormData(prevData => ({
+          ...prevData,
+          optionalTags: value === '-' ? [] : [value],
+        }));
+        break;
+      case 'storyPrompt':
+        setFormData(prevData => ({
+          ...prevData,
+          storyPrompt: value === '-' ? undefined : value,
         }));
         break;
       default:
@@ -161,7 +169,11 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
       return;
     }
     if (formData.tag === '-') {
-      showNotification('Please select a valid tag (Positive, Neutral, or Negative).', true);
+      showNotification('Please select an emotion tag.', true);
+      return;
+    }
+    if (!formData.optionalTags || formData.optionalTags.length === 0) {
+      showNotification('Please select a topic tag.', true);
       return;
     }
     
@@ -206,39 +218,13 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
     }
   }, []);
 
-  const handleTagInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTagInput(e.target.value);
-  };
-
-  const handleTagInputBlur = () => {
-    const tags = tagInput ? tagInput.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
-    const longTag = tags.find(tag => tag.length > 50);
-    if (longTag) {
-      showNotification('Each tag must be 50 characters or less', true);
-      return;
-    }
-    if (tags.length > 3) {
-      showNotification('Maximum 3 optional tags allowed', true);
-      return;
-    }
-    setFormData(prevData => ({
-      ...prevData,
-      optionalTags: tags,
-    }));
-  };
-
   const isFormValid = () => {
-    const tags = tagInput ? tagInput.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
-    const hasLongTag = tags.some(tag => tag.length > 50);
-    const hasTooManyTags = tags.length > 3;
-    
     return formData.title.trim() !== '' &&
            formData.content.description.trim() !== '' &&
            formData.tag !== '-' &&
+           !!formData.optionalTags?.length &&
            isAgreedToAll &&
-           formData.captchaToken !== '' &&
-           !hasLongTag &&
-           !hasTooManyTags;
+           formData.captchaToken !== '';
   };
 
 
@@ -254,20 +240,20 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
       ></div>
       <div className="post-form-right">
         <h2 className="post-form-title">Share your Climate Story</h2>
-        
-        <div className="tag-checkboxes">
-          {MAIN_TAGS.map((tag) => (
-            <label key={tag} className="tag-checkbox">
-              <input
-                type="radio"
-                name="tag"
-                value={tag}
-                checked={formData.tag === tag}
-                onChange={handleChange}
-              />
-              {tag}
-            </label>
-          ))}
+
+        <div className="post-form-select">
+          <select
+            name="storyPrompt"
+            value={formData.storyPrompt ?? '-'}
+            onChange={handleChange}
+          >
+            <option value="-">Choose a story prompt (optional)</option>
+            {STORY_PROMPTS.map((prompt) => (
+              <option key={prompt} value={prompt}>
+                {prompt}
+              </option>
+            ))}
+          </select>
         </div>
 
         <input
@@ -281,7 +267,7 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
         
         <textarea
           name="description"
-          placeholder="Description"
+          placeholder={formData.storyPrompt ? `Prompt: ${formData.storyPrompt}` : 'Description'}
           value={formData.content.description}
           onChange={handleChange}
           required
@@ -327,15 +313,38 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
             )}
           </div>
         </div>
-        
-        <input
-          type="text"
-          name="optionalTags"
-          placeholder="Add Tags (max 3, comma separated)"
-          value={tagInput}
-          onChange={handleTagInputChange}
-          onBlur={handleTagInputBlur}
-        />
+
+        <div className="post-form-select">
+          <select name="tag" value={formData.tag} onChange={handleChange} required>
+            <option value="-" disabled>
+              Select an emotion
+            </option>
+            {MAIN_TAGS.map((tag) => (
+              <option key={tag} value={tag}>
+                {tag}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="post-form-select">
+          <select
+            name="topicTag"
+            value={formData.optionalTags[0] ?? '-'}
+            onChange={handleChange}
+            required
+          >
+            <option value="-" disabled>
+              Select a topic
+            </option>
+            {TOPIC_TAGS.map((topic) => (
+              <option key={topic} value={topic}>
+                {topic}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <div className="checkbox-container">
           <div className="checkbox-row">
             <label className="checkbox-label">
@@ -362,7 +371,7 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
               sitekey={CAPTCHA_SITE_KEY}
               onVerify={handleVerificationSuccess}
               onError={(err) => {
-                const errorMsg = typeof err === 'string' ? err : (err?.message || 'Unknown error');
+                const errorMsg = typeof err === 'string' ? err : 'Unknown error';
                 console.warn('hCaptcha Error:', errorMsg.replace(/[\r\n\t<>"'&]/g, ' '));
               }}
               onClose={() => setIsActive(false)}

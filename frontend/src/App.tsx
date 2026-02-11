@@ -32,6 +32,7 @@ const AppContent: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isTaskbarVisible, setIsTaskbarVisible] = useState(true);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedStoryPrompt, setSelectedStoryPrompt] = useState<string | undefined>(undefined);
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const [isCreatePostMode, setIsCreatePostMode] = useState(false);
   const isMapPage = location.pathname === '/';
@@ -131,6 +132,8 @@ const AppContent: React.FC = () => {
               posts={posts}
               selectedTags={selectedTags}
               onTagSelect={setSelectedTags}
+              selectedStoryPrompt={selectedStoryPrompt}
+              onStoryPromptSelect={setSelectedStoryPrompt}
               isFilterVisible={isFilterVisible}
               onToggleFilter={handleToggleFilter}
               isCreatePostMode={isMapPage && isCreatePostMode}
@@ -178,6 +181,7 @@ const AppContent: React.FC = () => {
                   taskbarVisible={isTaskbarVisible}
                   selectedTags={selectedTags}
                   onTagSelect={setSelectedTags}
+                  selectedStoryPrompt={selectedStoryPrompt}
                   isFilterVisible={isFilterVisible}
                   onToggleFilter={handleToggleFilter}
                   createPostTrigger={isCreatePostMode}

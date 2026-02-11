@@ -25,7 +25,7 @@ def init_swagger(app):
                     },
                     "tag": {
                         "type": "string",
-                        "description": "Primary tag of the post (Positive, Neutral, or Negative)",
+                        "description": "Primary emotion tag of the post (Anxious, Overwhelmed, Hopeful, Empowered, Frustrated, Angry, Concerned, Sad/Grief, Motivated, Inspired, Determined, Resilient, Fearful, Curious)",
                     },
                     "optionalTags": {
                         "type": "array",
@@ -33,6 +33,10 @@ def init_swagger(app):
                             "type": "string",
                         },
                         "description": "Optional list of additional tags associated with the post",
+                    },
+                    "storyPrompt": {
+                        "type": "string",
+                        "description": "Optional story prompt chosen by the author",
                     },
                     "captchaToken": {
                         "type": "string",

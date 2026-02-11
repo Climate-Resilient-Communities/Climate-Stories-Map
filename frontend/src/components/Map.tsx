@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import Map, { Marker, Popup, NavigationControl, Source, Layer } from 'react-map-gl';
+import Map, { Marker, Popup, NavigationControl } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 import './Map.css';
@@ -12,17 +12,12 @@ import { isPointInPolygon } from '../utils/map-utils';
 import { useNotification } from './common/NotificationContext';
 import { useTheme } from '../themes/ThemeContext';
 import ImageModal from './common/ImageModal';
+import { getFirstTopicTag, getTagColor, hexToRgba } from '../utils/tag-constants';
+import TopicMarkerIcon from './markers/TopicMarkerIcon';
 
 // Replace this with your actual Mapbox access token
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 const MONOCHROME_MAP = import.meta.env.VITE_MONOCHROME_MAP;
-
-// Marker color constants
-const MARKER_COLORS = {
-  'Neutral': "rgb(74, 163, 192)",
-  'Negative': "rgb(225, 81, 81)",
-  'Positive': "rgb(104, 244, 132)"
-} as const;
 
 interface MapProps {
   posts: Post[];
@@ -45,7 +40,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
   const { theme } = useTheme();
   const mapRef = useRef<any>(null);
   const geocoderContainerRef = useRef<HTMLDivElement | null>(null);
-  const geocoderRef = useRef<MapboxGeocoder | null>(null);
+  const geocoderRef = useRef<any | null>(null);
 
   const getMapStyle = () => {
     return MONOCHROME_MAP;
@@ -73,12 +68,97 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [modalImageSrc, setModalImageSrc] = useState('');
   const [modalImageAlt, setModalImageAlt] = useState('');
+
+  const POPUP_MIN_W = 280;
+  const POPUP_MIN_H = 240;
+  const POPUP_MAX_W = 820;
+  const POPUP_MAX_H = 700;
+  const POPUP_DEFAULT_W = 350;
+  const POPUP_DEFAULT_H = 400;
+
+  const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
+
+  const [popupSize, setPopupSize] = useState<{ width: number; height: number }>({
+    width: POPUP_DEFAULT_W,
+    height: POPUP_DEFAULT_H,
+  });
+
+  const resizeSessionRef = useRef<null | {
+    startX: number;
+    startY: number;
+    startW: number;
+    startH: number;
+  }>(null);
+
+  const isResizingRef = useRef(false);
+
+  const onResizeMove = React.useCallback((event: PointerEvent) => {
+    const session = resizeSessionRef.current;
+    if (!session) return;
+
+    const nextWidth = clamp(session.startW + (event.clientX - session.startX), POPUP_MIN_W, POPUP_MAX_W);
+    const nextHeight = clamp(session.startH + (event.clientY - session.startY), POPUP_MIN_H, POPUP_MAX_H);
+    setPopupSize({ width: nextWidth, height: nextHeight });
+  }, []);
+
+  const onResizeEnd = React.useCallback(() => {
+    resizeSessionRef.current = null;
+    isResizingRef.current = false;
+    document.body.classList.remove('popup-resizing');
+
+    try {
+      mapRef.current?.getMap?.()?.dragPan?.enable?.();
+    } catch {
+      // ignore
+    }
+
+    document.removeEventListener('pointermove', onResizeMove, true);
+    document.removeEventListener('pointerup', onResizeEnd, true);
+    document.removeEventListener('pointercancel', onResizeEnd, true);
+  }, [onResizeMove]);
+
+  useEffect(() => {
+    return () => {
+      onResizeEnd();
+    };
+  }, [onResizeEnd]);
+
+  const startResize = (event: React.PointerEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    } catch {
+      // Ignore if pointer capture isn't supported
+    }
+
+    resizeSessionRef.current = {
+      startX: event.clientX,
+      startY: event.clientY,
+      startW: popupSize.width,
+      startH: popupSize.height,
+    };
+
+    isResizingRef.current = true;
+
+    try {
+      mapRef.current?.getMap?.()?.dragPan?.disable?.();
+    } catch {
+      // ignore
+    }
+
+    document.body.classList.add('popup-resizing');
+    document.addEventListener('pointermove', onResizeMove, true);
+    document.addEventListener('pointerup', onResizeEnd, true);
+    document.addEventListener('pointercancel', onResizeEnd, true);
+  };
   
   const colorMapRef = useRef<Record<string, string>>({});
 
   const getMarkerColorByTag = (post: Post): string => {
     const { tag } = post;
-    return MARKER_COLORS[tag as keyof typeof MARKER_COLORS] || MARKER_COLORS['Neutral'];
+    return getTagColor(tag);
   };
 
   useEffect(() => {
@@ -313,10 +393,11 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
               longitude={post.location.coordinates[0]}
               latitude={post.location.coordinates[1]}
               anchor="bottom"
-              color={color}
               onClick={e => {
                 e.originalEvent.stopPropagation();
                 setPopupInfo(post);
+                setPopupSize({ width: POPUP_DEFAULT_W, height: POPUP_DEFAULT_H });
+                onResizeEnd();
                 if (mapRef.current) {
                   const map = mapRef.current.getMap();
                   const bounds = map.getBounds();
@@ -331,7 +412,34 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
                   });
                 }
               }}
-            />
+            >
+              <div
+                className="topic-marker"
+                style={{ ['--marker-color' as any]: color } as React.CSSProperties}
+                aria-label={
+                  `${post.title}. ` +
+                  `${post.tag && post.tag !== '-' ? `Emotion: ${post.tag}. ` : ''}` +
+                  `${getFirstTopicTag(post.optionalTags) ? `Topic: ${getFirstTopicTag(post.optionalTags)}.` : ''}`
+                }
+              >
+                <svg
+                  className="topic-marker__pin"
+                  viewBox="0 0 24 24"
+                  role="presentation"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M12 2C8.134 2 5 5.134 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.866-3.134-7-7-7z"
+                    fill="var(--marker-color)"
+                    stroke="rgba(255, 255, 255, 0.95)"
+                    strokeWidth="1.6"
+                  />
+                </svg>
+                <span className="topic-marker__icon" aria-hidden="true">
+                  <TopicMarkerIcon topicTag={getFirstTopicTag(post.optionalTags)} size={14} />
+                </span>
+              </div>
+            </Marker>
           );
         })}
 
@@ -341,9 +449,19 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
             latitude={popupInfo.location.coordinates[1]}
             anchor="bottom"
             offset={[0, -60]}
-            onClose={() => setPopupInfo(null)}
+            onClose={() => {
+              setPopupInfo(null);
+              onResizeEnd();
+            }}
+            maxWidth="none"
           >
-            <div className={`map-popup-content theme-${theme}`}>
+            <div
+              className={`map-popup-content theme-${theme} map-popup-resizable`}
+              style={{
+                width: popupSize.width,
+                height: popupSize.height,
+              }}
+            >
               <div className="map-popup-header">
                 <h3 className="map-popup-title">{popupInfo.title}</h3>
               </div>
@@ -367,12 +485,21 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
               <div className="map-popup-footer">
                 <div className="map-popup-tags">
                   {popupInfo.tag && popupInfo.tag !== '-' && popupInfo.tag.trim() !== '' && (
-                    <span className={`map-popup-tag ${popupInfo.tag.toLowerCase()}`}>{popupInfo.tag}</span>
+                    <span
+                      className="map-popup-tag"
+                      style={{
+                        backgroundColor: hexToRgba(getTagColor(popupInfo.tag), 0.15),
+                        borderColor: getTagColor(popupInfo.tag),
+                        color: getTagColor(popupInfo.tag),
+                      }}
+                    >
+                      {popupInfo.tag}
+                    </span>
                   )}
                   {popupInfo.optionalTags && popupInfo.optionalTags.length > 0 && popupInfo.optionalTags
                     .filter(tag => tag && tag.trim() !== '')
                     .map(tag => (
-                      <span key={tag} className="map-popup-tag optional">#{tag}</span>
+                      <span key={tag} className="map-popup-tag optional">{tag}</span>
                     ))
                   }
                 </div>
@@ -380,6 +507,13 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
                   {new Date(popupInfo.createdAt).toLocaleDateString()}
                 </div>
               </div>
+
+              <div
+                className="map-popup-resize-handle"
+                role="separator"
+                aria-label="Resize popup"
+                onPointerDown={startResize}
+              />
             </div>
           </Popup>
         )}

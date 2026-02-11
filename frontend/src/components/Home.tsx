@@ -7,7 +7,7 @@ interface HomeProps {
     posts: Post[];
     isModalOpen: boolean;
     setIsModalOpen: (isOpen: boolean) => void;
-    onPostSubmit: (formData: any) => void;
+  onPostSubmit: (formData: any) => void;
   }
   
   const Home: React.FC<HomeProps> = ({ posts, isModalOpen, setIsModalOpen, onPostSubmit }) => {
@@ -20,7 +20,7 @@ interface HomeProps {
             Create New Post
           </button>
           <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-            <PostForm onSubmit={onPostSubmit} onClose={() => setIsModalOpen(false)} />
+            <PostForm onClose={() => setIsModalOpen(false)} />
           </Modal>
         </div>
         <PostList posts={posts} />

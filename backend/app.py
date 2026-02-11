@@ -13,13 +13,38 @@ from admin.auth import init_auth
 from admin import init_admin
 
 app = Flask(__name__, static_folder="static", static_url_path="/")
-CORS(app)
 init_swagger(app)
 
 # Check if running locally
 if os.path.exists('.env'):
     from dotenv import load_dotenv
     load_dotenv()
+
+debug_mode = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
+
+allowed_origins_env = os.getenv('ALLOWED_ORIGINS', '').strip()
+if allowed_origins_env:
+    allowed_origins = [origin.strip() for origin in allowed_origins_env.split(',') if origin.strip()]
+    CORS(
+        app,
+        resources={r"/api/*": {"origins": allowed_origins}},
+        methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    )
+elif debug_mode:
+    CORS(
+        app,
+        resources={
+            r"/api/*": {
+                "origins": [
+                    "http://localhost:5173",
+                    "http://127.0.0.1:5173",
+                    "http://localhost:3000",
+                    "http://127.0.0.1:3000",
+                ]
+            }
+        },
+        methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    )
 
 # Your hCaptcha secret key (keep this secure and never expose it on the client side)
 captcha_secret_key = os.getenv('CAPTCHA_SECRET_KEY')
@@ -33,8 +58,18 @@ captcha_url = os.getenv('CAPTCHA_URL')
 
 # Configure MongoDB and Flask session
 app.config["MONGO_URI"] = mongo_uri
+if not secret_key:
+    if debug_mode:
+        secret_key = 'dev-insecure-secret-key'
+        print('WARNING: SECRET_KEY not set; using insecure development default')
+    else:
+        raise RuntimeError('SECRET_KEY environment variable must be set')
+
 app.config['SECRET_KEY'] = secret_key  # This is important for sessions
 app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(minutes=60)  # Optional: set session lifetime
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = os.getenv('SESSION_COOKIE_SAMESITE', 'Lax')
+app.config['SESSION_COOKIE_SECURE'] = os.getenv('SESSION_COOKIE_SECURE', 'True' if not debug_mode else 'False').lower() == 'true'
 mongo = PyMongo(app)
 collection = mongo.db.stories
 user_collection = mongo.db.users
@@ -60,20 +95,89 @@ def protected_route():
     return 'This is a protected route.'
 
 # Define the schema for input validation using Marshmallow
+STORY_PROMPTS = [
+    'A moment that stayed with me',
+    "A change I've noticed over time",
+    "A challenge I'm facing",
+    'Something I lost',
+    "Something I'm protecting",
+    "Something I'm proud of",
+    'A solution I believe in',
+    'A question I have',
+    'Lived experience / One-time event',
+    'Personal action I took',
+    'Community action',
+    "Something I'm worried about",
+    'Something that gives me hope',
+]
+
 class PostSchema(Schema):
     title = fields.Str(required=True)
     content = fields.Dict(required=True)
     location = fields.Dict(required=True)
-    tag = fields.Str(required=True, validate=validate.OneOf(['Positive', 'Neutral', 'Negative']))
+    tag = fields.Str(
+        required=True,
+        validate=validate.OneOf(
+            [
+                # Emotion tags
+                'Anxious',
+                'Overwhelmed',
+                'Hopeful',
+                'Empowered',
+                'Frustrated',
+                'Angry',
+                'Concerned',
+                'Sad/Grief',
+                'Motivated',
+                'Inspired',
+                'Determined',
+                'Resilient',
+                'Fearful',
+                'Curious',
+                # Legacy tags (backward compatibility)
+                'Positive',
+                'Neutral',
+                'Negative',
+            ]
+        ),
+    )
     optionalTags = fields.List(fields.Str(), required=False, load_default=[]) # Make optional for backward compatibility
+    storyPrompt = fields.Str(required=False, allow_none=True, load_default=None, validate=validate.OneOf(STORY_PROMPTS))
     captchaToken = fields.Str(required=True) # Add captcha token to schema
     createdAt = fields.DateTime()
     status = fields.Str(required=False, load_default='pending')
 
 # Define a schema for tag validation
 class TagSchema(Schema):
-    tag = fields.Str(required=False, allow_none=True, validate=validate.OneOf(['Positive', 'Neutral', 'Negative']))
+    tag = fields.Str(
+        required=False,
+        allow_none=True,
+        validate=validate.OneOf(
+            [
+                # Emotion tags
+                'Anxious',
+                'Overwhelmed',
+                'Hopeful',
+                'Empowered',
+                'Frustrated',
+                'Angry',
+                'Concerned',
+                'Sad/Grief',
+                'Motivated',
+                'Inspired',
+                'Determined',
+                'Resilient',
+                'Fearful',
+                'Curious',
+                # Legacy tags (backward compatibility)
+                'Positive',
+                'Neutral',
+                'Negative',
+            ]
+        ),
+    )
     optionalTags = fields.List(fields.Str(), required=False, load_default=[])
+    storyPrompt = fields.Str(required=False, allow_none=True, validate=validate.OneOf(STORY_PROMPTS))
 
 # Initialize the schema instance
 post_schema = PostSchema()
@@ -191,6 +295,9 @@ def create():
         data['created_at'] = datetime.datetime.now(datetime.timezone.utc)
         data['status'] = 'approved' #TODO Temporary for alpha testing
         data['optional_tags'] = data.pop('optionalTags', [])
+        story_prompt = data.pop('storyPrompt', None)
+        if story_prompt:
+            data['story_prompt'] = story_prompt
             
         # Insert the data into the collection
         result = collection.insert_one(data)
@@ -236,27 +343,30 @@ def get_posts():
         
         # Get optional tags list if provided
         raw_optional_tags = request.args.getlist('optionalTags')  # This returns a list directly
+
+        # Get story prompt if provided
+        story_prompt = request.args.get('storyPrompt')
         
-        # Validate and load both tag and optional tags
-        args = tag_schema.load({'tag': tag, 'optionalTags': raw_optional_tags})  # Pass both as a dictionary
+        # Validate and load filters
+        args = tag_schema.load({'tag': tag, 'optionalTags': raw_optional_tags, 'storyPrompt': story_prompt})
         tag = args.get('tag')
         optional_tags = args.get('optionalTags', [])
+        story_prompt = args.get('storyPrompt')
 
         query = {'status': 'approved'}  # Only return approved posts by default
         
-        # Apply tag filters sequentially
-        if tag and optional_tags:
-            # Both tag and optional tags are provided
-            query['$and'] = [
-                {'tag': tag},
-                {'optional_tags': {'$all': optional_tags}}
-            ]
-        elif tag:
-            # Only single tag is provided
-            query['tag'] = tag
-        elif optional_tags:
-            # Only optional tags are provided
-            query['optional_tags'] = {'$all': optional_tags}
+        and_filters = []
+        if tag:
+            and_filters.append({'tag': tag})
+        if optional_tags:
+            and_filters.append({'optional_tags': {'$all': optional_tags}})
+        if story_prompt:
+            and_filters.append({'story_prompt': story_prompt})
+
+        if len(and_filters) == 1:
+            query.update(and_filters[0])
+        elif len(and_filters) > 1:
+            query['$and'] = and_filters
         
         posts = list(collection.find(query))
         # Convert ObjectId to string to make it JSON serializable
@@ -278,6 +388,10 @@ def get_posts():
                 post['optionalTags'] = post.pop('optional_tags')
             elif 'optionalTags' not in post:
                 post['optionalTags'] = []
+
+            # Convert story_prompt to storyPrompt for frontend compatibility
+            if 'story_prompt' in post:
+                post['storyPrompt'] = post.pop('story_prompt')
         return jsonify(posts), 200
 
     except ValidationError as err:
@@ -285,6 +399,7 @@ def get_posts():
 
 # UPDATE (Modify a document by ID)
 @app.route('/api/posts/update/<id>', methods=['PUT'])
+@auth['moderator_required']
 def update_post(id):
     """
     Update a post by ID
@@ -322,18 +437,31 @@ def update_post(id):
 
         # Verify the hCaptcha token with the hCaptcha verification endpoint
         verification_response = requests.post(
-            'https://hcaptcha.com/siteverify',
+            captcha_url or 'https://hcaptcha.com/siteverify',
             data={
                 'secret': captcha_secret_key,
                 'response': hcaptcha_response
             }
         )
 
+        verification_result = verification_response.json()
+        if not verification_result.get('success'):
+            print(f"CAPTCHA verification failed: {verification_result}")
+            return jsonify({'success': False, 'message': 'CAPTCHA verification failed'}), 400
+
         data['updated_at'] = datetime.datetime.now(datetime.timezone.utc)  # Add updated_at timestamp
         
         # Handle optional tags conversion 
         if 'optionalTags' in data:
             data['optional_tags'] = data.pop('optionalTags', [])
+
+        # Handle story prompt conversion
+        if 'storyPrompt' in data:
+            story_prompt = data.pop('storyPrompt')
+            if story_prompt:
+                data['story_prompt'] = story_prompt
+            else:
+                data['story_prompt'] = None
 
         # Find the post and update it
         result = collection.update_one(
@@ -352,6 +480,7 @@ def update_post(id):
 
 # DELETE (Delete a document by ID)
 @app.route('/api/posts/delete/<id>', methods=['DELETE'])
+@auth['moderator_required']
 def delete_post(id):
     """
     Delete a post by ID
@@ -387,5 +516,4 @@ def delete_post(id):
         return jsonify({'error': str(e)}), 500
 
 if __name__ == "__main__":
-    debug_mode = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
     app.run(debug=debug_mode)
