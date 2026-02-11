@@ -13,13 +13,38 @@ from admin.auth import init_auth
 from admin import init_admin
 
 app = Flask(__name__, static_folder="static", static_url_path="/")
-CORS(app)
 init_swagger(app)
 
 # Check if running locally
 if os.path.exists('.env'):
     from dotenv import load_dotenv
     load_dotenv()
+
+debug_mode = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
+
+allowed_origins_env = os.getenv('ALLOWED_ORIGINS', '').strip()
+if allowed_origins_env:
+    allowed_origins = [origin.strip() for origin in allowed_origins_env.split(',') if origin.strip()]
+    CORS(
+        app,
+        resources={r"/api/*": {"origins": allowed_origins}},
+        methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    )
+elif debug_mode:
+    CORS(
+        app,
+        resources={
+            r"/api/*": {
+                "origins": [
+                    "http://localhost:5173",
+                    "http://127.0.0.1:5173",
+                    "http://localhost:3000",
+                    "http://127.0.0.1:3000",
+                ]
+            }
+        },
+        methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    )
 
 # Your hCaptcha secret key (keep this secure and never expose it on the client side)
 captcha_secret_key = os.getenv('CAPTCHA_SECRET_KEY')
@@ -33,8 +58,18 @@ captcha_url = os.getenv('CAPTCHA_URL')
 
 # Configure MongoDB and Flask session
 app.config["MONGO_URI"] = mongo_uri
+if not secret_key:
+    if debug_mode:
+        secret_key = 'dev-insecure-secret-key'
+        print('WARNING: SECRET_KEY not set; using insecure development default')
+    else:
+        raise RuntimeError('SECRET_KEY environment variable must be set')
+
 app.config['SECRET_KEY'] = secret_key  # This is important for sessions
 app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(minutes=60)  # Optional: set session lifetime
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = os.getenv('SESSION_COOKIE_SAMESITE', 'Lax')
+app.config['SESSION_COOKIE_SECURE'] = os.getenv('SESSION_COOKIE_SECURE', 'True' if not debug_mode else 'False').lower() == 'true'
 mongo = PyMongo(app)
 collection = mongo.db.stories
 user_collection = mongo.db.users
@@ -364,6 +399,7 @@ def get_posts():
 
 # UPDATE (Modify a document by ID)
 @app.route('/api/posts/update/<id>', methods=['PUT'])
+@auth['moderator_required']
 def update_post(id):
     """
     Update a post by ID
@@ -401,12 +437,17 @@ def update_post(id):
 
         # Verify the hCaptcha token with the hCaptcha verification endpoint
         verification_response = requests.post(
-            'https://hcaptcha.com/siteverify',
+            captcha_url or 'https://hcaptcha.com/siteverify',
             data={
                 'secret': captcha_secret_key,
                 'response': hcaptcha_response
             }
         )
+
+        verification_result = verification_response.json()
+        if not verification_result.get('success'):
+            print(f"CAPTCHA verification failed: {verification_result}")
+            return jsonify({'success': False, 'message': 'CAPTCHA verification failed'}), 400
 
         data['updated_at'] = datetime.datetime.now(datetime.timezone.utc)  # Add updated_at timestamp
         
@@ -439,6 +480,7 @@ def update_post(id):
 
 # DELETE (Delete a document by ID)
 @app.route('/api/posts/delete/<id>', methods=['DELETE'])
+@auth['moderator_required']
 def delete_post(id):
     """
     Delete a post by ID
@@ -474,5 +516,4 @@ def delete_post(id):
         return jsonify({'error': str(e)}), 500
 
 if __name__ == "__main__":
-    debug_mode = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
     app.run(debug=debug_mode)

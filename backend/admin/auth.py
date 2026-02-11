@@ -2,6 +2,7 @@ from flask import session, redirect, url_for, request, render_template
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 import re
+import time
 
 def validate_password_complexity(password):
     """
@@ -30,6 +31,39 @@ def validate_password_complexity(password):
     return True, 'Password meets complexity requirements'
 
 def init_auth(app, user_collection):
+    # Very small in-memory rate limiter for the admin login endpoint.
+    # (Works best for single-instance deployments; for multi-instance use a shared store.)
+    login_failures = {}
+    max_attempts = int(app.config.get('LOGIN_MAX_ATTEMPTS', 10))
+    window_seconds = int(app.config.get('LOGIN_WINDOW_SECONDS', 15 * 60))
+    lock_seconds = int(app.config.get('LOGIN_LOCK_SECONDS', 15 * 60))
+
+    def _client_ip():
+        forwarded_for = request.headers.get('X-Forwarded-For', '')
+        if forwarded_for:
+            return forwarded_for.split(',')[0].strip()
+        return request.remote_addr or 'unknown'
+
+    def _is_locked(ip: str) -> bool:
+        entry = login_failures.get(ip)
+        if not entry:
+            return False
+        return entry.get('locked_until', 0) > time.time()
+
+    def _register_failure(ip: str):
+        now = time.time()
+        entry = login_failures.get(ip)
+        if not entry or (now - entry.get('first_ts', now)) > window_seconds:
+            entry = {'first_ts': now, 'count': 0, 'locked_until': 0}
+
+        entry['count'] = entry.get('count', 0) + 1
+        if entry['count'] >= max_attempts:
+            entry['locked_until'] = now + lock_seconds
+        login_failures[ip] = entry
+
+    def _clear_failures(ip: str):
+        login_failures.pop(ip, None)
+
     # User creation helper
     def create_user(username, password, role):
         # Validate password complexity
@@ -89,18 +123,26 @@ def init_auth(app, user_collection):
     @app.route('/login', methods=['GET', 'POST'])
     def login():
         if request.method == 'POST':
+            ip = _client_ip()
+            if _is_locked(ip):
+                return 'Too many login attempts. Try again later.', 429
+
             username = request.form['username']
             password = request.form['password']
             user = verify_user(username, password)
             if user:
+                session.clear()
+                session.permanent = True
                 session['user'] = {'username': user['username'], 'role': user['role']}
+                _clear_failures(ip)
                 return redirect(url_for('admin.index'))
+            _register_failure(ip)
             return 'Invalid credentials'
         return render_template('login.html')
 
     @app.route('/logout')
     def logout():
-        session.pop('user', None)
+        session.clear()
         return redirect(url_for('login'))
 
     # Return the functions that need to be used externally
