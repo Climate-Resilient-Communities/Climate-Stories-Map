@@ -255,6 +255,10 @@ body.popup-resizing * {
 }
 
 /* Override mapbox popup styling */
+.mapboxgl-popup.map-popup-story {
+  z-index: 2000;
+}
+
 .mapboxgl-popup-content {
   padding: 0 !important;
   overflow: hidden;
