@@ -79,6 +79,15 @@
         button:hover {
             background-color: #4a8ab0;
         }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            color: #b91c1c;
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
         
         /* Custom scrollbar to match frontend */
         ::-webkit-scrollbar {
@@ -140,11 +149,15 @@
     </div>
     
     <div class="container">
+        {% if error %}
+          <div class="error-message" role="alert">{{ error }}</div>
+          <div style="height: 12px;"></div>
+        {% endif %}
         <form method="POST">
             <label for="username">Username:</label>
-            <input type="text" name="username" id="username">
+            <input type="text" name="username" id="username" value="{{ username or '' }}" autocomplete="username" required>
             <label for="password">Password:</label>
-            <input type="password" name="password" id="password">
+            <input type="password" name="password" id="password" autocomplete="current-password" required>
             <button type="submit">Login</button>
         </form>
     </div>

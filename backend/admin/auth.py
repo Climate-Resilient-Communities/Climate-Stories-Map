@@ -125,10 +125,14 @@ def init_auth(app, user_collection):
         if request.method == 'POST':
             ip = _client_ip()
             if _is_locked(ip):
-                return 'Too many login attempts. Try again later.', 429
+                return render_template(
+                    'login.html',
+                    error='Too many login attempts. Try again later.',
+                    username=request.form.get('username', '').strip(),
+                ), 429
 
-            username = request.form['username']
-            password = request.form['password']
+            username = request.form.get('username', '').strip()
+            password = request.form.get('password', '')
             user = verify_user(username, password)
             if user:
                 session.clear()
@@ -137,7 +141,10 @@ def init_auth(app, user_collection):
                 _clear_failures(ip)
                 return redirect(url_for('admin.index'))
             _register_failure(ip)
-            return 'Invalid credentials'
+
+            # Re-render the login page with an inline error message.
+            return render_template('login.html', error='Invalid credentials', username=username), 401
+
         return render_template('login.html')
 
     @app.route('/logout')

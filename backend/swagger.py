@@ -1,6 +1,18 @@
 from flasgger import Swagger
 
 def init_swagger(app):
+    def rule_filter(rule):
+        # Only document public API routes; keep moderator/admin-only routes out of Swagger.
+        if not rule.rule.startswith('/api/'):
+            return False
+
+        if rule.rule.startswith('/api/posts/update'):
+            return False
+        if rule.rule.startswith('/api/posts/delete'):
+            return False
+
+        return True
+
     swagger_template = {
         "swagger": "2.0",
         "info": {
@@ -47,4 +59,18 @@ def init_swagger(app):
         },
     }
 
-    Swagger(app, template=swagger_template)
+    swagger_config = {
+        "specs_route": "/apidocs/",
+        # Flasgger expects an iterable here; omit -> None -> crash in after_request.
+        "headers": [],
+        "specs": [
+            {
+                "endpoint": "apispec_1",
+                "route": "/apispec_1.json",
+                "rule_filter": rule_filter,
+                "model_filter": lambda tag: True,
+            }
+        ],
+    }
+
+    Swagger(app, config=swagger_config, template=swagger_template)
