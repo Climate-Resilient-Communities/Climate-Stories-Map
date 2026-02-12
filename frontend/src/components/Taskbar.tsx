@@ -15,8 +15,6 @@ interface TaskbarProps {
   posts?: Post[];
   selectedTags?: string[];
   onTagSelect?: (tags: string[]) => void;
-  selectedStoryPrompt?: string;
-  onStoryPromptSelect?: (prompt?: string) => void;
   isFilterVisible?: boolean;
   onToggleFilter?: () => void;
   isCreatePostMode?: boolean;
@@ -32,18 +30,13 @@ const themeLeafColors = {
 };
 
 const Taskbar: React.FC<TaskbarProps> = ({ 
-  onPrivacyPolicyClick,
-  onTermsOfUseClick,
   onVisibilityChange,
   onCreatePost,
   posts = [],
   selectedTags = [],
   onTagSelect,
-  selectedStoryPrompt,
-  onStoryPromptSelect,
   isFilterVisible = false,
   onToggleFilter,
-  isCreatePostMode = false,
   isOtherPage = false,
   onGoBackToMap
 }) => {
@@ -241,8 +234,6 @@ const Taskbar: React.FC<TaskbarProps> = ({
           posts={posts} 
           selectedTags={selectedTags} 
           onTagSelect={onTagSelect}
-          selectedStoryPrompt={selectedStoryPrompt}
-          onStoryPromptSelect={onStoryPromptSelect}
           showToggle={false}
           taskbarVisible={isVisible}
         />

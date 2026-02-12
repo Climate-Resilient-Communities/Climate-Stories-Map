@@ -13,6 +13,7 @@ import { useNotification } from './common/NotificationContext';
 import { useTheme } from '../themes/ThemeContext';
 import ImageModal from './common/ImageModal';
 import { getFirstTopicTag, getTagColor, hexToRgba } from '../utils/tag-constants';
+import { STORY_PROMPTS } from '../utils/story-prompts';
 import TopicMarkerIcon from './markers/TopicMarkerIcon';
 
 // Replace this with your actual Mapbox access token
@@ -92,6 +93,69 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
 
   const isResizingRef = useRef(false);
 
+  const popupInfoRef = useRef<Post | null>(null);
+  const popupSizeRef = useRef(popupSize);
+
+  useEffect(() => {
+    popupInfoRef.current = popupInfo;
+  }, [popupInfo]);
+
+  useEffect(() => {
+    popupSizeRef.current = popupSize;
+  }, [popupSize]);
+
+  const centerMapForPopup = React.useCallback(
+    (post: Post, size: { width: number; height: number }) => {
+      if (!mapRef.current) return;
+
+      const map = mapRef.current.getMap?.();
+      if (!map) return;
+
+      const container = map.getContainer?.();
+      const rect = container?.getBoundingClientRect?.();
+      const viewportHeight = rect?.height ?? window.innerHeight;
+
+      // Target: marker moves toward the middle-bottom of the screen, with enough room above
+      // for the story card (popup) to be fully visible.
+      const popupHeight = size.height;
+      const topPaddingPx = 24;
+      const bottomPaddingPx = 90;
+      const gapPx = 16;
+
+      const minMarkerY = Math.ceil(popupHeight + topPaddingPx + gapPx);
+      const preferredMarkerY = Math.floor(viewportHeight * 0.72);
+      const maxMarkerY = Math.floor(viewportHeight - bottomPaddingPx);
+      const targetMarkerY = Math.max(minMarkerY, Math.min(preferredMarkerY, maxMarkerY));
+
+      // Horizontal: place marker at the true screen center.
+      // If the map is shifted right by side UI (taskbar), rect.left will be > 0.
+      const containerLeft = rect?.left ?? 0;
+      const screenCenterX = window.innerWidth / 2;
+
+      // Desired marker position inside the *map container* (pixel coordinates).
+      // Note: map.project() / map.unproject() are in container coordinates.
+      const desiredX = screenCenterX - containerLeft;
+      const desiredY = targetMarkerY;
+
+      const markerLngLat: [number, number] = [post.location.coordinates[0], post.location.coordinates[1]];
+      const markerPx = map.project(markerLngLat);
+      const centerPx = map.project(map.getCenter());
+      const deltaX = markerPx.x - desiredX;
+      const deltaY = markerPx.y - desiredY;
+
+      const nextCenterPx = { x: centerPx.x + deltaX, y: centerPx.y + deltaY };
+      const nextCenter = map.unproject(nextCenterPx);
+
+      map.easeTo({
+        center: nextCenter,
+        duration: 1400,
+        easing: (t: number) => 1 - Math.pow(1 - t, 3),
+        essential: true,
+      });
+    },
+    []
+  );
+
   const onResizeMove = React.useCallback((event: PointerEvent) => {
     const session = resizeSessionRef.current;
     if (!session) return;
@@ -115,13 +179,35 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
     document.removeEventListener('pointermove', onResizeMove, true);
     document.removeEventListener('pointerup', onResizeEnd, true);
     document.removeEventListener('pointercancel', onResizeEnd, true);
-  }, [onResizeMove]);
+
+    const info = popupInfoRef.current;
+    if (info) {
+      // Re-center after resizing so the marker stays tucked under the centered popup.
+      centerMapForPopup(info, popupSizeRef.current);
+    }
+  }, [centerMapForPopup, onResizeMove]);
+
+  const cleanupResizeSession = React.useCallback(() => {
+    resizeSessionRef.current = null;
+    isResizingRef.current = false;
+    document.body.classList.remove('popup-resizing');
+
+    try {
+      mapRef.current?.getMap?.()?.dragPan?.enable?.();
+    } catch {
+      // ignore
+    }
+
+    document.removeEventListener('pointermove', onResizeMove, true);
+    document.removeEventListener('pointerup', onResizeEnd, true);
+    document.removeEventListener('pointercancel', onResizeEnd, true);
+  }, [onResizeEnd, onResizeMove]);
 
   useEffect(() => {
     return () => {
-      onResizeEnd();
+      cleanupResizeSession();
     };
-  }, [onResizeEnd]);
+  }, [cleanupResizeSession]);
 
   const startResize = (event: React.PointerEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -224,6 +310,20 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
             zoom: 10,
             duration: 1500
           });
+
+          // Clear previous search so the next location search starts clean.
+          try {
+            geocoder.clear();
+          } catch {
+            // ignore
+          }
+
+          // Also clear/blur the underlying input and collapse the UI.
+          const input = geocoderContainerRef.current?.querySelector<HTMLInputElement>('input');
+          if (input) {
+            input.value = '';
+            input.blur();
+          }
           setIsGeocoderExpanded(false);
         }
       });
@@ -397,20 +497,10 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
                 e.originalEvent.stopPropagation();
                 setPopupInfo(post);
                 setPopupSize({ width: POPUP_DEFAULT_W, height: POPUP_DEFAULT_H });
-                onResizeEnd();
-                if (mapRef.current) {
-                  const map = mapRef.current.getMap();
-                  const bounds = map.getBounds();
-                  const latSpan = bounds.getNorth() - bounds.getSouth();
-                  
-                  mapRef.current.flyTo({
-                    center: [
-                      post.location.coordinates[0],
-                      post.location.coordinates[1] + latSpan * 0.15
-                    ],
-                    duration: 1500
-                  });
-                }
+                cleanupResizeSession();
+
+                // Center the story popup and pan so the marker sits under it.
+                centerMapForPopup(post, { width: POPUP_DEFAULT_W, height: POPUP_DEFAULT_H });
               }}
             >
               <div
@@ -448,10 +538,11 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
             longitude={popupInfo.location.coordinates[0]}
             latitude={popupInfo.location.coordinates[1]}
             anchor="bottom"
-            offset={[0, -60]}
+            offset={28}
+            className="map-popup-story"
             onClose={() => {
               setPopupInfo(null);
-              onResizeEnd();
+              cleanupResizeSession();
             }}
             maxWidth="none"
           >
@@ -498,6 +589,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
                   )}
                   {popupInfo.optionalTags && popupInfo.optionalTags.length > 0 && popupInfo.optionalTags
                     .filter(tag => tag && tag.trim() !== '')
+                    .filter(tag => !STORY_PROMPTS.includes(tag.trim() as any))
                     .map(tag => (
                       <span key={tag} className="map-popup-tag optional">{tag}</span>
                     ))
