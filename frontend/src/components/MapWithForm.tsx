@@ -8,7 +8,7 @@ import SubmissionPopup from './SubmissionPopup';
 
 interface MapWithFormProps {
   posts: Post[];
-  onPostSubmit: (formData: any) => void;
+  onPostSubmit: () => void;
   taskbarVisible?: boolean;
   createPostTrigger?: boolean;
   onCreatePostTriggered?: () => void;
@@ -68,14 +68,12 @@ const MapWithForm: React.FC<MapWithFormProps> = ({
 
   const handleClose = React.useCallback(() => {
     setIsModalOpen(false);
-    setIsSubmissionConfirm(true);
   }, []);
 
-  // Don't think handlesubmit is being reached
-  const handleSubmit = React.useCallback((formData: any) => {
-    onPostSubmit(formData);
+  // mainly for handling modal because submission is handled elsewhere
+  const handleSubmit = React.useCallback(() => {
+    //onPostSubmit(formData);
     setIsSubmissionConfirm(true);
-    console.log(isSubmissionConfirm)
     setIsModalOpen(false);
   }, [onPostSubmit]);
 
