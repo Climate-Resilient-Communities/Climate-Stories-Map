@@ -1,0 +1,9 @@
+.submission-confirmation{
+    margin:50px;
+    color: var(--text-primary);
+    background-color: var(--background-color);
+}
+
+.submission-confirmation h2{
+    color: var(--primary-color)
+}
