@@ -186,7 +186,6 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
             onClose();
           }, 100);
         } else {
-          console.log(response);
           throw new Error('Failed to submit post');
 
         }
