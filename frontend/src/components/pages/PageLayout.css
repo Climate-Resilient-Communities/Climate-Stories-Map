@@ -1,3 +1,15 @@
+html {
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
 .page-container {
   margin: 20px 20px 20px 290px;
   border-radius: 20px;
@@ -359,54 +371,60 @@
     font-size: 0.85rem;
   }
 }
+
+
 .about-page-content {
-  padding: clamp(15px, 4vw, 50px);
+  padding:clamp(1.5rem, -1.5rem + 3.75vw, 3rem) clamp(3rem, -1rem + 5vw, 5rem);
   height: 100%;
   display: flex;
   flex-direction: column;
   container-type: inline-size;
+  /*margin: 0px 4rem 0px 4rem;*/
+  padding: 2rem 4rem;
 }
+
 
 .about-page-content h1 {
   color: var(--primary-color);
-  font-size: clamp(1.8rem, 8cqw, 3rem);
+  font-size: clamp(2.8rem, -1.6rem + 5.5vw, 5rem);
   margin-top: 0px;
-  margin-bottom: clamp(5px, 1cqw, 15px);
+  margin-bottom: clamp(0.75rem, -1.5rem + 3.3333vw, 1rem);
   font-weight: bold;
+
 }
+
 
 .about-layout {
+  
   display: flex;
-  gap: clamp(20px, 8cqw, 80px);
-  align-items: flex-start;
   flex: 1;
-  width: 100%;
 }
+
 
 .about-text-section {
-  flex: 1;
-  max-width: clamp(300px, 60cqw, 500px);
+  
+  flex: 1.50;
+  
 }
 
+
 .about-text-section p {
-  font-size: clamp(0.9rem, 3cqw, 1.1rem);
+  font-size: clamp(2.1rem, 0.3rem + 2.25vw, 3rem);
   line-height: clamp(1.4, 0.5cqw + 1.3, 1.7);
   color: var(--text-primary);
   margin: 0;
-  font-weight: 400;
 }
 
 .about-image-section {
-  flex: 0 0 clamp(200px, 40cqw, 400px);
+  
+  flex:1;
   display: flex;
-  justify-content: flex-end;
 }
 
 .about-page-image {
+  justify-content: center;
   width: 100%;
-  height: auto;
   object-fit: contain;
-  max-height: clamp(200px, 50cqh, 400px);
 }
 
 /* Responsive breakpoints for better text handling */
