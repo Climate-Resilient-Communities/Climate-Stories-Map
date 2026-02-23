@@ -520,9 +520,17 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
                 >
                   <path
                     d="M12 2C8.134 2 5 5.134 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.866-3.134-7-7-7z"
-                    fill="var(--marker-color)"
+                    fill="rgba(255, 255, 255, 0.98)"
                     stroke="rgba(255, 255, 255, 0.95)"
-                    strokeWidth="1.6"
+                    strokeWidth="3.4"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M12 2C8.134 2 5 5.134 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.866-3.134-7-7-7z"
+                    fill="rgba(255, 255, 255, 0.98)"
+                    stroke="var(--marker-color)"
+                    strokeWidth="2.2"
+                    strokeLinejoin="round"
                   />
                 </svg>
                 <span className="topic-marker__icon" aria-hidden="true">
