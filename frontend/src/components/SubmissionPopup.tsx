@@ -11,12 +11,12 @@ interface SubmissionPopupProps {
 const SubmissionPopup: React.FC<SubmissionPopupProps> = ({
   isOpen,
   onClose,
-  message = "Your submission was successful!"
+  message = "Your submission was successful."
 }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="large">
       <div className="submission-confirmation">
-        <h2>Success!</h2>
+        <h1>Success!</h1>
         <p>{message}</p>
         <button className="confirm-btn" onClick={onClose} autoFocus>
           OK
