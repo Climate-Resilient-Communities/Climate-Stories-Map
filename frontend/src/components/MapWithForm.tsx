@@ -4,10 +4,11 @@ import PostForm from './posts/PostForm';
 import './MapWithForm.css';
 import Modal from './common/Modal';
 import { Post } from './posts/types';
+import SubmissionPopup from './SubmissionPopup';
 
 interface MapWithFormProps {
   posts: Post[];
-  onPostSubmit: (formData: any) => void;
+  onPostSubmit: () => void;
   taskbarVisible?: boolean;
   createPostTrigger?: boolean;
   onCreatePostTriggered?: () => void;
@@ -28,7 +29,7 @@ const MapWithForm: React.FC<MapWithFormProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [coordinates, setCoordinates] = useState<[number, number] | undefined>(undefined);
   const [selectedTags, setSelectedTags] = useState<string[]>(externalSelectedTags || []);
-
+  const [isSubmissionConfirm, setIsSubmissionConfirm] = useState(false);
   const [isCreatePostMode, setIsCreatePostMode] = useState(false);
 
   React.useEffect(() => {
@@ -58,8 +59,6 @@ const MapWithForm: React.FC<MapWithFormProps> = ({
     if (externalOnTagSelect) externalOnTagSelect(tags);
   };
 
-
-
   const handleMapRightClick = () => {
     if (isCreatePostMode) {
       setIsCreatePostMode(false);
@@ -71,8 +70,10 @@ const MapWithForm: React.FC<MapWithFormProps> = ({
     setIsModalOpen(false);
   }, []);
 
-  const handleSubmit = React.useCallback((formData: any) => {
-    onPostSubmit(formData);
+  // mainly for handling modal because submission is handled elsewhere
+  const handleSubmit = React.useCallback(() => {
+    //onPostSubmit(formData);
+    setIsSubmissionConfirm(true);
     setIsModalOpen(false);
   }, [onPostSubmit]);
 
@@ -111,6 +112,12 @@ const MapWithForm: React.FC<MapWithFormProps> = ({
       <Modal isOpen={isModalOpen} onClose={handleClose}>
           <PostForm onSubmit={handleSubmit} onClose={handleClose} initialCoordinates={coordinates}/>
       </Modal>
+      <SubmissionPopup
+        isOpen={isSubmissionConfirm} 
+        onClose={() => {
+          setIsSubmissionConfirm(false);
+        }}
+      />
     </div>
   );
 };

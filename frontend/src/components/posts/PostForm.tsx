@@ -10,7 +10,7 @@ import TermsOfUsePopUp from '../TermsOfUsePopUp';
 import ImageModal from '../common/ImageModal';
 
 interface PostFormProps {
-  onSubmit: (formData: PostFormData) => void;
+  onSubmit: () => void;
   onClose: () => void;
   initialCoordinates?: [number, number];
 }
@@ -53,6 +53,7 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
     setIsTermsOfUseOpen(false);
   };
   
+
   React.useEffect(() => {
     return () => {
       setIsActive(false);
@@ -179,12 +180,14 @@ const PostForm: React.FC<PostFormProps> = ({ onSubmit, onClose, initialCoordinat
         });
         
         if (response.ok) {
+          onSubmit();
           showNotification('Your post has been submitted for review with our moderators!');
           setTimeout(() => {
             onClose();
           }, 100);
         } else {
           throw new Error('Failed to submit post');
+
         }
       } catch (error) {
         console.error('Error submitting post:', error);
