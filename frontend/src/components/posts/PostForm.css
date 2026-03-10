@@ -1,6 +1,33 @@
 .post-form textarea {
   resize: vertical;
 }
+.captcha-container {
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+
+.tooltip-wrapper {
+  display: inline-block;
+}
+
+/* Make disabled Add button visually distinct (Taskbar theme CSS overrides defaults) */
+[data-theme] .post-form button[type="submit"]:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background: var(--scrollbar-track);
+  color: var(--text-secondary);
+}
+
+[data-theme] .post-form button[type="submit"]:disabled:hover {
+  background: var(--scrollbar-track);
+}
+
+.captcha-label {
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
 
 .post-form select {
   width: 100%;

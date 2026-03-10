@@ -226,16 +226,19 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
     }
   }, []);
 
-  const isFormValid = () => {
+  const isFormValid = React.useCallback(() => {
     return formData.title.trim() !== '' &&
            formData.content.description.trim() !== '' &&
            formData.tag !== '-' &&
            !!formData.optionalTags?.length &&
            isAgreedToAll &&
            formData.captchaToken !== '';
-  };
+  }, [formData, isAgreedToAll]);
 
+  const formValid = isFormValid();
 
+  const titlePlaceholder = 'Title *';
+  const descriptionPlaceholder = formData.storyPrompt ? `Prompt: ${formData.storyPrompt} *` : 'Description *';
 
   const renderForm = () => (
     <form className="post-form" onSubmit={handleSubmit}>
@@ -267,7 +270,7 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
         <input
           type="text"
           name="title"
-          placeholder="Title"
+          placeholder={titlePlaceholder}
           value={formData.title}
           onChange={handleChange}
           required
@@ -275,7 +278,7 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
         
         <textarea
           name="description"
-          placeholder={formData.storyPrompt ? `Prompt: ${formData.storyPrompt}` : 'Description'}
+          placeholder={descriptionPlaceholder}
           value={formData.content.description}
           onChange={handleChange}
           required
@@ -325,7 +328,7 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
         <div className="post-form-select">
           <select name="tag" value={formData.tag} onChange={handleChange} required>
             <option value="-" disabled>
-              Select an emotion
+              Select an emotion *
             </option>
             {MAIN_TAGS.map((tag) => (
               <option key={tag} value={tag}>
@@ -343,7 +346,7 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
             required
           >
             <option value="-" disabled>
-              Select a topic
+              Select a topic *
             </option>
             {TOPIC_TAGS.map((topic) => (
               <option key={topic} value={topic}>
@@ -361,7 +364,7 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
                 checked={isAgreedToAll} 
                 onChange={handleAgreementCheckboxChange} 
               />
-              <span>By clicking this, you agree to the following:</span>
+              <span>By clicking this, you agree to the following *:</span>
             </label>
           </div>
           <ul className="agreement-list">
@@ -373,19 +376,23 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
 
         <div className="form-buttons">
           <button type="button" onClick={handleModalClose}>Cancel</button>
-          {isActive && (
-            <HCaptcha
-              ref={captchaRef}
-              sitekey={CAPTCHA_SITE_KEY}
-              onVerify={handleVerificationSuccess}
-              onError={(err) => {
-                const errorMsg = typeof err === 'string' ? err : 'Unknown error';
-                console.warn('hCaptcha Error:', errorMsg.replace(/[\r\n\t<>"'&]/g, ' '));
-              }}
-              onClose={() => setIsActive(false)}
-            />
-          )}
-          <button type="submit" disabled={!isFormValid()}>Add</button>
+          <div className="captcha-container">
+            {isActive && (
+              <HCaptcha
+                ref={captchaRef}
+                sitekey={CAPTCHA_SITE_KEY}
+                onVerify={handleVerificationSuccess}
+                onError={(err) => {
+                  const errorMsg = typeof err === 'string' ? err : 'Unknown error';
+                  console.warn('hCaptcha Error:', errorMsg.replace(/[\r\n\t<>"'&]/g, ' '));
+                }}
+                onClose={() => setIsActive(false)}
+              />
+            )}
+          </div>
+          <span className="tooltip-wrapper" title={formValid ? '' : 'Fill up required fields *'}>
+            <button type="submit" disabled={!formValid}>Add</button>
+          </span>
         </div>
       </div>
     </form>
