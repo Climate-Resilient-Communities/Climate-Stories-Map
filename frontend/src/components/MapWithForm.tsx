@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import CRCMap from './Map';
 import PostForm from './posts/PostForm';
+import SubmissionPopup from './posts/SubmissionPopup';
 import './MapWithForm.css';
 import Modal from './common/Modal';
 import { Post } from './posts/types';
@@ -24,6 +25,9 @@ const MapWithForm: React.FC<MapWithFormProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [coordinates, setCoordinates] = useState<[number, number] | undefined>(undefined);
   const [selectedTags, setSelectedTags] = useState<string[]>(externalSelectedTags || []);
+
+  const [isSubmissionPopupOpen, setIsSubmissionPopupOpen] = useState(false);
+  const [submissionMessage, setSubmissionMessage] = useState<string | undefined>(undefined);
 
   const [isCreatePostMode, setIsCreatePostMode] = useState(false);
 
@@ -60,6 +64,12 @@ const MapWithForm: React.FC<MapWithFormProps> = ({
     setIsModalOpen(false);
   }, []);
 
+  const handleSubmitted = React.useCallback((message: string) => {
+    setIsModalOpen(false);
+    setSubmissionMessage(message);
+    setIsSubmissionPopupOpen(true);
+  }, []);
+
   // Filter posts based on selected tags
   const filteredPosts = React.useMemo(() => {
     const hasTagFilters = selectedTags.length > 0;
@@ -86,8 +96,14 @@ const MapWithForm: React.FC<MapWithFormProps> = ({
         isCreatePostMode={isCreatePostMode}
       />
       <Modal isOpen={isModalOpen} onClose={handleClose}>
-          <PostForm onClose={handleClose} initialCoordinates={coordinates}/>
+          <PostForm onClose={handleClose} initialCoordinates={coordinates} onSubmitted={handleSubmitted} />
       </Modal>
+
+      <SubmissionPopup
+        isOpen={isSubmissionPopupOpen}
+        onClose={() => setIsSubmissionPopupOpen(false)}
+        message={submissionMessage}
+      />
     </div>
   );
 };
