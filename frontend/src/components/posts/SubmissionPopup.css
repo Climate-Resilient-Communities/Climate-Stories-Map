@@ -1,0 +1,24 @@
+.submission-confirmation{
+    padding:40px 50px 40px 50px;
+    background-color: var(--surface-color);
+}
+
+.submission-confirmation h1{
+    color: var(--primary-color);
+    font-size:2.4rem;
+    margin-top:0.5rem;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 3px solid var(--primary-color);
+}
+
+.submission-confirmation p{
+    font-size:1.25rem;
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+}
+
+.confirm-btn {
+    background-color: var(--primary-color);
+    color: var(--text-on-primary);
+}
