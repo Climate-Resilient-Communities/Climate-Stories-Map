@@ -1,5 +1,6 @@
 from wtforms import form, fields, validators
 from wtforms.validators import ValidationError
+from wtforms.fields import DateField
 import re
 
 def password_complexity(form, field):
@@ -75,6 +76,8 @@ class PostForm(form.Form):
         ('approved', 'Approved'),
         ('rejected', 'Rejected')
     ])
+    featured = fields.BooleanField('Featured')
+    featured_expires_at = DateField('Featured Expires at', validators=[validators.Optional()])
 
 class UserForm(form.Form):
     """Form for creating new users with required password"""

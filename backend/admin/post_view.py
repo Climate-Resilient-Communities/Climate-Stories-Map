@@ -3,6 +3,7 @@ from flask_admin.contrib.pymongo.filters import FilterEqual, FilterNotEqual, Fil
 from markupsafe import Markup
 from .forms import PostForm
 from flask import session, redirect, url_for
+import datetime
 
 class PostView(ModelView):
     def is_accessible(self):
@@ -30,7 +31,7 @@ class PostView(ModelView):
         return False #'user' in session and session['user'].get('role') in ['admin', 'moderator']
 
     # List of columns to display
-    column_list = ('title', 'content_image_display', 'content_description', 'location', 'tag', 'optionalTags', 'story_prompt', 'created_at', 'status')
+    column_list = ('title', 'content_image_display', 'content_description', 'location', 'tag', 'optionalTags', 'story_prompt', 'created_at', 'status', 'featured', 'featured_by', 'featured_expires_at')
     
     # Rename columns for display
     column_labels = {
@@ -70,11 +71,19 @@ class PostView(ModelView):
             return ', '.join(optional_tags)
         return str(optional_tags)
 
+    # Format the featured date expiration display
+    def _featured_date_formatter(view, context, model, name):
+        val = model.get('featured_expires_at')
+        if val:
+            return val.strftime('%B %d, %Y')  # e.g. "March 09, 2026"
+        return ''
+
     column_formatters = {
         'content_image_display': _image_formatter,
         'content_description': _description_formatter,
         'tag': _tag_formatter,
-        'optionalTags': _optional_tags_formatter
+        'optionalTags': _optional_tags_formatter,
+        'featured_expires_at': _featured_date_formatter
     }
 
     def __init__(self, collection, name=None, category=None, endpoint=None, url=None, static_folder=None):
@@ -102,6 +111,18 @@ class PostView(ModelView):
         # Story prompt
         model['story_prompt'] = form.story_prompt.data if form.story_prompt.data else None
         
+        # Featured posts (admin/mod only)
+        model['featured'] = form.featured.data
+        if model['featured']:
+            model['featured_by'] = session.get('user', {}).get('username', 'unknown')
+            model['featured_expires_at'] = datetime.datetime(
+                form.featured_expires_at.data.year,
+                form.featured_expires_at.data.month,
+                form.featured_expires_at.data.day)
+        else:
+            model['featured_by'] = None
+            model['featured_expires_at'] = None
+
         # Remove temporary fields
         fields_to_remove = [
             'content_description', 'content_image',
@@ -113,7 +134,6 @@ class PostView(ModelView):
 
     def on_form_prefill(self, form, id):
         model = self.get_one(id)
-        
         # Handle optional_tags when loading form data
         if 'optional_tags' in model and isinstance(model['optional_tags'], list):
             form.optionalTags.data = ', '.join(model['optional_tags'])
@@ -131,7 +151,14 @@ class PostView(ModelView):
 
         if 'story_prompt' in model:
             form.story_prompt.data = model.get('story_prompt') or ''
-            
+        
+        model['featured'] = form.featured.data
+        if model['featured']:
+            model['featured_by'] = session.get('user', {}).get('username', 'unknown')
+        else:
+            model['featured_by'] = None
+            model['featured_expires_at'] = None
+        
     # Implement scaffold_filters method to fix NotImplementedError
     def scaffold_filters(self, name):
         """
