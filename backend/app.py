@@ -288,11 +288,18 @@ def create():
         # Skip CAPTCHA verification on localhost
         is_localhost = request.host.startswith('localhost') or request.host.startswith('127.0.0.1')
         
+        grace_token_provided = bool(captcha_grace_token)
         captcha_passed = is_localhost or _is_valid_captcha_grace_token(captcha_grace_token)
 
         if not captcha_passed:
             if not hcaptcha_response:
-                return jsonify({'success': False, 'message': 'CAPTCHA token missing'}), 400
+                if grace_token_provided:
+                    return jsonify({
+                        'success': False,
+                        'message': 'CAPTCHA grace period expired',
+                        'errorCode': 'captcha_grace_expired',
+                    }), 400
+                return jsonify({'success': False, 'message': 'CAPTCHA token missing', 'errorCode': 'captcha_required'}), 400
 
             # Verify the hCaptcha token
             verification_response = requests.post(

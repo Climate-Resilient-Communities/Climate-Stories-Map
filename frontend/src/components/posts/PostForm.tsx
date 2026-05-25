@@ -267,11 +267,24 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
           }
           return;
         } else {
-          // If grace token was rejected/expired, fall back to hCaptcha.
-          if (canSkipCaptcha) {
+          let responseJson: any = null;
+          try {
+            responseJson = await response.json();
+          } catch {
+            // ignore
+          }
+
+          // If grace token was rejected/expired, fall back to hCaptcha (keep form data).
+          if (canSkipCaptcha && (responseJson?.errorCode === 'captcha_grace_expired' || responseJson?.errorCode === 'captcha_required')) {
             clearCaptchaGraceToken();
             setHasCaptchaGrace(false);
           }
+
+          if (responseJson?.errorCode === 'captcha_grace_expired') {
+            showNotification('Your hCaptcha grace period expired. Please complete the hCaptcha to submit.', true);
+            return;
+          }
+
           throw new Error('Failed to submit post');
         }
       } catch (error) {
@@ -450,11 +463,27 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
                 ref={captchaRef}
                 sitekey={CAPTCHA_SITE_KEY}
                 onVerify={handleVerificationSuccess}
+                onExpire={() => {
+                  setFormData(prevData => ({
+                    ...prevData,
+                    captchaToken: '',
+                  }));
+                }}
                 onError={(err) => {
                   const errorMsg = typeof err === 'string' ? err : 'Unknown error';
                   console.warn('hCaptcha Error:', errorMsg.replace(/[\r\n\t<>"'&]/g, ' '));
                 }}
-                onClose={() => setIsActive(false)}
+                onClose={() => {
+                  // If a user cancels/closes the challenge, keep the widget visible.
+                  // Resetting allows them to try again without reloading the form.
+                  captchaRef.current?.resetCaptcha();
+
+                  // Closing/canceling should NOT count as a successful CAPTCHA.
+                  setFormData(prevData => ({
+                    ...prevData,
+                    captchaToken: '',
+                  }));
+                }}
               />
             )}
           </div>
