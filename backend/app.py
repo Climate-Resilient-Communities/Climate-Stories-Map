@@ -8,6 +8,10 @@ from marshmallow import Schema, fields, ValidationError, validate
 from flask_cors import CORS
 import os
 import json
+import hashlib
+from typing import Optional
+
+from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 
 from admin.auth import init_auth
 from admin import init_admin
@@ -56,6 +60,10 @@ cdn_key = os.getenv('CDN_KEY')
 cdn_url = os.getenv('CDN_API')
 captcha_url = os.getenv('CAPTCHA_URL')
 
+# After one successful CAPTCHA, allow a short grace period to reduce re-prompts.
+captcha_grace_minutes = int(os.getenv('CAPTCHA_GRACE_MINUTES', '5'))
+captcha_grace_seconds = max(0, captcha_grace_minutes * 60)
+
 # Configure MongoDB and Flask session
 app.config["MONGO_URI"] = mongo_uri
 if not secret_key:
@@ -70,6 +78,37 @@ app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(minutes=60)  # Opt
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = os.getenv('SESSION_COOKIE_SAMESITE', 'Lax')
 app.config['SESSION_COOKIE_SECURE'] = os.getenv('SESSION_COOKIE_SECURE', 'True' if not debug_mode else 'False').lower() == 'true'
+
+captcha_grace_serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'], salt='captcha-grace-v1')
+
+def _get_client_ip() -> str:
+    # Prefer the first IP in X-Forwarded-For when behind a proxy.
+    forwarded_for = request.headers.get('X-Forwarded-For', '')
+    if forwarded_for:
+        return forwarded_for.split(',')[0].strip()
+    return request.remote_addr or ''
+
+def _get_user_agent_hash() -> str:
+    ua = request.headers.get('User-Agent', '')
+    return hashlib.sha256(ua.encode('utf-8')).hexdigest()
+
+def _make_captcha_grace_token() -> str:
+    payload = {
+        'ip': _get_client_ip(),
+        'ua': _get_user_agent_hash(),
+    }
+    return captcha_grace_serializer.dumps(payload)
+
+def _is_valid_captcha_grace_token(token: Optional[str]) -> bool:
+    if not token or captcha_grace_seconds <= 0:
+        return False
+
+    try:
+        payload = captcha_grace_serializer.loads(token, max_age=captcha_grace_seconds)
+    except (SignatureExpired, BadSignature):
+        return False
+
+    return payload.get('ip') == _get_client_ip() and payload.get('ua') == _get_user_agent_hash()
 mongo = PyMongo(app)
 collection = mongo.db.stories
 user_collection = mongo.db.users
@@ -143,7 +182,8 @@ class PostSchema(Schema):
     )
     optionalTags = fields.List(fields.Str(), required=False, load_default=[]) # Make optional for backward compatibility
     storyPrompt = fields.Str(required=False, allow_none=True, load_default=None, validate=validate.OneOf(STORY_PROMPTS))
-    captchaToken = fields.Str(required=True) # Add captcha token to schema
+    captchaToken = fields.Str(required=False, allow_none=True, load_default=None)  # Required unless a grace token is provided
+    captchaGraceToken = fields.Str(required=False, allow_none=True, load_default=None)
     createdAt = fields.DateTime()
     status = fields.Str(required=False, load_default='pending')
 
@@ -242,12 +282,15 @@ def create():
         
         # Validate and deserialize the post data
         data = post_schema.load(post_data)
-        hcaptcha_response = data.pop('captchaToken')
+        hcaptcha_response = data.pop('captchaToken', None)
+        captcha_grace_token = data.pop('captchaGraceToken', None)
 
         # Skip CAPTCHA verification on localhost
         is_localhost = request.host.startswith('localhost') or request.host.startswith('127.0.0.1')
         
-        if not is_localhost:
+        captcha_passed = is_localhost or _is_valid_captcha_grace_token(captcha_grace_token)
+
+        if not captcha_passed:
             if not hcaptcha_response:
                 return jsonify({'success': False, 'message': 'CAPTCHA token missing'}), 400
 
@@ -264,6 +307,8 @@ def create():
             if not verification_result.get('success'):
                 print(f"CAPTCHA verification failed: {verification_result}")
                 return jsonify({'success': False, 'message': 'CAPTCHA verification failed'}), 400
+
+            captcha_passed = True
 
         # Handle image upload if present
         if 'image' in request.files:
@@ -301,8 +346,13 @@ def create():
             
         # Insert the data into the collection
         result = collection.insert_one(data)
-        
-        return jsonify({'message': 'Post created', 'post_id': str(result.inserted_id)}), 201
+
+        response_payload = {'message': 'Post created', 'post_id': str(result.inserted_id)}
+        if not is_localhost and captcha_grace_seconds > 0 and captcha_passed:
+            response_payload['captchaGraceToken'] = _make_captcha_grace_token()
+            response_payload['captchaGraceExpiresInSeconds'] = captcha_grace_seconds
+
+        return jsonify(response_payload), 201
     
     except ValidationError as err:
         print(f"Validation error: {err.messages}")
@@ -430,7 +480,7 @@ def update_post(id):
         
         # Validate and deserialize the request JSON
         data = post_schema.load(request.json)
-        hcaptcha_response = data.pop('captchaToken')
+        hcaptcha_response = data.pop('captchaToken', None)
 
         if not hcaptcha_response:
             return jsonify({'success': False, 'message': 'CAPTCHA token missing'}), 400

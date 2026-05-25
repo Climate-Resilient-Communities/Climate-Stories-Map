@@ -18,6 +18,40 @@ interface PostFormProps {
 
 const CAPTCHA_SITE_KEY = import.meta.env.VITE_CAPTCHA_SITE_KEY || "10000000-ffff-ffff-ffff-000000000001";
 
+const CAPTCHA_GRACE_TOKEN_KEY = 'captchaGraceToken';
+const CAPTCHA_GRACE_EXPIRES_AT_KEY = 'captchaGraceExpiresAt';
+
+function getStoredCaptchaGraceToken(): string | null {
+  try {
+    const token = localStorage.getItem(CAPTCHA_GRACE_TOKEN_KEY);
+    const expiresAtRaw = localStorage.getItem(CAPTCHA_GRACE_EXPIRES_AT_KEY);
+    const expiresAt = expiresAtRaw ? Number(expiresAtRaw) : 0;
+    if (!token || !expiresAt) return null;
+    if (Number.isNaN(expiresAt) || Date.now() >= expiresAt) return null;
+    return token;
+  } catch {
+    return null;
+  }
+}
+
+function storeCaptchaGraceToken(token: string, expiresInSeconds: number) {
+  try {
+    localStorage.setItem(CAPTCHA_GRACE_TOKEN_KEY, token);
+    localStorage.setItem(CAPTCHA_GRACE_EXPIRES_AT_KEY, String(Date.now() + expiresInSeconds * 1000));
+  } catch {
+    // Ignore storage failures (private mode, etc.)
+  }
+}
+
+function clearCaptchaGraceToken() {
+  try {
+    localStorage.removeItem(CAPTCHA_GRACE_TOKEN_KEY);
+    localStorage.removeItem(CAPTCHA_GRACE_EXPIRES_AT_KEY);
+  } catch {
+    // Ignore
+  }
+}
+
 const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0], onSubmitted }) => {
   const captchaRef = React.useRef<HCaptcha>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -30,6 +64,9 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [hasCaptchaGrace, setHasCaptchaGrace] = useState<boolean>(() => !!getStoredCaptchaGraceToken());
+
+  const hasValidCaptchaGrace = !!getStoredCaptchaGraceToken();
 
   const handleAgreementCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsAgreedToAll(e.target.checked);
@@ -58,6 +95,12 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
       setIsActive(false);
     };
   }, []);
+
+  React.useEffect(() => {
+    if (hasCaptchaGrace && !hasValidCaptchaGrace) {
+      setHasCaptchaGrace(false);
+    }
+  }, [hasCaptchaGrace, hasValidCaptchaGrace]);
   
   // Updated formData to include mandatory Tag
   const [formData, setFormData] = useState<PostFormData>({
@@ -178,10 +221,18 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
       return;
     }
     
-    if (formData.captchaToken) {
+    const graceToken = getStoredCaptchaGraceToken();
+    const canSkipCaptcha = !!graceToken;
+
+    if (formData.captchaToken || canSkipCaptcha) {
       try {
+        const payload: PostFormData = {
+          ...formData,
+          captchaGraceToken: canSkipCaptcha ? graceToken ?? undefined : undefined,
+        };
+
         const submitData = new FormData();
-        submitData.append('postData', JSON.stringify(formData));
+        submitData.append('postData', JSON.stringify(payload));
         if (selectedImage) {
           submitData.append('image', selectedImage);
         }
@@ -192,6 +243,18 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
         });
         
         if (response.ok) {
+          let responseJson: any = null;
+          try {
+            responseJson = await response.json();
+          } catch {
+            // Response might be empty; ignore.
+          }
+
+          if (responseJson?.captchaGraceToken && typeof responseJson?.captchaGraceExpiresInSeconds === 'number') {
+            storeCaptchaGraceToken(responseJson.captchaGraceToken, responseJson.captchaGraceExpiresInSeconds);
+            setHasCaptchaGrace(true);
+          }
+
           const successMessage = 'Your post has been submitted for review with our moderators!';
 
           if (onSubmitted) {
@@ -204,6 +267,11 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
           }
           return;
         } else {
+          // If grace token was rejected/expired, fall back to hCaptcha.
+          if (canSkipCaptcha) {
+            clearCaptchaGraceToken();
+            setHasCaptchaGrace(false);
+          }
           throw new Error('Failed to submit post');
         }
       } catch (error) {
@@ -232,7 +300,7 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
            formData.tag !== '-' &&
            !!formData.optionalTags?.length &&
            isAgreedToAll &&
-           formData.captchaToken !== '';
+           (formData.captchaToken !== '' || !!getStoredCaptchaGraceToken());
   }, [formData, isAgreedToAll]);
 
   const formValid = isFormValid();
@@ -377,7 +445,7 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
         <div className="form-buttons">
           <button type="button" onClick={handleModalClose}>Cancel</button>
           <div className="captcha-container">
-            {isActive && (
+            {!hasValidCaptchaGrace && isActive && (
               <HCaptcha
                 ref={captchaRef}
                 sitekey={CAPTCHA_SITE_KEY}
