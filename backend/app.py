@@ -61,8 +61,16 @@ cdn_url = os.getenv('CDN_API')
 captcha_url = os.getenv('CAPTCHA_URL')
 
 # After one successful CAPTCHA, allow a short grace period to reduce re-prompts.
-captcha_grace_minutes = int(os.getenv('CAPTCHA_GRACE_MINUTES', '5'))
-captcha_grace_seconds = max(0, captcha_grace_minutes * 60)
+def _get_int_env(name: str, default: int) -> int:
+    raw = os.getenv(name)
+    if raw is None or raw == '':
+        return default
+    try:
+        return int(raw)
+    except ValueError:
+        return default
+
+captcha_grace_seconds = max(0, _get_int_env('CAPTCHA_GRACE_SECONDS', 300))
 
 # Configure MongoDB and Flask session
 app.config["MONGO_URI"] = mongo_uri

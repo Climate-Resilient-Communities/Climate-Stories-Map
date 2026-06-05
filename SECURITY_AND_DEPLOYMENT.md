@@ -21,6 +21,7 @@ Required for most deployments:
 - `MONGODB_URI` — Mongo connection string
 - `CAPTCHA_SECRET_KEY` — hCaptcha secret key (server-side)
 - `CAPTCHA_URL` — usually `https://hcaptcha.com/siteverify`
+- `CAPTCHA_GRACE_SECONDS` — optional, defaults to `300` (5 minutes); reduces how often users must solve hCaptcha
 - `CDN_KEY`, `CDN_API` — if using ImgBB uploads
 
 Security/ops knobs added by hardening:
