@@ -21,6 +21,17 @@ const CAPTCHA_SITE_KEY = import.meta.env.VITE_CAPTCHA_SITE_KEY || "10000000-ffff
 const CAPTCHA_GRACE_TOKEN_KEY = 'captchaGraceToken';
 const CAPTCHA_GRACE_EXPIRES_AT_KEY = 'captchaGraceExpiresAt';
 
+function getStoredCaptchaGraceExpiresAtMs(): number | null {
+  try {
+    const expiresAtRaw = localStorage.getItem(CAPTCHA_GRACE_EXPIRES_AT_KEY);
+    const expiresAt = expiresAtRaw ? Number(expiresAtRaw) : 0;
+    if (!expiresAt || Number.isNaN(expiresAt)) return null;
+    return expiresAt;
+  } catch {
+    return null;
+  }
+}
+
 function getStoredCaptchaGraceToken(): string | null {
   try {
     const token = localStorage.getItem(CAPTCHA_GRACE_TOKEN_KEY);
@@ -36,10 +47,13 @@ function getStoredCaptchaGraceToken(): string | null {
 
 function storeCaptchaGraceToken(token: string, expiresInSeconds: number) {
   try {
+    const expiresAtMs = Date.now() + expiresInSeconds * 1000;
     localStorage.setItem(CAPTCHA_GRACE_TOKEN_KEY, token);
-    localStorage.setItem(CAPTCHA_GRACE_EXPIRES_AT_KEY, String(Date.now() + expiresInSeconds * 1000));
+    localStorage.setItem(CAPTCHA_GRACE_EXPIRES_AT_KEY, String(expiresAtMs));
+    return expiresAtMs;
   } catch {
     // Ignore storage failures (private mode, etc.)
+    return null;
   }
 }
 
@@ -65,8 +79,39 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
   const [imagePreview, setImagePreview] = useState<string>('');
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [hasCaptchaGrace, setHasCaptchaGrace] = useState<boolean>(() => !!getStoredCaptchaGraceToken());
+  const [captchaGraceExpiresAtMs, setCaptchaGraceExpiresAtMs] = useState<number | null>(() => getStoredCaptchaGraceExpiresAtMs());
 
   const hasValidCaptchaGrace = !!getStoredCaptchaGraceToken();
+
+  React.useEffect(() => {
+    if (!captchaGraceExpiresAtMs) return;
+
+    const msUntilExpiry = captchaGraceExpiresAtMs - Date.now();
+    if (msUntilExpiry <= 0) {
+      clearCaptchaGraceToken();
+      setHasCaptchaGrace(false);
+      setCaptchaGraceExpiresAtMs(null);
+      setFormData(prevData => ({
+        ...prevData,
+        captchaToken: '',
+      }));
+      captchaRef.current?.resetCaptcha();
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      clearCaptchaGraceToken();
+      setHasCaptchaGrace(false);
+      setCaptchaGraceExpiresAtMs(null);
+      setFormData(prevData => ({
+        ...prevData,
+        captchaToken: '',
+      }));
+      captchaRef.current?.resetCaptcha();
+    }, msUntilExpiry + 50);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [captchaGraceExpiresAtMs]);
 
   const handleAgreementCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsAgreedToAll(e.target.checked);
@@ -228,6 +273,10 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
       try {
         const payload: PostFormData = {
           ...formData,
+          // If we have a grace token, do not send a captchaToken.
+          // Otherwise a previously-solved captcha token could be reused and effectively
+          // keep extending the grace window.
+          captchaToken: canSkipCaptcha ? '' : formData.captchaToken,
           captchaGraceToken: canSkipCaptcha ? graceToken ?? undefined : undefined,
         };
 
@@ -251,11 +300,27 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
           }
 
           if (responseJson?.captchaGraceToken && typeof responseJson?.captchaGraceExpiresInSeconds === 'number') {
-            storeCaptchaGraceToken(responseJson.captchaGraceToken, responseJson.captchaGraceExpiresInSeconds);
+            const expiresAtMs = storeCaptchaGraceToken(responseJson.captchaGraceToken, responseJson.captchaGraceExpiresInSeconds);
             setHasCaptchaGrace(true);
+            if (expiresAtMs) setCaptchaGraceExpiresAtMs(expiresAtMs);
           }
 
+          // Always clear any old captcha token after a successful submit.
+          // This prevents an old captcha token from "bridging" an expired grace period.
+          setFormData(prevData => ({
+            ...prevData,
+            captchaToken: '',
+          }));
+          captchaRef.current?.resetCaptcha();
+
           const successMessage = 'Your post has been submitted for review with our moderators!';
+
+          // Clear any previous captcha token so it can't be reused across posts.
+          setFormData(prevData => ({
+            ...prevData,
+            captchaToken: '',
+          }));
+          captchaRef.current?.resetCaptcha();
 
           if (onSubmitted) {
             onSubmitted(successMessage);
@@ -278,6 +343,7 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
           if (canSkipCaptcha && (responseJson?.errorCode === 'captcha_grace_expired' || responseJson?.errorCode === 'captcha_required')) {
             clearCaptchaGraceToken();
             setHasCaptchaGrace(false);
+            setCaptchaGraceExpiresAtMs(null);
           }
 
           if (responseJson?.errorCode === 'captcha_grace_expired') {
