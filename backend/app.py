@@ -293,9 +293,13 @@ def create():
         hcaptcha_response = data.pop('captchaToken', None)
         captcha_grace_token = data.pop('captchaGraceToken', None)
 
-        # Skip CAPTCHA verification on localhost
-        is_localhost = request.host.startswith('localhost') or request.host.startswith('127.0.0.1')
-        
+        # Skip CAPTCHA verification only in debug mode.
+        # Do not use request.host for this decision; Host can be spoofed by non-browser clients.
+        is_localhost = debug_mode
+
+        # Only mint a new grace token when the user actually completes hCaptcha on this request.
+        verified_via_captcha = False
+
         grace_token_provided = bool(captcha_grace_token)
         captcha_passed = is_localhost or _is_valid_captcha_grace_token(captcha_grace_token)
 
@@ -324,6 +328,7 @@ def create():
                 return jsonify({'success': False, 'message': 'CAPTCHA verification failed'}), 400
 
             captcha_passed = True
+            verified_via_captcha = True
 
         # Handle image upload if present
         if 'image' in request.files:
@@ -363,7 +368,7 @@ def create():
         result = collection.insert_one(data)
 
         response_payload = {'message': 'Post created', 'post_id': str(result.inserted_id)}
-        if not is_localhost and captcha_grace_seconds > 0 and captcha_passed:
+        if not is_localhost and captcha_grace_seconds > 0 and verified_via_captcha:
             response_payload['captchaGraceToken'] = _make_captcha_grace_token()
             response_payload['captchaGraceExpiresInSeconds'] = captcha_grace_seconds
 
