@@ -15,6 +15,7 @@ import ImageModal from './common/ImageModal';
 import { getFirstTopicTag, getTagColor, hexToRgba } from '../utils/tag-constants';
 import { STORY_PROMPTS } from '../utils/story-prompts';
 import TopicMarkerIcon from './markers/TopicMarkerIcon';
+import { FaShareAlt } from 'react-icons/fa';
 
 // Replace this with your actual Mapbox access token
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
@@ -399,6 +400,33 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
     }
   };
 
+  const handleShare = async (post: Post) => {
+    const shareText = `
+      ${post.title ?? "Climate Update"}
+
+      ${post.content.description}
+
+      https://climatestories.place/?ref=sprout-climate.org 
+      Shared from Climate Weather Map
+      `;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: post.title || "Climate Weather Map",
+          text: shareText,
+        });
+      } else {
+        await navigator.clipboard.writeText(shareText);
+        alert("Post copied to clipboard!");
+      }
+    } catch (err) {
+      navigator.clipboard.writeText(`${shareText}`);
+      alert("Post copied to clipboard!");
+      console.log("Share failed:", err);
+    }
+  };
+
   return (
     <div className={`map-container ${taskbarVisible ? '' : 'taskbar-hidden'}${isCreatePostMode ? ' create-post-mode' : ''}`} style={{ position: 'relative' }}>
       {/* Location Search */}
@@ -603,8 +631,14 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
                     ))
                   }
                 </div>
-                <div className="map-popup-date">
-                  {new Date(popupInfo.createdAt).toLocaleDateString()}
+                <div className="map-popup-bottom-row">
+                  <button className="map-pop-share-button" onClick={() => handleShare(popupInfo)}>
+                    <FaShareAlt />
+                    <span>Share</span>
+                  </button>
+                  <div className="map-popup-date">
+                    {new Date(popupInfo.createdAt).toLocaleDateString()}
+                  </div>
                 </div>
               </div>
 
