@@ -6,7 +6,14 @@ Write-Host 'Building frontend...' -ForegroundColor Cyan
 Push-Location (Join-Path $repoRoot 'frontend')
 try {
     npm install
+    if ($LASTEXITCODE -ne 0) {
+        throw "Error: 'npm install' failed with exit code $LASTEXITCODE"
+    }
+
     npm run build
+    if ($LASTEXITCODE -ne 0) {
+        throw "Error: 'npm run build' failed with exit code $LASTEXITCODE"
+    }
 }
 finally {
     Pop-Location
