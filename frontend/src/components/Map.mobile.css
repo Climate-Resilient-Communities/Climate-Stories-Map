@@ -1,0 +1,90 @@
+@media screen and (max-width: 768px) and (orientation: portrait) {
+  [data-theme] .map-container {
+    margin: 96px 12px 12px 12px;
+    width: calc(100% - 24px);
+    height: calc(100vh - 108px);
+    border-radius: 12px;
+    overflow: hidden;
+    left: 0;
+  }
+
+  [data-theme] .map-container.taskbar-hidden {
+    margin: 96px 12px 12px 12px;
+    width: calc(100% - 24px);
+  }
+
+  .map-geocoder {
+    top: -60px;
+    left: 0;
+    width: 100%;
+  }
+
+  .map-geocoder.expanded,
+  .map-geocoder.collapsed {
+    width: 100%;
+    height: auto;
+  }
+
+  .map-geocoder.collapsed .mapboxgl-ctrl-geocoder {
+    width: 100%;
+    height: 44px;
+    min-width: 100%;
+    max-width: none;
+    padding: 0 10px;
+    justify-content: flex-start;
+  }
+
+  .map-geocoder .mapboxgl-ctrl-geocoder {
+    min-height: 44px;
+    border-radius: 8px;
+    box-shadow: none;
+  }
+
+  .map-geocoder.collapsed .mapboxgl-ctrl-geocoder--input {
+    display: block;
+    width: 100%;
+    height: 100%;
+    opacity: 1;
+    padding-left: 26px;
+    pointer-events: auto;
+  }
+
+  .map-geocoder.collapsed .mapboxgl-ctrl-geocoder--button,
+  .map-geocoder.collapsed .suggestions {
+    display: block;
+  }
+
+  .map-geocoder.collapsed .mapboxgl-ctrl-geocoder--icon-search {
+    position: absolute;
+    left: 10px;
+    top: 11px;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+  }
+
+  .mapboxgl-ctrl-top-right {
+    top: 6px;
+    right: 6px;
+  }
+
+  .mapboxgl-ctrl-bottom-right {
+    bottom: 14px;
+    right: 12px;
+  }
+
+  @media screen and (max-width: 400px) {
+    [data-theme] .map-container {
+      margin-top: 88px;
+      height: calc(100vh - 100px);
+    }
+
+    [data-theme] .map-container.taskbar-hidden {
+      margin-top: 88px;
+    }
+
+    .map-geocoder {
+      top: -54px;
+    }
+  }
+}

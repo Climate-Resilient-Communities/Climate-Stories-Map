@@ -1,15 +1,10 @@
-// Mobile orientation manager for forcing landscape mode
 export class MobileOrientationManager {
   private static instance: MobileOrientationManager;
-  private forceLandscape: boolean = true;
+  private forceLandscape: boolean = false;
   private listeners: Set<(forceLandscape: boolean) => void> = new Set();
 
   private constructor() {
-    // Load setting from localStorage
-    const saved = localStorage.getItem('forceLandscapeMode');
-    this.forceLandscape = saved !== null ? saved === 'true' : true;
-    
-    this.initializeOrientationHandling();
+    this.forceLandscape = false;
   }
 
   static getInstance(): MobileOrientationManager {
@@ -20,13 +15,7 @@ export class MobileOrientationManager {
   }
 
   private initializeOrientationHandling() {
-    if (this.isMobileDevice()) {
-      this.handleOrientationChange();
-      window.addEventListener('orientationchange', () => {
-        setTimeout(() => this.handleOrientationChange(), 100);
-      });
-      window.addEventListener('resize', () => this.handleOrientationChange());
-    }
+    return;
   }
 
   private isMobileDevice(): boolean {
@@ -35,54 +24,11 @@ export class MobileOrientationManager {
   }
 
   private handleOrientationChange() {
-    if (!this.forceLandscape || !this.isMobileDevice()) return;
-
-    const isPortrait = window.innerHeight > window.innerWidth;
-    
-    if (isPortrait) {
-      this.showLandscapePrompt();
-    } else {
-      this.hideLandscapePrompt();
-    }
-  }
-
-  private showLandscapePrompt() {
-    let prompt = document.getElementById('landscape-prompt');
-    if (!prompt) {
-      prompt = document.createElement('div');
-      prompt.id = 'landscape-prompt';
-      prompt.innerHTML = `
-        <div class="landscape-prompt-content">
-          <div class="landscape-prompt-icon">📱</div>
-          <h3>Better Experience in Landscape</h3>
-          <p>Please rotate your device to landscape mode for the best experience with Climate Stories Map.</p>
-          <div class="landscape-prompt-animation">
-            <div class="phone-icon">📱</div>
-            <div class="rotate-arrow">↻</div>
-          </div>
-        </div>
-      `;
-      document.body.appendChild(prompt);
-    }
-    prompt.style.display = 'flex';
-  }
-
-  private hideLandscapePrompt() {
-    const prompt = document.getElementById('landscape-prompt');
-    if (prompt) {
-      prompt.style.display = 'none';
-    }
+    return;
   }
 
   public setForceLandscape(force: boolean) {
     this.forceLandscape = force;
-    localStorage.setItem('forceLandscapeMode', force.toString());
-    
-    if (force) {
-      this.handleOrientationChange();
-    } else {
-      this.hideLandscapePrompt();
-    }
 
     this.listeners.forEach(listener => listener(force));
   }

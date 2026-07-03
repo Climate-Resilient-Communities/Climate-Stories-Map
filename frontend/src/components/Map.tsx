@@ -3,6 +3,7 @@ import Map, { Marker, Popup, NavigationControl } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 import './Map.css';
+import './Map.mobile.css';
 import './MapPopup.css';
 import { MdMyLocation } from 'react-icons/md';
 import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
@@ -42,6 +43,13 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
   const mapRef = useRef<any>(null);
   const geocoderContainerRef = useRef<HTMLDivElement | null>(null);
   const geocoderRef = useRef<any | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    if (window.matchMedia('(max-width: 768px) and (orientation: portrait)').matches) {
+      setIsGeocoderExpanded(true);
+    }
+  }, []);
 
   const getMapStyle = () => {
     return MONOCHROME_MAP;

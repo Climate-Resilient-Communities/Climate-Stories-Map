@@ -6,6 +6,7 @@ import { Plus, Info, Question, Eye, Leaf, MapPin, Share, BookOpen, Notepad, MapT
 import TagFilter from './posts/TagFilter';
 import { Post } from './posts/types';
 import './Taskbar.css';
+import './Taskbar.mobile.css';
 
 interface TaskbarProps {
   onPrivacyPolicyClick?: () => void;
@@ -40,7 +41,14 @@ const Taskbar: React.FC<TaskbarProps> = ({
   isOtherPage = false,
   onGoBackToMap
 }) => {
-  const [isVisible, setIsVisible] = useState(true);
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return false;
+    return window.matchMedia('(max-width: 768px)').matches;
+  });
+  const [isVisible, setIsVisible] = useState(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return true;
+    return !window.matchMedia('(max-width: 768px)').matches;
+  });
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
   const { theme, setTheme, availableThemes } = useTheme();
   const location = useLocation();
@@ -50,6 +58,30 @@ const Taskbar: React.FC<TaskbarProps> = ({
     () => availableThemes.filter((themeName) => themeName !== theme),
     [availableThemes, theme]
   );
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+
+    const mediaQuery = window.matchMedia('(max-width: 768px)');
+
+    const applyMobileVisibility = (isMobile: boolean) => {
+      setIsMobile(isMobile);
+      setIsVisible(!isMobile);
+      onVisibilityChange?.(!isMobile);
+      setIsThemeMenuOpen(false);
+    };
+
+    applyMobileVisibility(mediaQuery.matches);
+
+    const handleChange = (event: MediaQueryListEvent) => {
+      applyMobileVisibility(event.matches);
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => {
+      mediaQuery.removeEventListener('change', handleChange);
+    };
+  }, [onVisibilityChange]);
 
   useEffect(() => {
     if (!isThemeMenuOpen) return;
@@ -79,6 +111,35 @@ const Taskbar: React.FC<TaskbarProps> = ({
     };
   }, [isThemeMenuOpen]);
 
+  useEffect(() => {
+    if (!(isMobile && isVisible)) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsVisible(false);
+        onVisibilityChange?.(false);
+        setIsThemeMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isMobile, isVisible, onVisibilityChange]);
+
+  useEffect(() => {
+    if (!(isMobile && isVisible)) {
+      document.body.style.overflow = '';
+      return;
+    }
+
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobile, isVisible]);
+
   const toggleVisibility = () => {
     const newVisibility = !isVisible;
     setIsVisible(newVisibility);
@@ -96,17 +157,47 @@ const Taskbar: React.FC<TaskbarProps> = ({
   };
 
   const themeTitle = theme.charAt(0).toUpperCase() + theme.slice(1);
+  const showMobileBackdrop = isMobile && isVisible;
 
   return (
     <>
-      <button 
-        className={`taskbar-toggle-button ${isVisible ? 'expanded' : 'collapsed'}`}
-        onClick={toggleVisibility}
-        aria-label={isVisible ? 'Hide taskbar' : 'Show taskbar'}
-      >
-        {isVisible ? '<' : '>'}
-      </button>
-      <nav className={`taskbar ${isVisible ? 'visible' : 'hidden'}`}>
+      {isMobile ? (
+        <header className={`taskbar-mobile-header ${isVisible ? 'open' : 'closed'}`}>
+          <button
+            className="taskbar-toggle-button taskbar-toggle-button-mobile"
+            onClick={toggleVisibility}
+            aria-label={isVisible ? 'Hide menu' : 'Show menu'}
+          >
+            <span className="taskbar-toggle-icon" aria-hidden="true" />
+          </button>
+          <Link to="/" className="taskbar-mobile-title">
+            Climate
+            <br />
+            Stories Map
+          </Link>
+        </header>
+      ) : (
+        <button 
+          className={`taskbar-toggle-button ${isVisible ? 'expanded' : 'collapsed'}`}
+          onClick={toggleVisibility}
+          aria-label={isVisible ? 'Hide taskbar' : 'Show taskbar'}
+        >
+          {isVisible ? '<' : '>'}
+        </button>
+      )}
+      {showMobileBackdrop && (
+        <button
+          type="button"
+          className="taskbar-mobile-backdrop"
+          aria-label="Close menu"
+          onClick={() => {
+            setIsVisible(false);
+            onVisibilityChange?.(false);
+            setIsThemeMenuOpen(false);
+          }}
+        />
+      )}
+      <nav className={`taskbar ${isVisible ? 'visible' : 'hidden'} ${isMobile ? 'mobile-drawer' : ''}`}>
         <div className="taskbar-content">
           <Link to="/" className="taskbar-title">Climate Stories Map</Link>
           <div className="taskbar-main">

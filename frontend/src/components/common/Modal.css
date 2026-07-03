@@ -58,7 +58,8 @@
   border-radius: var(--border-radius-sm);
   transition: all var(--transition-fast);
   z-index: 10;
-  padding-top:0.4em;
+  padding: 0;
+  line-height: 1;
 }
 
 .modal-close-button:hover {
