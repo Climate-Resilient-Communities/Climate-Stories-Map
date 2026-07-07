@@ -50,6 +50,7 @@ elif debug_mode:
         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     )
 
+#CORS(app, resources={r"/api/*": {"origins": "*"}})
 # Your hCaptcha secret key (keep this secure and never expose it on the client side)
 captcha_secret_key = os.getenv('CAPTCHA_SECRET_KEY')
 
@@ -194,6 +195,9 @@ class PostSchema(Schema):
     captchaGraceToken = fields.Str(required=False, allow_none=True, load_default=None)
     createdAt = fields.DateTime()
     status = fields.Str(required=False, load_default='pending')
+    featured = fields.Bool(dump_only=True)
+    featured_by = fields.Str(dump_only=True)
+    featured_expires_at = fields.DateTime(dump_only=True)
 
 # Define a schema for tag validation
 class TagSchema(Schema):

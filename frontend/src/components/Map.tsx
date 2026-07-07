@@ -15,6 +15,9 @@ import ImageModal from './common/ImageModal';
 import { getFirstTopicTag, getTagColor, hexToRgba } from '../utils/tag-constants';
 import { STORY_PROMPTS } from '../utils/story-prompts';
 import TopicMarkerIcon from './markers/TopicMarkerIcon';
+import { Star } from 'phosphor-react';
+import { isFeaturedActive } from '../utils/isFeaturedActive';
+import { PopupHeader } from './posts/PopupHeader';
 
 // Replace this with your actual Mapbox access token
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
@@ -27,6 +30,7 @@ interface MapProps {
   selectedTags?: string[];
   taskbarVisible?: boolean;
   isCreatePostMode?: boolean;
+  featuredExpiresAt?: string;
 }
 
 const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskbarVisible = true, isCreatePostMode = false }) => {
@@ -42,10 +46,6 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
   const mapRef = useRef<any>(null);
   const geocoderContainerRef = useRef<HTMLDivElement | null>(null);
   const geocoderRef = useRef<any | null>(null);
-
-  const getMapStyle = () => {
-    return MONOCHROME_MAP;
-  };
 
   useEffect(() => {
     if ("geolocation" in navigator) {
@@ -239,7 +239,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
     document.addEventListener('pointerup', onResizeEnd, true);
     document.addEventListener('pointercancel', onResizeEnd, true);
   };
-  
+
   const colorMapRef = useRef<Record<string, string>>({});
 
   const getMarkerColorByTag = (post: Post): string => {
@@ -251,7 +251,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
     posts.forEach(post => {
       colorMapRef.current[post._id] = getMarkerColorByTag(post);
     });
-    
+
     // This prevents the color map from growing indefinitely by removing entries for posts
     // that are no longer in the current filtered set
     const currentPostIds = new Set(posts.map(post => post._id));
@@ -261,7 +261,6 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
       }
     });
   }, [posts]);
-
   useEffect(() => {
     fetch('/canada.geojson')
       .then((res) => res.json())
@@ -385,10 +384,10 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
 
   const handleClick = (event: any) => {
     const coordinates: [number, number] = [event.lngLat.lng, event.lngLat.lat];
-    
+
     if (canadaGeoJSON) {
       const isInsideCanada = isPointInPolygon(coordinates, canadaGeoJSON);
-      
+
       if (isInsideCanada) {
         const roundedLng = parseFloat(coordinates[0].toFixed(5));
         const roundedLat = parseFloat(coordinates[1].toFixed(5));
@@ -461,7 +460,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
         {...viewState}
         onMove={evt => setViewState(evt.viewState)}
         style={{ width: '100%', height: '100%' }}
-        mapStyle={getMapStyle()}
+        mapStyle={MONOCHROME_MAP}
         mapboxAccessToken={MAPBOX_TOKEN}
         onClick={handleClick}
         onContextMenu={(e) => {
@@ -482,11 +481,20 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
           // Use the stored color from colorMapRef if available, otherwise calculate it
           // This ensures colors stay consistent when filtering
           let color = colorMapRef.current[post._id];
-          
+
           if (!color) {
             color = getMarkerColorByTag(post);
           }
-          
+
+          if (isFeaturedActive(post)) {
+            const featuredColors: Record<string, string> = {
+              winter: '#1E498A',
+              spring: '#22c55e',
+              summer: '#f59e0b',
+              autumn: '#ea580c',
+            };
+            color = featuredColors[theme] ?? color;
+          }
           return (
             <Marker
               key={post._id}
@@ -504,7 +512,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
               }}
             >
               <div
-                className="topic-marker"
+                className={`topic-marker ${isFeaturedActive(post) ? 'featured-marker' : ''}`}
                 style={{ ['--marker-color' as any]: color } as React.CSSProperties}
                 aria-label={
                   `${post.title}. ` +
@@ -533,8 +541,12 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
                     strokeLinejoin="round"
                   />
                 </svg>
-                <span className="topic-marker__icon" aria-hidden="true">
-                  <TopicMarkerIcon topicTag={getFirstTopicTag(post.optionalTags)} size={14} />
+                <span className={'topic-marker__icon'} aria-hidden="true">
+                  {isFeaturedActive(post) ? (
+                    <Star size={14} weight="bold" />
+                  ) : (
+                    <TopicMarkerIcon topicTag={getFirstTopicTag(post.optionalTags)} size={14} />
+                  )}
                 </span>
               </div>
             </Marker>
@@ -561,16 +573,14 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
                 height: popupSize.height,
               }}
             >
-              <div className="map-popup-header">
-                <h3 className="map-popup-title">{popupInfo.title}</h3>
-              </div>
+              <PopupHeader post={popupInfo} />
               <div className="map-popup-body">
                 <p className="map-popup-description">{popupInfo.content.description}</p>
                 {popupInfo.content.image && (
-                  <img 
-                    src={popupInfo.content.image} 
-                    alt={popupInfo.title} 
-                    className="map-popup-image" 
+                  <img
+                    src={popupInfo.content.image}
+                    alt={popupInfo.title}
+                    className="map-popup-image"
                     onClick={() => {
                       setModalImageSrc(popupInfo.content.image!);
                       setModalImageAlt(popupInfo.title);
@@ -582,26 +592,33 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
                 )}
               </div>
               <div className="map-popup-footer">
-                <div className="map-popup-tags">
-                  {popupInfo.tag && popupInfo.tag !== '-' && popupInfo.tag.trim() !== '' && (
-                    <span
-                      className="map-popup-tag"
-                      style={{
-                        backgroundColor: hexToRgba(getTagColor(popupInfo.tag), 0.15),
-                        borderColor: getTagColor(popupInfo.tag),
-                        color: getTagColor(popupInfo.tag),
-                      }}
-                    >
-                      {popupInfo.tag}
-                    </span>
+                <div className='tag-categories' style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div className="map-popup-tags">
+                    {popupInfo.tag && popupInfo.tag !== '-' && popupInfo.tag.trim() !== '' && (
+                      <span
+                        className="map-popup-tag"
+                        style={{
+                          backgroundColor: hexToRgba(getTagColor(popupInfo.tag), 0.15),
+                          borderColor: getTagColor(popupInfo.tag),
+                          color: getTagColor(popupInfo.tag),
+                        }}
+                      >
+                        {popupInfo.tag}
+                      </span>
+                    )}
+                    {popupInfo.optionalTags && popupInfo.optionalTags.length > 0 && popupInfo.optionalTags
+                      .filter(tag => tag && tag.trim() !== '')
+                      .filter(tag => !STORY_PROMPTS.includes(tag.trim() as any))
+                      .map(tag => (
+                        <span key={tag} className="map-popup-tag optional">{tag}</span>
+                      ))
+                    }
+                  </div>
+                  {isFeaturedActive(popupInfo) && (
+                    <p className='map-popup-tag sprout-tag'>
+                      Sprout's Pick <img src={`/themes/${theme}/sprout-logo.png`} style={{ width: "16px", height: "16px", verticalAlign: "text-top" }} />
+                    </p>
                   )}
-                  {popupInfo.optionalTags && popupInfo.optionalTags.length > 0 && popupInfo.optionalTags
-                    .filter(tag => tag && tag.trim() !== '')
-                    .filter(tag => !STORY_PROMPTS.includes(tag.trim() as any))
-                    .map(tag => (
-                      <span key={tag} className="map-popup-tag optional">{tag}</span>
-                    ))
-                  }
                 </div>
                 <div className="map-popup-date">
                   {new Date(popupInfo.createdAt).toLocaleDateString()}
@@ -618,11 +635,11 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
           </Popup>
         )}
       </Map>
-      <ImageModal 
-        isOpen={isImageModalOpen} 
-        onClose={() => setIsImageModalOpen(false)} 
-        imageSrc={modalImageSrc} 
-        imageAlt={modalImageAlt} 
+      <ImageModal
+        isOpen={isImageModalOpen}
+        onClose={() => setIsImageModalOpen(false)}
+        imageSrc={modalImageSrc}
+        imageAlt={modalImageAlt}
       />
     </div>
   );

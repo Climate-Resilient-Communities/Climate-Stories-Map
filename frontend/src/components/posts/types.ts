@@ -11,6 +11,7 @@ export interface PostContent {
 }
 
 export interface Post {
+  featuredExpiresAt?: string;
   _id: string;
   title: string;
   content: PostContent;
@@ -19,6 +20,7 @@ export interface Post {
   optionalTags: string[];
   storyPrompt?: string;
   createdAt: string;
+  featuredBy: string | 'admin';
 }
 
 export interface PostFormData {

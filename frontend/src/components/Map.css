@@ -174,6 +174,11 @@
   cursor: pointer;
 }
 
+@keyframes marker-pulse {
+  0%, 100% { transform: scale(1.5);   opacity: 0; }
+  50%       { transform: scale(1); opacity: 0.7;   }
+}
+
 /* Custom marker: emotion color = pin fill, topic tag = icon */
 .topic-marker {
   --marker-color: #94a3b8;
@@ -182,6 +187,18 @@
   position: relative;
   cursor: pointer;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+}
+
+.topic-marker.featured-marker::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--marker-color) 0%, transparent 70%);
+  opacity: 0.5;
+  animation: marker-pulse 2s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -1;
 }
 
 .topic-marker__pin {
