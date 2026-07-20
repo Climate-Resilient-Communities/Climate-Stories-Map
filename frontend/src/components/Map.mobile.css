@@ -14,9 +14,10 @@
   }
 
   .map-geocoder {
-    top: -60px;
+    top: 8px;
     left: 0;
     width: 100%;
+    z-index: 1005;
   }
 
   .map-geocoder.expanded,
@@ -84,7 +85,7 @@
     }
 
     .map-geocoder {
-      top: -54px;
+      top: 6px;
     }
   }
 }
