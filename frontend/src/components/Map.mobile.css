@@ -1,67 +1,75 @@
 @media screen and (max-width: 768px) and (orientation: portrait) {
-  [data-theme] .map-container {
-    margin: 96px 12px 12px 12px;
+  .map-geocoder {
+    position: fixed;
+    top: 80px;
+    left: 12px;
+    right: 12px;
+    z-index: 1010;
     width: calc(100% - 24px);
-    height: calc(100vh - 108px);
+    height: 40px;
+    pointer-events: auto;
+  }
+
+  [data-theme] .map-canvas {
+    position: absolute;
+    top: 125px;
+    left: 12px;
+    right: 12px;
+    height: calc(100vh - 137px);
     border-radius: 12px;
     overflow: hidden;
-    left: 0;
+    margin: 0;
+    z-index: 100;
   }
-
-  [data-theme] .map-container.taskbar-hidden {
-    margin: 96px 12px 12px 12px;
-    width: calc(100% - 24px);
-  }
-
-  .map-geocoder {
-    top: 8px;
-    left: 0;
-    width: 100%;
-    z-index: 1005;
+  
+  .location-button {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    z-index: 1000;
   }
 
   .map-geocoder.expanded,
   .map-geocoder.collapsed {
-    width: 100%;
-    height: auto;
-  }
-
-  .map-geocoder.collapsed .mapboxgl-ctrl-geocoder {
-    width: 100%;
-    height: 44px;
-    min-width: 100%;
-    max-width: none;
-    padding: 0 10px;
-    justify-content: flex-start;
+    width: calc(100% - 24px);
+    height: 40px;
   }
 
   .map-geocoder .mapboxgl-ctrl-geocoder {
-    min-height: 44px;
+    width: 100%;
+    height: 40px;
+    min-width: 100%;
+    max-width: 100%;
     border-radius: 8px;
-    box-shadow: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    padding: 0;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
   }
 
-  .map-geocoder.collapsed .mapboxgl-ctrl-geocoder--input {
-    display: block;
+  .map-geocoder .mapboxgl-ctrl-geocoder--input {
     width: 100%;
     height: 100%;
-    opacity: 1;
-    padding-left: 26px;
-    pointer-events: auto;
+    padding: 0 10px 0 34px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 40px;
   }
 
-  .map-geocoder.collapsed .mapboxgl-ctrl-geocoder--button,
-  .map-geocoder.collapsed .suggestions {
-    display: block;
-  }
-
-  .map-geocoder.collapsed .mapboxgl-ctrl-geocoder--icon-search {
-    position: absolute;
+  .map-geocoder .mapboxgl-ctrl-geocoder--icon-search {
     left: 10px;
-    top: 11px;
-    width: 18px;
-    height: 18px;
-    margin: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+  }
+
+  .map-geocoder .mapboxgl-ctrl-geocoder--suggestions {
+    max-height: 180px;
+    border-radius: 8px;
+    margin-top: 4px;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
   }
 
   .mapboxgl-ctrl-top-right {
@@ -74,18 +82,62 @@
     right: 12px;
   }
 
-  @media screen and (max-width: 400px) {
-    [data-theme] .map-container {
-      margin-top: 88px;
-      height: calc(100vh - 100px);
-    }
+  /* Smaller map controls for mobile */
+  .mapboxgl-ctrl-group {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    overflow: hidden;
+  }
 
-    [data-theme] .map-container.taskbar-hidden {
-      margin-top: 88px;
+  .mapboxgl-ctrl-group button {
+    width: 28px !important;
+    height: 28px !important;
+    padding: 0 !important;
+    font-size: 12px !important;
+    line-height: 28px !important;
+  }
+
+  .mapboxgl-ctrl-group button:not(:last-child) {
+    border-bottom: 1px solid #ccc;
+  }
+
+  .mapboxgl-ctrl {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  }
+
+  .mapboxgl-ctrl button {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 12px !important;
+    line-height: 28px !important;
+  }
+
+  .mapboxgl-ctrl-zoom-in,
+  .mapboxgl-ctrl-zoom-out {
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  .mapboxgl-ctrl-compass {
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  @media screen and (max-width: 400px) {
+    [data-theme] .map-canvas {
+      top: 125px;
+      left: 12px;
+      right: 12px;
+      height: calc(100vh - 137px);
     }
 
     .map-geocoder {
-      top: 6px;
+      top: 77px;
+      left: 12px;
+      right: 12px;
+      width: calc(100% - 24px);
+      height: 40px;
     }
   }
 }

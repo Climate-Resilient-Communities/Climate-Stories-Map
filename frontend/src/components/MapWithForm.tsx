@@ -86,7 +86,7 @@ const MapWithForm: React.FC<MapWithFormProps> = ({
   }, [posts, selectedTags]);
 
   return (  
-    <div className={`map-container${isCreatePostMode ? ' create-post-mode' : ''}`}>
+    <div className={`map-container ${isCreatePostMode ? ' create-post-mode' : ''}`}>
       <CRCMap 
         onMapClick={handleMapClick} 
         onMapRightClick={handleMapRightClick} 

@@ -224,3 +224,22 @@
   width: calc(100% - 120px);
 }
 
+/* Mobile overrides - reset desktop margins */
+@media screen and (max-width: 768px) {
+  [data-theme] .map-container:not(.map-canvas) {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+  }
+  
+  [data-theme] .map-container.taskbar-hidden:not(.map-canvas) {
+    margin: 0;
+    width: 100%;
+  }
+  
+  /* Override .taskbar-hidden width for .map-canvas */
+  [data-theme] .map-canvas.taskbar-hidden {
+    width: auto;
+  }
+}
+

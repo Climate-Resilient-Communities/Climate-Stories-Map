@@ -469,7 +469,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
   };
 
   return (
-    <div className={`map-container ${taskbarVisible ? '' : 'taskbar-hidden'}${isCreatePostMode ? ' create-post-mode' : ''}`} style={{ position: 'relative' }}>
+    <div className={`map-container map-canvas ${taskbarVisible ? '' : 'taskbar-hidden'}${isCreatePostMode ? ' create-post-mode' : ''}`}>
       {/* Location Search */}
       <div
         className={`map-geocoder ${(isMobileViewport || isGeocoderExpanded) ? 'expanded' : 'collapsed'} theme-${theme}`}
