@@ -210,7 +210,7 @@
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     padding: 0;
     overflow: hidden;
-    z-index: 1003;
+    z-index: 1010;
     display: flex;
     flex-direction: column;
     grid-template-columns: unset;

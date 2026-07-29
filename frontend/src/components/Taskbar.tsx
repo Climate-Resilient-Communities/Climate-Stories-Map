@@ -351,6 +351,7 @@ const Taskbar: React.FC<TaskbarProps> = ({
           }}
           showToggle={false}
           taskbarVisible={isVisible}
+          onClose={onToggleFilter}
         />
       )}
     </>

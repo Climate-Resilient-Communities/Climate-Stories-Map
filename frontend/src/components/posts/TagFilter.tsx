@@ -28,9 +28,10 @@ interface TagFilterProps {
   onTagSelect: (selectedTags: string[]) => void;
   showToggle?: boolean;
   taskbarVisible?: boolean;
+  onClose?: () => void;
 }
 
-const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect, showToggle = true, taskbarVisible = true }) => {
+const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect, showToggle = true, taskbarVisible = true, onClose }) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [currentPage, setCurrentPage] = React.useState(0);
   const [isMobile, setIsMobile] = React.useState(window.innerWidth <= 768);
@@ -76,6 +77,15 @@ const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect,
     } else {
       onTagSelect([...selectedTags, tag]);
     }
+  };
+
+  const handleClose = () => {
+    if (!showToggle && onClose) {
+      onClose();
+      return;
+    }
+
+    setIsOpen(false);
   };
 
   const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
@@ -125,7 +135,7 @@ const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect,
             <h3 className="filter-modal-title">Filter by Tags</h3>
             <button 
               className="filter-modal-close" 
-              onClick={() => setIsOpen(false)}
+              onClick={handleClose}
               aria-label="Close filter"
             >
               ✕
