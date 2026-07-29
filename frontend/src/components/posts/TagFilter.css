@@ -257,6 +257,7 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    min-height: 0;
   }
 
   .carousel-slides {
@@ -270,6 +271,8 @@
     flex: 0 0 100%;
     width: 100%;
     overflow-y: auto;
+    min-height: 0;
+    -webkit-overflow-scrolling: touch;
     padding: 10px 14px 0;
   }
 
@@ -386,6 +389,7 @@
   /* Other Grid Styling - 2 columns with scroll */
   .carousel-grid.other-grid {
     grid-template-columns: repeat(2, 1fr) !important;
+    min-height: 240px;
     max-height: 300px;
     overflow-y: auto;
     gap: 0;
@@ -459,21 +463,21 @@
     }
 
     .carousel-grid.other-grid {
-      grid-template-columns: 1fr !important;
+      grid-template-columns: repeat(2, 1fr) !important;
     }
   }
 
   @media (max-width: 380px) {
     .carousel-grid.emotion-grid {
-      grid-template-columns: 1fr !important;
+      grid-template-columns: repeat(2, 1fr) !important;
     }
 
     .carousel-grid.topic-grid {
-      grid-template-columns: 1fr !important;
+      grid-template-columns: repeat(2, 1fr) !important;
     }
 
     .carousel-grid.other-grid {
-      grid-template-columns: 1fr !important;
+      grid-template-columns: repeat(2, 1fr) !important;
     }
 
     .emotion-grid .emotion-option,

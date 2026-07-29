@@ -34,6 +34,8 @@ const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect,
   const [isOpen, setIsOpen] = React.useState(false);
   const [currentPage, setCurrentPage] = React.useState(0);
   const [isMobile, setIsMobile] = React.useState(window.innerWidth <= 768);
+  const touchStartX = React.useRef<number | null>(null);
+  const touchStartY = React.useRef<number | null>(null);
 
   React.useEffect(() => {
     const handleResize = () => {
@@ -76,6 +78,35 @@ const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect,
     }
   };
 
+  const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    const touch = event.touches[0];
+    touchStartX.current = touch.clientX;
+    touchStartY.current = touch.clientY;
+  };
+
+  const handleTouchEnd = (event: React.TouchEvent<HTMLDivElement>) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+
+    const touch = event.changedTouches[0];
+    const deltaX = touch.clientX - touchStartX.current;
+    const deltaY = touch.clientY - touchStartY.current;
+    const minSwipeDistance = 40;
+
+    touchStartX.current = null;
+    touchStartY.current = null;
+
+    if (Math.abs(deltaX) < minSwipeDistance || Math.abs(deltaX) <= Math.abs(deltaY)) {
+      return;
+    }
+
+    if (deltaX < 0) {
+      setCurrentPage((prev) => Math.min(prev + 1, pages.length - 1));
+      return;
+    }
+
+    setCurrentPage((prev) => Math.max(prev - 1, 0));
+  };
+
   return (
     <div className={`tag-filter-dropdown ${!taskbarVisible ? 'taskbar-hidden' : ''}`}>
       {showToggle && (
@@ -101,7 +132,11 @@ const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect,
             </button>
           </div>
 
-          <div className="carousel-container">
+          <div
+            className="carousel-container"
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
             <div className="carousel-slides" style={{ transform: `translateX(-${currentPage * 100}%)` }}>
               {/* Emotion Page */}
               <div className="carousel-page">
