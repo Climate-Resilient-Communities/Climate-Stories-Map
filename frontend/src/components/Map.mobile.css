@@ -78,8 +78,7 @@
   }
 
   .mapboxgl-ctrl-bottom-right {
-    bottom: 14px;
-    right: 12px;
+    display: none !important;
   }
 
   /* Smaller map controls for mobile */
