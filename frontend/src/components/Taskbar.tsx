@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTheme } from '../themes/ThemeContext';
 import { Link, useLocation } from 'react-router-dom';
-// Fixed icons for hidden taskbar
 import { Plus, Info, Question, Eye, Leaf, MapPin, Share, BookOpen, Notepad, MapTrifold } from 'phosphor-react';
 import TagFilter from './posts/TagFilter';
 import { Post } from './posts/types';
@@ -24,13 +23,13 @@ interface TaskbarProps {
 }
 
 const themeLeafColors = {
-  'winter': '#3b82f6',
-  'spring': '#10b981', 
-  'summer': '#f59e0b',
-  'autumn': '#F7926A'
+  winter: '#3b82f6',
+  spring: '#10b981',
+  summer: '#f59e0b',
+  autumn: '#F7926A',
 };
 
-const Taskbar: React.FC<TaskbarProps> = ({ 
+const Taskbar: React.FC<TaskbarProps> = ({
   onVisibilityChange,
   onCreatePost,
   posts = [],
@@ -39,7 +38,7 @@ const Taskbar: React.FC<TaskbarProps> = ({
   isFilterVisible = false,
   onToggleFilter,
   isOtherPage = false,
-  onGoBackToMap
+  onGoBackToMap,
 }) => {
   const [isMobile, setIsMobile] = useState(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return false;
@@ -59,15 +58,22 @@ const Taskbar: React.FC<TaskbarProps> = ({
     [availableThemes, theme]
   );
 
+  const closeSidebarOnMobile = () => {
+    if (!isMobile) return;
+    setIsVisible(false);
+    onVisibilityChange?.(false);
+    setIsThemeMenuOpen(false);
+  };
+
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return;
 
     const mediaQuery = window.matchMedia('(max-width: 768px)');
 
-    const applyMobileVisibility = (isMobile: boolean) => {
-      setIsMobile(isMobile);
-      setIsVisible(!isMobile);
-      onVisibilityChange?.(!isMobile);
+    const applyMobileVisibility = (isMobileView: boolean) => {
+      setIsMobile(isMobileView);
+      setIsVisible(!isMobileView);
+      onVisibilityChange?.(!isMobileView);
       setIsThemeMenuOpen(false);
     };
 
@@ -116,9 +122,7 @@ const Taskbar: React.FC<TaskbarProps> = ({
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        setIsVisible(false);
-        onVisibilityChange?.(false);
-        setIsThemeMenuOpen(false);
+        closeSidebarOnMobile();
       }
     };
 
@@ -126,7 +130,7 @@ const Taskbar: React.FC<TaskbarProps> = ({
     return () => {
       document.removeEventListener('keydown', onKeyDown);
     };
-  }, [isMobile, isVisible, onVisibilityChange]);
+  }, [isMobile, isVisible]);
 
   useEffect(() => {
     if (!(isMobile && isVisible)) {
@@ -150,6 +154,7 @@ const Taskbar: React.FC<TaskbarProps> = ({
   const handleThemeSelect = (newTheme: string) => {
     setTheme(newTheme as any);
     setIsThemeMenuOpen(false);
+    closeSidebarOnMobile();
   };
 
   const toggleThemeMenu = () => {
@@ -170,14 +175,14 @@ const Taskbar: React.FC<TaskbarProps> = ({
           >
             <span className="taskbar-toggle-icon" aria-hidden="true" />
           </button>
-          <Link to="/" className="taskbar-mobile-title">
+          <Link to="/" className="taskbar-mobile-title" onClick={closeSidebarOnMobile}>
             Climate
             <br />
             Stories Map
           </Link>
         </header>
       ) : (
-        <button 
+        <button
           className={`taskbar-toggle-button ${isVisible ? 'expanded' : 'collapsed'}`}
           onClick={toggleVisibility}
           aria-label={isVisible ? 'Hide taskbar' : 'Show taskbar'}
@@ -190,21 +195,26 @@ const Taskbar: React.FC<TaskbarProps> = ({
           type="button"
           className="taskbar-mobile-backdrop"
           aria-label="Close menu"
-          onClick={() => {
-            setIsVisible(false);
-            onVisibilityChange?.(false);
-            setIsThemeMenuOpen(false);
-          }}
+          onClick={closeSidebarOnMobile}
         />
       )}
       <nav className={`taskbar ${isVisible ? 'visible' : 'hidden'} ${isMobile ? 'mobile-drawer' : ''}`}>
         <div className="taskbar-content">
-          <Link to="/" className="taskbar-title">Climate Stories Map</Link>
+          <Link to="/" className="taskbar-title" onClick={closeSidebarOnMobile}>
+            Climate Stories Map
+          </Link>
           <div className="taskbar-main">
             {isOtherPage ? (
               onGoBackToMap && (
                 <div className="taskbar-go-back">
-                  <button className="taskbar-button" onClick={onGoBackToMap} title="Go Back to Map">
+                  <button
+                    className="taskbar-button"
+                    onClick={() => {
+                      onGoBackToMap();
+                      closeSidebarOnMobile();
+                    }}
+                    title="Go Back to Map"
+                  >
                     {isVisible ? 'Go Back to Map' : <MapTrifold size={16} />}
                   </button>
                 </div>
@@ -213,21 +223,29 @@ const Taskbar: React.FC<TaskbarProps> = ({
               <>
                 {onCreatePost && (
                   <div className="taskbar-create-post">
-                    <button 
-                      className={`taskbar-button ${!isFilterVisible && location.pathname === '/' ? 'active' : ''}`} 
+                    <button
+                      className={`taskbar-button ${!isFilterVisible && location.pathname === '/' ? 'active' : ''}`}
                       onClick={() => {
                         if (isFilterVisible && onToggleFilter) onToggleFilter();
                         onCreatePost();
-                      }} 
+                        closeSidebarOnMobile();
+                      }}
                       title="Add your story"
                     >
-                      {isVisible ? <><Plus size={16} />Add your story</>:<MapPin size={16} />}
+                      {isVisible ? <><Plus size={16} />Add your story</> : <MapPin size={16} />}
                     </button>
                   </div>
                 )}
                 {onToggleFilter && (
                   <div className="taskbar-filter">
-                    <button className={`taskbar-button ${isFilterVisible ? 'active' : ''}`} onClick={onToggleFilter} title="Filter by Tags">
+                    <button
+                      className={`taskbar-button ${isFilterVisible ? 'active' : ''}`}
+                      onClick={() => {
+                        onToggleFilter();
+                        closeSidebarOnMobile();
+                      }}
+                      title="Filter by Tags"
+                    >
                       {isVisible ? <>Filter by Tags</> : <Plus size={16} />}
                     </button>
                   </div>
@@ -236,34 +254,37 @@ const Taskbar: React.FC<TaskbarProps> = ({
             )}
           </div>
           <div className="taskbar-buttons">
-            <Link 
-              to="/about" 
-              className={`taskbar-button ${location.pathname === '/about' ? 'active' : ''}`} 
+            <Link
+              to="/about"
+              className={`taskbar-button ${location.pathname === '/about' ? 'active' : ''}`}
               title="About"
               onClick={() => {
                 if (isFilterVisible && onToggleFilter) onToggleFilter();
+                closeSidebarOnMobile();
               }}
             >
               {isVisible ? <Info size={16} /> : <Share size={16} />}
               {isVisible && 'About'}
             </Link>
-            <Link 
-              to="/faqs" 
-              className={`taskbar-button ${location.pathname === '/faqs' ? 'active' : ''}`} 
+            <Link
+              to="/faqs"
+              className={`taskbar-button ${location.pathname === '/faqs' ? 'active' : ''}`}
               title="FAQ's"
               onClick={() => {
                 if (isFilterVisible && onToggleFilter) onToggleFilter();
+                closeSidebarOnMobile();
               }}
             >
               {isVisible ? <Question size={16} /> : <BookOpen size={16} />}
               {isVisible && "FAQ's"}
             </Link>
-            <Link 
-              to="/moderation" 
-              className={`taskbar-button ${location.pathname === '/moderation' ? 'active' : ''}`} 
+            <Link
+              to="/moderation"
+              className={`taskbar-button ${location.pathname === '/moderation' ? 'active' : ''}`}
               title="Moderation"
               onClick={() => {
                 if (isFilterVisible && onToggleFilter) onToggleFilter();
+                closeSidebarOnMobile();
               }}
             >
               {isVisible ? <Eye size={16} /> : <Notepad size={16} />}
@@ -321,10 +342,13 @@ const Taskbar: React.FC<TaskbarProps> = ({
         </div>
       </nav>
       {isFilterVisible && onTagSelect && (
-        <TagFilter 
-          posts={posts} 
-          selectedTags={selectedTags} 
-          onTagSelect={onTagSelect}
+        <TagFilter
+          posts={posts}
+          selectedTags={selectedTags}
+          onTagSelect={(tags) => {
+            onTagSelect(tags);
+            closeSidebarOnMobile();
+          }}
           showToggle={false}
           taskbarVisible={isVisible}
         />
