@@ -7,14 +7,21 @@ interface ModalProps {
   onClose: () => void;
   children: React.ReactNode;
   size?: 'small' | 'medium' | 'large' | 'custom-600';
+  contentClassName?: string;
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, size = 'medium' }) => {
+const Modal: React.FC<ModalProps> = ({
+  isOpen,
+  onClose,
+  children,
+  size = 'medium',
+  contentClassName = ''
+}) => {
   if (!isOpen) return null;
 
   return (
     <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className={`modal-content modal-${size}`}>
+      <div className={`modal-content modal-${size} ${contentClassName}`.trim()}>
         <button className="modal-close-button" onClick={onClose}>
           &times;
         </button>
