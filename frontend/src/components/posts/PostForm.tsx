@@ -18,6 +18,54 @@ interface PostFormProps {
 
 const CAPTCHA_SITE_KEY = import.meta.env.VITE_CAPTCHA_SITE_KEY || "10000000-ffff-ffff-ffff-000000000001";
 
+const CAPTCHA_GRACE_TOKEN_KEY = 'captchaGraceToken';
+const CAPTCHA_GRACE_EXPIRES_AT_KEY = 'captchaGraceExpiresAt';
+
+function getStoredCaptchaGraceExpiresAtMs(): number | null {
+  try {
+    const expiresAtRaw = localStorage.getItem(CAPTCHA_GRACE_EXPIRES_AT_KEY);
+    const expiresAt = expiresAtRaw ? Number(expiresAtRaw) : 0;
+    if (!expiresAt || Number.isNaN(expiresAt)) return null;
+    return expiresAt;
+  } catch {
+    return null;
+  }
+}
+
+function getStoredCaptchaGraceToken(): string | null {
+  try {
+    const token = localStorage.getItem(CAPTCHA_GRACE_TOKEN_KEY);
+    const expiresAtRaw = localStorage.getItem(CAPTCHA_GRACE_EXPIRES_AT_KEY);
+    const expiresAt = expiresAtRaw ? Number(expiresAtRaw) : 0;
+    if (!token || !expiresAt) return null;
+    if (Number.isNaN(expiresAt) || Date.now() >= expiresAt) return null;
+    return token;
+  } catch {
+    return null;
+  }
+}
+
+function storeCaptchaGraceToken(token: string, expiresInSeconds: number) {
+  try {
+    const expiresAtMs = Date.now() + expiresInSeconds * 1000;
+    localStorage.setItem(CAPTCHA_GRACE_TOKEN_KEY, token);
+    localStorage.setItem(CAPTCHA_GRACE_EXPIRES_AT_KEY, String(expiresAtMs));
+    return expiresAtMs;
+  } catch {
+    // Ignore storage failures (private mode, etc.)
+    return null;
+  }
+}
+
+function clearCaptchaGraceToken() {
+  try {
+    localStorage.removeItem(CAPTCHA_GRACE_TOKEN_KEY);
+    localStorage.removeItem(CAPTCHA_GRACE_EXPIRES_AT_KEY);
+  } catch {
+    // Ignore
+  }
+}
+
 const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0], onSubmitted }) => {
   const captchaRef = React.useRef<HCaptcha>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -30,6 +78,40 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [hasCaptchaGrace, setHasCaptchaGrace] = useState<boolean>(() => !!getStoredCaptchaGraceToken());
+  const [captchaGraceExpiresAtMs, setCaptchaGraceExpiresAtMs] = useState<number | null>(() => getStoredCaptchaGraceExpiresAtMs());
+
+  const hasValidCaptchaGrace = !!getStoredCaptchaGraceToken();
+
+  React.useEffect(() => {
+    if (!captchaGraceExpiresAtMs) return;
+
+    const msUntilExpiry = captchaGraceExpiresAtMs - Date.now();
+    if (msUntilExpiry <= 0) {
+      clearCaptchaGraceToken();
+      setHasCaptchaGrace(false);
+      setCaptchaGraceExpiresAtMs(null);
+      setFormData(prevData => ({
+        ...prevData,
+        captchaToken: '',
+      }));
+      captchaRef.current?.resetCaptcha();
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      clearCaptchaGraceToken();
+      setHasCaptchaGrace(false);
+      setCaptchaGraceExpiresAtMs(null);
+      setFormData(prevData => ({
+        ...prevData,
+        captchaToken: '',
+      }));
+      captchaRef.current?.resetCaptcha();
+    }, msUntilExpiry + 50);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [captchaGraceExpiresAtMs]);
 
   const handleAgreementCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsAgreedToAll(e.target.checked);
@@ -58,6 +140,12 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
       setIsActive(false);
     };
   }, []);
+
+  React.useEffect(() => {
+    if (hasCaptchaGrace && !hasValidCaptchaGrace) {
+      setHasCaptchaGrace(false);
+    }
+  }, [hasCaptchaGrace, hasValidCaptchaGrace]);
   
   // Updated formData to include mandatory Tag
   const [formData, setFormData] = useState<PostFormData>({
@@ -178,10 +266,22 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
       return;
     }
     
-    if (formData.captchaToken) {
+    const graceToken = getStoredCaptchaGraceToken();
+    const canSkipCaptcha = !!graceToken;
+
+    if (formData.captchaToken || canSkipCaptcha) {
       try {
+        const payload: PostFormData = {
+          ...formData,
+          // If we have a grace token, do not send a captchaToken.
+          // Otherwise a previously-solved captcha token could be reused and effectively
+          // keep extending the grace window.
+          captchaToken: canSkipCaptcha ? '' : formData.captchaToken,
+          captchaGraceToken: canSkipCaptcha ? graceToken ?? undefined : undefined,
+        };
+
         const submitData = new FormData();
-        submitData.append('postData', JSON.stringify(formData));
+        submitData.append('postData', JSON.stringify(payload));
         if (selectedImage) {
           submitData.append('image', selectedImage);
         }
@@ -192,7 +292,35 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
         });
         
         if (response.ok) {
+          let responseJson: any = null;
+          try {
+            responseJson = await response.json();
+          } catch {
+            // Response might be empty; ignore.
+          }
+
+          if (responseJson?.captchaGraceToken && typeof responseJson?.captchaGraceExpiresInSeconds === 'number') {
+            const expiresAtMs = storeCaptchaGraceToken(responseJson.captchaGraceToken, responseJson.captchaGraceExpiresInSeconds);
+            setHasCaptchaGrace(true);
+            if (expiresAtMs) setCaptchaGraceExpiresAtMs(expiresAtMs);
+          }
+
+          // Always clear any old captcha token after a successful submit.
+          // This prevents an old captcha token from "bridging" an expired grace period.
+          setFormData(prevData => ({
+            ...prevData,
+            captchaToken: '',
+          }));
+          captchaRef.current?.resetCaptcha();
+
           const successMessage = 'Your post has been submitted for review with our moderators!';
+
+          // Clear any previous captcha token so it can't be reused across posts.
+          setFormData(prevData => ({
+            ...prevData,
+            captchaToken: '',
+          }));
+          captchaRef.current?.resetCaptcha();
 
           if (onSubmitted) {
             onSubmitted(successMessage);
@@ -204,6 +332,25 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
           }
           return;
         } else {
+          let responseJson: any = null;
+          try {
+            responseJson = await response.json();
+          } catch {
+            // ignore
+          }
+
+          // If grace token was rejected/expired, fall back to hCaptcha (keep form data).
+          if (canSkipCaptcha && (responseJson?.errorCode === 'captcha_grace_expired' || responseJson?.errorCode === 'captcha_required')) {
+            clearCaptchaGraceToken();
+            setHasCaptchaGrace(false);
+            setCaptchaGraceExpiresAtMs(null);
+          }
+
+          if (responseJson?.errorCode === 'captcha_grace_expired') {
+            showNotification('Your hCaptcha grace period expired. Please complete the hCaptcha to submit.', true);
+            return;
+          }
+
           throw new Error('Failed to submit post');
         }
       } catch (error) {
@@ -232,7 +379,7 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
            formData.tag !== '-' &&
            !!formData.optionalTags?.length &&
            isAgreedToAll &&
-           formData.captchaToken !== '';
+           (formData.captchaToken !== '' || !!getStoredCaptchaGraceToken());
   }, [formData, isAgreedToAll]);
 
   const formValid = isFormValid();
@@ -377,16 +524,32 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
         <div className="form-buttons">
           <button type="button" onClick={handleModalClose}>Cancel</button>
           <div className="captcha-container">
-            {isActive && (
+            {!hasValidCaptchaGrace && isActive && (
               <HCaptcha
                 ref={captchaRef}
                 sitekey={CAPTCHA_SITE_KEY}
                 onVerify={handleVerificationSuccess}
+                onExpire={() => {
+                  setFormData(prevData => ({
+                    ...prevData,
+                    captchaToken: '',
+                  }));
+                }}
                 onError={(err) => {
                   const errorMsg = typeof err === 'string' ? err : 'Unknown error';
                   console.warn('hCaptcha Error:', errorMsg.replace(/[\r\n\t<>"'&]/g, ' '));
                 }}
-                onClose={() => setIsActive(false)}
+                onClose={() => {
+                  // If a user cancels/closes the challenge, keep the widget visible.
+                  // Resetting allows them to try again without reloading the form.
+                  captchaRef.current?.resetCaptcha();
+
+                  // Closing/canceling should NOT count as a successful CAPTCHA.
+                  setFormData(prevData => ({
+                    ...prevData,
+                    captchaToken: '',
+                  }));
+                }}
               />
             )}
           </div>

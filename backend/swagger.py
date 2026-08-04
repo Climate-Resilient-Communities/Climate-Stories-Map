@@ -54,6 +54,10 @@ def init_swagger(app):
                         "type": "string",
                         "description": "CAPTCHA verification token",
                     },
+                    "captchaGraceToken": {
+                        "type": "string",
+                        "description": "Optional signed grace token returned after a successful CAPTCHA; when provided and unexpired, CAPTCHA may be skipped for a short period.",
+                    },
                 },
             }
         },
