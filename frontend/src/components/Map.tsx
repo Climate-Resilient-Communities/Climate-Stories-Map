@@ -400,30 +400,14 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
     }
   };
 
-  const handleShare = async (post: Post) => {
-    const shareText = `
-      ${post.title ?? "Climate Update"}
+  const handleShare = async () => {
+    const shareText = 'https://climatestories.place/';
 
-      ${post.content.description}
-
-      https://climatestories.place/?ref=sprout-climate.org 
-      Shared from Climate Weather Map
-      `;
-
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: post.title || "Climate Weather Map",
-          text: shareText,
-        });
-      } else {
-        await navigator.clipboard.writeText(shareText);
-        alert("Post copied to clipboard!");
-      }
-    } catch (err) {
-      navigator.clipboard.writeText(`${shareText}`);
-      alert("Post copied to clipboard!");
-      console.log("Share failed:", err);
+    try{
+      await navigator.clipboard.writeText(shareText);
+      alert("Copied to clipboard!");
+    } catch {
+      alert("Unable to copy. Please copy manually.");
     }
   };
 
