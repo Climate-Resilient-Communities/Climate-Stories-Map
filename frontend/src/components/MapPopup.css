@@ -118,6 +118,24 @@ body.popup-resizing * {
   color: #6c757d;
 }
 
+.map-popup-bottom-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.map-pop-share-button {
+  display: flex;
+  align-items: center;
+  background-color: black;
+  color: white;
+  gap: 5px
+}
+
+/* .map-pop-share-button span {
+  margin-left: 5px;
+} */
+
 .map-popup-date {
   color: #888;
   font-size: 11px;

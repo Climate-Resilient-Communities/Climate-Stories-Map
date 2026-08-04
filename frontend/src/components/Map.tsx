@@ -15,6 +15,7 @@ import ImageModal from './common/ImageModal';
 import { getFirstTopicTag, getTagColor, hexToRgba } from '../utils/tag-constants';
 import { STORY_PROMPTS } from '../utils/story-prompts';
 import TopicMarkerIcon from './markers/TopicMarkerIcon';
+import { FaShareAlt } from 'react-icons/fa';
 
 // Replace this with your actual Mapbox access token
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
@@ -399,6 +400,17 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
     }
   };
 
+  const handleShare = async () => {
+    const shareText = 'https://climatestories.place/';
+
+    try{
+      await navigator.clipboard.writeText(shareText);
+      alert("Copied to clipboard!");
+    } catch {
+      alert("Unable to copy. Please copy manually.");
+    }
+  };
+
   return (
     <div className={`map-container ${taskbarVisible ? '' : 'taskbar-hidden'}${isCreatePostMode ? ' create-post-mode' : ''}`} style={{ position: 'relative' }}>
       {/* Location Search */}
@@ -603,8 +615,14 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
                     ))
                   }
                 </div>
-                <div className="map-popup-date">
-                  {new Date(popupInfo.createdAt).toLocaleDateString()}
+                <div className="map-popup-bottom-row">
+                  <button className="map-pop-share-button" onClick={() => handleShare(popupInfo)}>
+                    <FaShareAlt />
+                    <span>Share</span>
+                  </button>
+                  <div className="map-popup-date">
+                    {new Date(popupInfo.createdAt).toLocaleDateString()}
+                  </div>
                 </div>
               </div>
 
