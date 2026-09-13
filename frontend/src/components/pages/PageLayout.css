@@ -427,6 +427,10 @@ body {
   object-fit: contain;
 }
 
+.about-mobile-close {
+  display: none;
+}
+
 /* Responsive breakpoints for better text handling */
 @media screen and (max-width: 1200px) {
   .about-page-content,
@@ -920,5 +924,104 @@ body {
 
   .moderation-blackbox p {
     font-size: 0.85rem;
+  }
+}
+
+/* About card layout is intentionally limited to portrait phones. */
+@media screen and (max-width: 768px) and (orientation: portrait) {
+  .page-container:has(.about-page-content) {
+    width: min(86vw, 320px);
+    height: calc(100dvh - 118px);
+    min-height: min(520px, calc(100dvh - 118px));
+    max-height: 720px;
+    margin: auto;
+    border-radius: 12px;
+    background: var(--post-form-modal);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.2);
+    overflow-y: auto;
+  }
+
+  .page-container.taskbar-hidden:has(.about-page-content) {
+    width: min(86vw, 320px);
+    height: calc(100dvh - 32px);
+    min-height: min(520px, calc(100dvh - 32px));
+    max-height: 720px;
+    margin: auto;
+  }
+
+  .about-page-content {
+    position: relative;
+    height: 100%;
+    min-height: 0;
+    padding: 56px 14px 28px;
+    display: grid;
+    grid-template-rows: minmax(190px, 0.9fr) auto minmax(0, 1fr);
+    gap: 12px;
+    overflow: visible;
+  }
+
+  .about-mobile-close {
+    position: absolute;
+    top: 20px;
+    right: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--primary-color);
+    cursor: pointer;
+  }
+
+  .about-page-content h1 {
+    order: 2;
+    margin: 0;
+    color: var(--primary-color);
+    font-size: 17px;
+    line-height: 1.2;
+    text-align: left;
+  }
+
+  .about-layout {
+    order: 1;
+    display: contents;
+  }
+
+  .about-image-section {
+    order: 1;
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+  }
+
+  .about-page-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    object-fit: contain;
+  }
+
+  .about-text-section {
+    order: 3;
+    max-width: none;
+    text-align: left;
+    align-self: stretch;
+  }
+
+  .about-text-section p {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.38;
+  }
+
+  .about-text-section p + p {
+    margin-top: 14px;
   }
 }
