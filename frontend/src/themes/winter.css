@@ -12,6 +12,10 @@
   --scrollbar-track: #c8d8e8;
   --shadow-color: rgba(0, 0, 0, 0.1);
   --hover-background: #f0f8ff;
+  --tag-filter-modal: #b8cde3;
+  --tag-filter-grid: #ffffff;
+  --tag-filter-border: #4b5563;
+  --tag-filter-pagination: #ffffff;
 }
 
 [data-theme='winter'] html,

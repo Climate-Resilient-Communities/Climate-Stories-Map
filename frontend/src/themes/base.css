@@ -43,5 +43,9 @@
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
   --shadow-color: rgba(0, 0, 0, 0.1);
   --hover-background: #f0f8ff;
+  --tag-filter-modal: #b8cde3;
+  --tag-filter-grid: #ffffff;
+  --tag-filter-border: #4b5563;
+  --tag-filter-pagination: #ffffff;
 }
 

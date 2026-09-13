@@ -13,7 +13,7 @@
 }
 
 .filter-toggle {
-  background-color: #333;
+  background-color: var(--primary-color);
   border: none;
   border-radius: 4px;
   padding: 8px 12px;
@@ -30,7 +30,7 @@
 }
 
 .filter-toggle:hover {
-  background-color: #444;
+  background-color: var(--primary-hover);
 }
 
 .dropdown-arrow {
@@ -44,8 +44,8 @@
 }
 
 .filter-dropdown {
-  background-color: white;
-  border: 1px solid #ddd;
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
   max-height: calc(100vh - 260px);
@@ -74,9 +74,9 @@
   padding: 6px 8px;
   font-size: 11px;
   font-weight: 600;
-  color: #666;
-  background: #fafafa;
-  border-bottom: 1px solid #f0f0f0;
+  color: var(--text-secondary);
+  background: var(--background-color);
+  border-bottom: 1px solid var(--border-color);
 }
 
 /* Each section's options should flow into the parent grid columns */
@@ -113,16 +113,16 @@
   padding: 6px 8px;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .tag-option:hover {
-  background-color: #f8f8f8;
+  background-color: var(--hover-background);
 }
 
 .tag-label {
   font-size: 12px;
-  color: #333;
+  color: var(--text-primary);
   font-weight: 500;
   border: 1px solid transparent;
   border-radius: 999px;
@@ -204,8 +204,8 @@
     max-width: 370px;
     height: auto;
     max-height: 80vh;
-    background: #f8edc6;
-    border: 1px solid #eedca0;
+    background: var(--tag-filter-modal);
+    border: none;
     border-radius: 12px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     padding: 0;
@@ -222,22 +222,22 @@
     justify-content: space-between;
     align-items: center;
     padding: 14px 14px 10px;
-    border-bottom: 1px solid #eedca0;
-    background: #f8edc6;
+    border-bottom: none;
+    background: var(--tag-filter-modal);
   }
 
   .filter-modal-title {
     margin: 0;
     font-size: 30px;
     font-weight: 700;
-    color: #d39b00;
+    color: var(--primary-color);
   }
 
   .filter-modal-close {
     background: none;
     border: none;
     font-size: 34px;
-    color: #d39b00;
+    color: var(--primary-color);
     cursor: pointer;
     padding: 0;
     width: 32px;
@@ -279,8 +279,8 @@
   .filter-section {
     display: flex;
     flex-direction: column;
-    background: #f1f1f1;
-    border: 1px solid #7fa2c7;
+    background: var(--tag-filter-grid);
+    border: 1px solid var(--tag-filter-border);
     border-radius: 2px;
     overflow: hidden;
   }
@@ -290,20 +290,20 @@
     flex-direction: column;
     gap: 2px;
     padding: 10px 10px 8px;
-    background: #f1f1f1;
+    background: var(--tag-filter-grid);
   }
 
   .filter-panel-title {
     font-size: 24px;
     font-weight: 700;
-    color: #4b4b4b;
+    color: var(--text-primary);
     line-height: 1.1;
   }
 
   .filter-panel-subtitle {
     font-size: 22px;
     font-weight: 500;
-    color: #6e6e6e;
+    color: var(--text-secondary);
     line-height: 1.2;
   }
 
@@ -312,7 +312,7 @@
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 0;
     grid-column: unset !important;
-    border-top: 1px solid #d5d8dc;
+    border-top: 1px solid var(--tag-filter-border);
   }
 
   /* Emotion Grid Styling */
@@ -327,8 +327,8 @@
     justify-content: center;
     gap: 4px;
     border: none !important;
-    border-bottom: 1px solid #d5d8dc !important;
-    border-right: 1px solid #d5d8dc !important;
+    border-bottom: 1px solid var(--tag-filter-border) !important;
+    border-right: 1px solid var(--tag-filter-border) !important;
     padding: 10px 6px !important;
     background: transparent !important;
     box-shadow: none !important;
@@ -363,8 +363,8 @@
     justify-content: center;
     gap: 4px;
     border: none !important;
-    border-bottom: 1px solid #d5d8dc !important;
-    border-right: 1px solid #d5d8dc !important;
+    border-bottom: 1px solid var(--tag-filter-border) !important;
+    border-right: 1px solid var(--tag-filter-border) !important;
     padding: 10px 6px !important;
     background: transparent !important;
     box-shadow: none !important;
@@ -397,8 +397,8 @@
 
   .other-option {
     border: none !important;
-    border-bottom: 1px solid #d5d8dc !important;
-    border-right: 1px solid #d5d8dc !important;
+    border-bottom: 1px solid var(--tag-filter-border) !important;
+    border-right: 1px solid var(--tag-filter-border) !important;
     padding: 10px 6px !important;
     background: transparent !important;
     border-radius: 0 !important;
@@ -411,7 +411,7 @@
   }
 
   .other-option:hover {
-    background: #ececec !important;
+    background: var(--hover-background) !important;
   }
 
   .other-option .tag-label {
@@ -442,14 +442,14 @@
     min-height: 7px;
     border-radius: 50%;
     border: none;
-    background: #c6cdd6;
+    background: var(--tag-filter-pagination);
     cursor: pointer;
     transition: all 0.2s ease;
     padding: 0;
   }
 
   .pagination-dot.active {
-    background: #d39b00;
+    background: var(--primary-color);
     transform: scale(1.05);
   }
 

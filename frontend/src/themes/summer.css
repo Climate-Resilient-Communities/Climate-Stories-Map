@@ -12,6 +12,10 @@
   --scrollbar-track: #fef3c7;
   --shadow-color: rgba(245, 158, 11, 0.1);
   --hover-background: #fed7aa;
+  --tag-filter-modal: #fff3bf;
+  --tag-filter-grid: #ffffff;
+  --tag-filter-border: #4b5563;
+  --tag-filter-pagination: #ffffff;
 }
 
 [data-theme='summer'] html,

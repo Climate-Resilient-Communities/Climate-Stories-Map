@@ -63,8 +63,6 @@ const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect,
       .sort((a, b) => a.localeCompare(b));
   }, [posts]);
 
-  const getTopicColor = () => '#6b7280';
-
   const pages = [
     { title: 'Filter by Tags - Emotions', type: 'emotion' },
     { title: 'Filter by Tags - Topics', type: 'topic' },
@@ -198,10 +196,10 @@ const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect,
                           className={`tag-label tag-label--topic-icon ${selectedTags.includes(tag) ? 'selected' : ''}`}
                           style={{
                             backgroundColor: selectedTags.includes(tag)
-                              ? hexToRgba(getTopicColor(), 0.22)
+                              ? 'color-mix(in srgb, var(--primary-color) 22%, transparent)'
                               : 'transparent',
-                            borderColor: getTopicColor(),
-                            color: getTopicColor(),
+                            borderColor: 'var(--primary-color)',
+                            color: 'var(--primary-color)',
                           }}
                           aria-hidden="true"
                         >
@@ -286,10 +284,10 @@ const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect,
                   className={`tag-label tag-label--topic-icon ${selectedTags.includes(tag) ? 'selected' : ''}`}
                   style={{
                     backgroundColor: selectedTags.includes(tag)
-                      ? hexToRgba(getTopicColor(), 0.22)
+                      ? 'color-mix(in srgb, var(--primary-color) 22%, transparent)'
                       : 'transparent',
-                    borderColor: getTopicColor(),
-                    color: getTopicColor(),
+                    borderColor: 'var(--primary-color)',
+                    color: 'var(--primary-color)',
                   }}
                   aria-hidden="true"
                 >

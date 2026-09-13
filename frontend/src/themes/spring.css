@@ -12,6 +12,10 @@
   --scrollbar-track: #dcfce7;
   --shadow-color: rgba(34, 197, 94, 0.1);
   --hover-background: #bbf7d0;
+  --tag-filter-modal: #dfe9c5;
+  --tag-filter-grid: #ffffff;
+  --tag-filter-border: #4b5563;
+  --tag-filter-pagination: #ffffff;
 }
 
 [data-theme='spring'] html,
