@@ -927,6 +927,134 @@ body {
   }
 }
 
+.faq-mobile-accordion,
+.faq-mobile-close {
+  display: none;
+}
+
+/* FAQ accordion layout is intentionally limited to portrait phones. */
+@media screen and (max-width: 768px) and (orientation: portrait) {
+  .page-container:has(.faq-mobile-accordion) {
+    width: min(86vw, 320px);
+    height: calc(100dvh - 136px);
+    min-height: min(460px, calc(100dvh - 136px));
+    max-height: 620px;
+    margin: auto;
+    border-radius: 12px;
+    background: var(--post-form-modal);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.2);
+    overflow-y: auto;
+  }
+
+  .page-container.taskbar-hidden:has(.faq-mobile-accordion) {
+    width: min(86vw, 320px);
+    height: calc(100dvh - 32px);
+    min-height: min(460px, calc(100dvh - 32px));
+    margin: auto;
+  }
+
+  .faq-page-content {
+    position: relative;
+    height: 100%;
+    padding: 54px 12px 20px;
+    justify-content: flex-start;
+  }
+
+  .faq-page-content h1 {
+    margin: 0 0 10px;
+    padding-bottom: 2px;
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
+    font-size: 18px;
+    line-height: 1.2;
+    text-align: center;
+  }
+
+  .faq-mobile-close {
+    position: absolute;
+    top: 20px;
+    right: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--primary-color);
+    cursor: pointer;
+  }
+
+  .faq-mobile-accordion {
+    display: grid;
+    gap: 10px;
+  }
+
+  .faq-mobile-item {
+    overflow: hidden;
+    border-radius: 6px;
+    background: var(--tag-filter-grid);
+  }
+
+  .faq-mobile-trigger {
+    width: 100%;
+    min-height: 44px;
+    padding: 7px 10px;
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) 18px;
+    align-items: center;
+    gap: 7px;
+    border: none;
+    background: transparent;
+    color: var(--primary-color);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.2;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .faq-mobile-trigger:hover {
+    border-color: transparent;
+  }
+
+  .faq-mobile-trigger:focus,
+  .faq-mobile-trigger:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: -2px;
+  }
+
+  .faq-mobile-trigger img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+  }
+
+  .faq-mobile-trigger svg {
+    transition: transform 0.2s ease;
+  }
+
+  .faq-mobile-item.open .faq-mobile-trigger svg {
+    transform: rotate(180deg);
+  }
+
+  .faq-mobile-answer {
+    margin: 0;
+    padding: 6px 14px 16px 45px;
+    color: var(--text-primary);
+    font-size: 13px;
+    line-height: 1.45;
+    text-align: left;
+  }
+
+  .faq-layout {
+    display: none;
+  }
+}
+
 /* About card layout is intentionally limited to portrait phones. */
 @media screen and (max-width: 768px) and (orientation: portrait) {
   .page-container:has(.about-page-content) {
