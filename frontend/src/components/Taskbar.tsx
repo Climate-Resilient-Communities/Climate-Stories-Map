@@ -42,11 +42,11 @@ const Taskbar: React.FC<TaskbarProps> = ({
 }) => {
   const [isMobile, setIsMobile] = useState(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return false;
-    return window.matchMedia('(max-width: 768px)').matches;
+    return window.matchMedia('(max-width: 768px) and (orientation: portrait)').matches;
   });
   const [isVisible, setIsVisible] = useState(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return true;
-    return !window.matchMedia('(max-width: 768px)').matches;
+    return !window.matchMedia('(max-width: 768px) and (orientation: portrait)').matches;
   });
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
   const { theme, setTheme, availableThemes } = useTheme();
@@ -68,7 +68,7 @@ const Taskbar: React.FC<TaskbarProps> = ({
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return;
 
-    const mediaQuery = window.matchMedia('(max-width: 768px)');
+    const mediaQuery = window.matchMedia('(max-width: 768px) and (orientation: portrait)');
 
     const applyMobileVisibility = (isMobileView: boolean) => {
       setIsMobile(isMobileView);

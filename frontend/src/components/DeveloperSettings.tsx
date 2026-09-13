@@ -7,7 +7,7 @@ const DeveloperSettings: React.FC = () => {
 
   // Only show on mobile devices or when explicitly testing
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-                   (window.innerWidth <= 768 && 'ontouchstart' in window);
+                   (window.matchMedia('(max-width: 768px) and (orientation: portrait)').matches && 'ontouchstart' in window);
 
   if (!isMobile && !window.location.search.includes('dev=true')) {
     return null;

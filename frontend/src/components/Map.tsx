@@ -33,7 +33,7 @@ interface MapProps {
 const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskbarVisible = true, isCreatePostMode = false }) => {
   const [isMobileViewport, setIsMobileViewport] = useState(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return false;
-    return window.matchMedia('(max-width: 768px)').matches;
+    return window.matchMedia('(max-width: 768px) and (orientation: portrait)').matches;
   });
   const [canadaGeoJSON, setCanadaGeoJSON] = useState<any | null>(null);
   const [viewState, setViewState] = useState({
@@ -51,7 +51,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return;
 
-    const mediaQuery = window.matchMedia('(max-width: 768px)');
+    const mediaQuery = window.matchMedia('(max-width: 768px) and (orientation: portrait)');
 
     const applyViewportMode = (isMobile: boolean) => {
       setIsMobileViewport(isMobile);
@@ -133,7 +133,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
   const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
   const [popupSize, setPopupSize] = useState<{ width: number; height: number }>(() => {
-    const initialIsMobile = typeof window !== 'undefined' && !!window.matchMedia?.('(max-width: 768px)').matches;
+    const initialIsMobile = typeof window !== 'undefined' && !!window.matchMedia?.('(max-width: 768px) and (orientation: portrait)').matches;
     const initialBounds = getPopupBounds(initialIsMobile);
     return {
       width: initialBounds.defaultW,
