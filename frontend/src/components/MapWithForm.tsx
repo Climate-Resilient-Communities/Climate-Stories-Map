@@ -95,7 +95,7 @@ const MapWithForm: React.FC<MapWithFormProps> = ({
         taskbarVisible={taskbarVisible}
         isCreatePostMode={isCreatePostMode}
       />
-      <Modal isOpen={isModalOpen} onClose={handleClose}>
+      <Modal isOpen={isModalOpen} onClose={handleClose} contentClassName="post-form-modal">
           <PostForm onClose={handleClose} initialCoordinates={coordinates} onSubmitted={handleSubmitted} />
       </Modal>
 

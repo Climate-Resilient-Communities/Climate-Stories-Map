@@ -393,7 +393,7 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
         className="post-form-left"
         style={{ 
           backgroundImage: `url("/themes/${theme}/Share your climate story.png")`,
-          backgroundColor: '#000000' // fallback color if image doesn't load
+          backgroundColor: 'var(--post-form-modal)'
         }}
       ></div>
       <div className="post-form-right">

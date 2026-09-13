@@ -29,7 +29,7 @@ interface HomeProps {
           <button className="create-post-button" onClick={() => setIsModalOpen(true)}>
             Create New Post
           </button>
-          <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+          <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} contentClassName="post-form-modal">
             <PostForm onClose={() => setIsModalOpen(false)} onSubmitted={handleSubmitted} />
           </Modal>
         </div>

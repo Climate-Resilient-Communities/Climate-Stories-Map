@@ -16,6 +16,7 @@
   --tag-filter-grid: #ffffff;
   --tag-filter-border: #4b5563;
   --tag-filter-pagination: #ffffff;
+  --post-form-modal: #ffd2bd;
 }
 
 [data-theme='autumn'] html,
