@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import './PageLayout.css';
 import { useTheme } from '../../themes/ThemeContext';
+import { X } from 'phosphor-react';
+import { useNavigate } from 'react-router-dom';
 
 interface ModerationProps {
   taskbarVisible?: boolean;
@@ -9,6 +11,8 @@ interface ModerationProps {
 const Moderation: React.FC<ModerationProps> = ({ taskbarVisible = true }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const { theme } = useTheme();
+  const navigate = useNavigate();
+  const touchStart = React.useRef<{ x: number; y: number } | null>(null);
   
   const moderationItems = [
     {
@@ -56,10 +60,88 @@ const Moderation: React.FC<ModerationProps> = ({ taskbarVisible = true }) => {
     setCurrentIndex(prev => prev < moderationItems.length - 1 ? prev + 1 : 0);
   };
 
+  const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    const touch = event.touches[0];
+    touchStart.current = { x: touch.clientX, y: touch.clientY };
+  };
+
+  const handleTouchEnd = (event: React.TouchEvent<HTMLDivElement>) => {
+    if (!touchStart.current) return;
+
+    const touch = event.changedTouches[0];
+    const deltaX = touch.clientX - touchStart.current.x;
+    const deltaY = touch.clientY - touchStart.current.y;
+    touchStart.current = null;
+
+    if (Math.abs(deltaX) < 40 || Math.abs(deltaX) <= Math.abs(deltaY)) return;
+
+    if (deltaX < 0) {
+      setCurrentIndex(index => Math.min(index + 1, moderationItems.length - 1));
+    } else {
+      setCurrentIndex(index => Math.max(index - 1, 0));
+    }
+  };
+
   return (
     <div className={`page-container ${taskbarVisible ? '' : 'taskbar-hidden'}`}>
       <div className="moderation-page-content">
         <h1>MODERATION GUIDELINES</h1>
+        <div
+          className="moderation-mobile-content"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
+          <button
+            type="button"
+            className="moderation-mobile-close"
+            onClick={() => navigate('/')}
+            aria-label="Close moderation guidelines"
+          >
+            <X size={24} weight="bold" />
+          </button>
+          <div
+            className="moderation-mobile-slides"
+            style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+          >
+            <section className="moderation-mobile-page">
+              <img
+                src={`/themes/${theme}/moderation.png`}
+                alt="Moderation"
+                className="moderation-mobile-image"
+              />
+              <div className="moderation-mobile-intro">
+                <h2>Why we moderate ?</h2>
+                <p>The Climate Stories Map is a space for sharing climate experiences and ideas.</p>
+                <p>To keep it safe, respectful, and useful, we review all submissions before they go public.</p>
+                <p>We're not here to police anyone - we just want to keep this a positive, secure space for everyone.</p>
+                <p>We get a lot of submissions, so there may be some delays. Thanks for your patience!</p>
+              </div>
+            </section>
+            <section className="moderation-mobile-page moderation-mobile-guidelines">
+              {moderationItems[1].gridItems?.map((item) => (
+                <section className="moderation-mobile-rule" key={item.title}>
+                  <h2>{item.title}</h2>
+                  <p>{item.content}</p>
+                </section>
+              ))}
+              <div className="moderation-mobile-contact">
+                <h3>Need something removed ?</h3>
+                <p>If you see something that breaks these rules or want your own post removed, <a href="mailto:info@crcgreen.com">email us at info@crcgreen.com</a>. We'll take a look as soon as we can.</p>
+              </div>
+            </section>
+          </div>
+          <div className="moderation-mobile-pagination" aria-label="Moderation page selection">
+            {moderationItems.map((_, index) => (
+              <button
+                key={index}
+                type="button"
+                className={index === currentIndex ? 'active' : ''}
+                onClick={() => setCurrentIndex(index)}
+                aria-label={`Go to moderation page ${index + 1}`}
+              />
+            ))}
+          </div>
+        </div>
         <div className="moderation-layout">
           <div className="moderation-nav-left">
             {currentIndex > 0 && (
