@@ -1,4 +1,5 @@
 import React from 'react';
+import { CheckCircle, Trash } from 'phosphor-react';
 import { Post } from './types';
 import { MAIN_TAGS, TOPIC_TAGS, getTagColor, hexToRgba } from '../../utils/tag-constants';
 import { STORY_PROMPTS } from '../../utils/story-prompts';
@@ -34,6 +35,9 @@ interface TagFilterProps {
 const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect, showToggle = true, taskbarVisible = true, onClose }) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [currentPage, setCurrentPage] = React.useState(0);
+  const [draftTags, setDraftTags] = React.useState<string[]>(selectedTags);
+  const [isClearConfirmationOpen, setIsClearConfirmationOpen] = React.useState(false);
+  const [isClearSuccessOpen, setIsClearSuccessOpen] = React.useState(false);
   const [isMobile, setIsMobile] = React.useState(window.innerWidth <= 768);
   const touchStartX = React.useRef<number | null>(null);
   const touchStartY = React.useRef<number | null>(null);
@@ -70,11 +74,40 @@ const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect,
   ];
 
   const handleTagToggle = (tag: string) => {
-    if (selectedTags.includes(tag)) {
-      onTagSelect(selectedTags.filter(t => t !== tag));
-    } else {
-      onTagSelect([...selectedTags, tag]);
+    if (!isMobile) {
+      if (selectedTags.includes(tag)) {
+        onTagSelect(selectedTags.filter(selectedTag => selectedTag !== tag));
+      } else {
+        onTagSelect([...selectedTags, tag]);
+      }
+      return;
     }
+
+    if (draftTags.includes(tag)) {
+      setDraftTags(draftTags.filter(selectedTag => selectedTag !== tag));
+    } else {
+      setDraftTags([...draftTags, tag]);
+    }
+  };
+
+  const openFilter = () => {
+    setDraftTags(selectedTags);
+    setCurrentPage(0);
+    setIsOpen(true);
+  };
+
+  const isTagSelected = (tag: string) => (isMobile ? draftTags : selectedTags).includes(tag);
+
+  const handleConfirm = () => {
+    onTagSelect(draftTags);
+    handleClose();
+  };
+
+  const handleClearAll = () => {
+    onTagSelect([]);
+    setDraftTags([]);
+    setIsClearConfirmationOpen(false);
+    setIsClearSuccessOpen(true);
   };
 
   const handleClose = () => {
@@ -115,12 +148,31 @@ const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect,
     setCurrentPage((prev) => Math.max(prev - 1, 0));
   };
 
+  const filterActions = (
+    <div className="filter-actions">
+      <button
+        type="button"
+        className="filter-action filter-action-secondary"
+        onClick={() => setIsClearConfirmationOpen(true)}
+      >
+        Clear all tags
+      </button>
+      <button
+        type="button"
+        className="filter-action filter-action-primary"
+        onClick={handleConfirm}
+      >
+        Confirm filter
+      </button>
+    </div>
+  );
+
   return (
     <div className={`tag-filter-dropdown ${!taskbarVisible ? 'taskbar-hidden' : ''}`}>
       {showToggle && (
         <button 
           className="filter-toggle"
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={() => (isOpen ? handleClose() : openFilter())}
         >
           Filter by Tags
           <span className={`dropdown-arrow ${isOpen ? 'open' : ''}`}>▼</span>
@@ -157,9 +209,9 @@ const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect,
                     {MAIN_TAGS.map(tag => (
                       <div key={tag} className="tag-option emotion-option" onClick={() => handleTagToggle(tag)} title={tag} aria-label={tag}>
                         <span
-                          className={`tag-label tag-label--emotion-emoji ${selectedTags.includes(tag) ? 'selected' : ''}`}
+                          className={`tag-label tag-label--emotion-emoji ${isTagSelected(tag) ? 'selected' : ''}`}
                           style={{
-                            backgroundColor: selectedTags.includes(tag)
+                            backgroundColor: isTagSelected(tag)
                               ? hexToRgba(getTagColor(tag), 0.35)
                               : 'transparent',
                             borderColor: getTagColor(tag),
@@ -193,9 +245,9 @@ const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect,
                         aria-label={tag}
                       >
                         <span
-                          className={`tag-label tag-label--topic-icon ${selectedTags.includes(tag) ? 'selected' : ''}`}
+                          className={`tag-label tag-label--topic-icon ${isTagSelected(tag) ? 'selected' : ''}`}
                           style={{
-                            backgroundColor: selectedTags.includes(tag)
+                            backgroundColor: isTagSelected(tag)
                               ? 'color-mix(in srgb, var(--primary-color) 22%, transparent)'
                               : 'transparent',
                             borderColor: 'var(--primary-color)',
@@ -223,7 +275,7 @@ const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect,
                     <div className="tag-grid carousel-grid other-grid" role="group" aria-label="Other tags">
                       {legacyTags.map(tag => (
                         <div key={tag} className="tag-option other-option" onClick={() => handleTagToggle(tag)} title={tag} aria-label={tag}>
-                          <span className={`tag-label ${selectedTags.includes(tag) ? 'selected' : ''}`}>{tag}</span>
+                          <span className={`tag-label ${isTagSelected(tag) ? 'selected' : ''}`}>{tag}</span>
                         </div>
                       ))}
                     </div>
@@ -244,6 +296,7 @@ const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect,
               />
             ))}
           </div>
+          {filterActions}
         </div>
       )}
 
@@ -254,9 +307,9 @@ const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect,
             {MAIN_TAGS.map(tag => (
               <div key={tag} className="tag-option" onClick={() => handleTagToggle(tag)} title={tag} aria-label={tag}>
                 <span
-                  className={`tag-label tag-label--emotion-emoji ${selectedTags.includes(tag) ? 'selected' : ''}`}
+                          className={`tag-label tag-label--emotion-emoji ${isTagSelected(tag) ? 'selected' : ''}`}
                   style={{
-                    backgroundColor: selectedTags.includes(tag)
+                            backgroundColor: isTagSelected(tag)
                       ? hexToRgba(getTagColor(tag), 0.35)
                       : 'transparent',
                     borderColor: getTagColor(tag),
@@ -281,9 +334,9 @@ const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect,
                 aria-label={tag}
               >
                 <span
-                  className={`tag-label tag-label--topic-icon ${selectedTags.includes(tag) ? 'selected' : ''}`}
+                  className={`tag-label tag-label--topic-icon ${isTagSelected(tag) ? 'selected' : ''}`}
                   style={{
-                    backgroundColor: selectedTags.includes(tag)
+                    backgroundColor: isTagSelected(tag)
                       ? 'color-mix(in srgb, var(--primary-color) 22%, transparent)'
                       : 'transparent',
                     borderColor: 'var(--primary-color)',
@@ -303,12 +356,62 @@ const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect,
               <div className="tag-grid tag-grid--scroll" role="group" aria-label="Other tags">
                 {legacyTags.map(tag => (
                   <div key={tag} className="tag-option" onClick={() => handleTagToggle(tag)} title={tag} aria-label={tag}>
-                    <span className={`tag-label ${selectedTags.includes(tag) ? 'selected' : ''}`}>{tag}</span>
+                    <span className={`tag-label ${isTagSelected(tag) ? 'selected' : ''}`}>{tag}</span>
                   </div>
                 ))}
               </div>
             </>
           )}
+        </div>
+      )}
+
+      {isMobile && isClearConfirmationOpen && (
+        <div className="tag-filter-dialog-backdrop" role="presentation">
+          <div className="tag-filter-dialog" role="dialog" aria-modal="true" aria-labelledby="clear-tags-title">
+            <button
+              type="button"
+              className="tag-filter-dialog-close"
+              onClick={() => setIsClearConfirmationOpen(false)}
+              aria-label="Return to filter tags"
+            >
+              x
+            </button>
+            <div className="tag-filter-dialog-icon tag-filter-dialog-icon-danger">
+              <Trash size={48} weight="fill" aria-hidden="true" />
+            </div>
+            <h3 id="clear-tags-title">Clear all tags?</h3>
+            <p>Are you sure you want to clear all the tags?</p>
+            <div className="tag-filter-dialog-actions">
+              <button type="button" className="filter-action filter-action-secondary" onClick={handleClearAll}>
+                Yes, clear all tags
+              </button>
+              <button type="button" className="filter-action filter-action-go-back" onClick={() => setIsClearConfirmationOpen(false)}>
+                Go back
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isMobile && isClearSuccessOpen && (
+        <div className="tag-filter-dialog-backdrop" role="presentation">
+          <div className="tag-filter-dialog" role="dialog" aria-modal="true" aria-labelledby="clear-success-title">
+            <div className="tag-filter-dialog-icon tag-filter-dialog-icon-success">
+              <CheckCircle size={56} weight="fill" aria-hidden="true" />
+            </div>
+            <h3 id="clear-success-title">Tags cleared</h3>
+            <p>All tag filters have been removed.</p>
+            <button
+              type="button"
+              className="filter-action filter-action-primary tag-filter-dialog-done"
+              onClick={() => {
+                setIsClearSuccessOpen(false);
+                handleClose();
+              }}
+            >
+              Done
+            </button>
+          </div>
         </div>
       )}
     </div>
