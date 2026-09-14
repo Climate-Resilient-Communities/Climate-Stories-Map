@@ -234,9 +234,8 @@ tag_schema = TagSchema()
 # Swagger definition for Post
 
 def upload_image_to_imgbb(image_file):
-    """Upload image to ImgBB and return the URL"""
+    """Upload an image to ImgBB and return its URL or a safe error message."""
     try:
-        files = {'image': image_file}
         data = {'key': cdn_key}
         
         # Extract album ID from URL if needed
@@ -244,22 +243,42 @@ def upload_image_to_imgbb(image_file):
         if album_id and album_id.startswith('https://ibb.co/album/'):
             album_id = album_id.split('/')[-1]
         
+        def send_upload(upload_data):
+            image_file.seek(0)
+            response = requests.post(
+                cdn_url,
+                files={'image': image_file},
+                data=upload_data,
+                timeout=20,
+            )
+            try:
+                result = response.json()
+            except ValueError:
+                return None, f"ImgBB returned HTTP {response.status_code}."
+
+            if response.ok and result.get('success') and result.get('data', {}).get('url'):
+                return result['data']['url'], None
+
+            error = result.get('error', {})
+            message = error.get('message') if isinstance(error, dict) else str(error)
+            return None, message or f"ImgBB returned HTTP {response.status_code}."
+
         if album_id:
-            data['album'] = album_id
-        
-        response = requests.post(cdn_url, files=files, data=data, timeout=20)
-        result = response.json()
+            url, error_message = send_upload({**data, 'album': album_id})
+            if url:
+                return url, None
 
-        if response.ok and result.get('success') and result.get('data', {}).get('url'):
-            return result['data']['url']
+            print(f"ImgBB album upload failed: {error_message}. Retrying without album.")
 
-        error = result.get('error', {})
-        message = error.get('message') if isinstance(error, dict) else str(error)
-        print(f"ImgBB upload failed ({response.status_code}): {message or 'Unknown error'}")
-        return None
+        url, error_message = send_upload(data)
+        if url:
+            return url, None
+
+        print(f"ImgBB upload failed: {error_message}")
+        return None, error_message
     except Exception as e:
         print(f"Error uploading image: {e}")
-        return None
+        return None, 'Unable to reach the image hosting service.'
 
 # CREATE (Insert a new document)
 # Route to create a new post document
@@ -350,12 +369,12 @@ def create():
                 if not cdn_key:
                     return jsonify({'error': 'Image uploads are not configured.'}), 503
                 else:
-                    image_url = upload_image_to_imgbb(image_file)
+                    image_url, upload_error = upload_image_to_imgbb(image_file)
                     if image_url:
                         data['content']['image'] = image_url
                         print("Image uploaded successfully")
                     else:
-                        return jsonify({'error': 'Image upload failed. Please try a different image.'}), 502
+                        return jsonify({'error': f'Image upload failed: {upload_error}'}), 502
 
         data['created_at'] = datetime.datetime.now(datetime.timezone.utc)
         data['status'] = 'approved' #TODO Temporary for alpha testing
