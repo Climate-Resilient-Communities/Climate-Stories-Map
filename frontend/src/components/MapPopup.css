@@ -354,3 +354,43 @@ body.popup-resizing * {
 .map-popup-body::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.3);
 }
+
+@media screen and (max-width: 768px) and (orientation: portrait) {
+  .map-popup-content {
+    max-width: calc(100vw - 36px);
+  }
+
+  .map-popup-header {
+    padding: 12px 12px 0;
+  }
+
+  .map-popup-title {
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    font-size: 15px;
+  }
+
+  .map-popup-body {
+    padding: 0 12px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .map-popup-image {
+    order: -1;
+    width: 100%;
+    max-height: 132px;
+    margin: 0 0 10px;
+    object-fit: cover;
+  }
+
+  .map-popup-description {
+    margin-bottom: 10px;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .map-popup-footer {
+    padding: 8px 12px 12px;
+  }
+}
