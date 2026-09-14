@@ -247,16 +247,16 @@ def upload_image_to_imgbb(image_file):
         if album_id:
             data['album'] = album_id
         
-        response = requests.post(cdn_url, files=files, data=data)
+        response = requests.post(cdn_url, files=files, data=data, timeout=20)
         result = response.json()
-        
-        print(f"ImgBB response: {result}")
-        
-        if result.get('success'):
+
+        if response.ok and result.get('success') and result.get('data', {}).get('url'):
             return result['data']['url']
-        else:
-            print(f"ImgBB upload failed: {result.get('error', 'Unknown error')}")
-            return None
+
+        error = result.get('error', {})
+        message = error.get('message') if isinstance(error, dict) else str(error)
+        print(f"ImgBB upload failed ({response.status_code}): {message or 'Unknown error'}")
+        return None
     except Exception as e:
         print(f"Error uploading image: {e}")
         return None
@@ -348,14 +348,14 @@ def create():
                     return jsonify({'error': 'File too large. Maximum size is 5MB.'}), 400
                 
                 if not cdn_key:
-                    print("CDN_KEY not configured, skipping image upload")
+                    return jsonify({'error': 'Image uploads are not configured.'}), 503
                 else:
                     image_url = upload_image_to_imgbb(image_file)
                     if image_url:
                         data['content']['image'] = image_url
                         print("Image uploaded successfully")
                     else:
-                        print("Failed to upload image to ImgBB, continuing without image")
+                        return jsonify({'error': 'Image upload failed. Please try a different image.'}), 502
 
         data['created_at'] = datetime.datetime.now(datetime.timezone.utc)
         data['status'] = 'approved' #TODO Temporary for alpha testing
