@@ -1,6 +1,6 @@
 import requests
 import datetime
-from flask import Flask, jsonify, request, session, send_from_directory
+from flask import Flask, jsonify, request, session, send_from_directory, Response
 from swagger import init_swagger
 from flask_pymongo import PyMongo
 from bson.objectid import ObjectId
@@ -10,6 +10,7 @@ import os
 import json
 import hashlib
 from typing import Optional
+from urllib.parse import urlparse
 
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 
@@ -71,6 +72,8 @@ def _get_int_env(name: str, default: int) -> int:
         return default
 
 captcha_grace_seconds = max(0, _get_int_env('CAPTCHA_GRACE_SECONDS', 300))
+MAX_IMAGE_BYTES = 5 * 1024 * 1024
+ALLOWED_IMAGE_HOSTS = {'i.ibb.co'}
 
 # Configure MongoDB and Flask session
 app.config["MONGO_URI"] = mongo_uri
@@ -487,6 +490,58 @@ def get_posts():
 
     except ValidationError as err:
         return jsonify({'errors': err.messages}), 400
+
+@app.route('/api/posts/<post_id>/image', methods=['GET'])
+def get_post_image(post_id):
+    """Serve a post's hosted image with a browser cache lifetime."""
+    if not ObjectId.is_valid(post_id):
+        return jsonify({'error': 'Invalid post ID'}), 400
+
+    post = collection.find_one(
+        {'_id': ObjectId(post_id), 'status': 'approved'},
+        {'content.image': 1},
+    )
+    image_url = post.get('content', {}).get('image') if post else None
+    if not image_url:
+        return jsonify({'error': 'Image not found'}), 404
+
+    parsed_url = urlparse(image_url)
+    if parsed_url.scheme != 'https' or parsed_url.hostname not in ALLOWED_IMAGE_HOSTS:
+        return jsonify({'error': 'Image host is not allowed'}), 502
+
+    try:
+        with requests.get(
+            image_url,
+            timeout=(5, 20),
+            stream=True,
+            allow_redirects=False,
+        ) as image_response:
+            if image_response.status_code != 200:
+                return jsonify({'error': 'Image is temporarily unavailable'}), 502
+
+            content_type = image_response.headers.get('Content-Type', 'application/octet-stream')
+            if not content_type.lower().split(';', 1)[0].startswith('image/'):
+                return jsonify({'error': 'Hosted file is not an image'}), 502
+
+            content_length = image_response.headers.get('Content-Length')
+            if content_length and int(content_length) > MAX_IMAGE_BYTES:
+                return jsonify({'error': 'Hosted image is too large'}), 413
+
+            image_data = bytearray()
+            for chunk in image_response.iter_content(chunk_size=64 * 1024):
+                image_data.extend(chunk)
+                if len(image_data) > MAX_IMAGE_BYTES:
+                    return jsonify({'error': 'Hosted image is too large'}), 413
+    except requests.RequestException:
+        return jsonify({'error': 'Image is temporarily unavailable'}), 502
+    except ValueError:
+        return jsonify({'error': 'Hosted image has an invalid size'}), 502
+
+    response = Response(bytes(image_data), content_type=content_type)
+    response.headers['Cache-Control'] = 'public, max-age=86400'
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['Cross-Origin-Resource-Policy'] = 'same-origin'
+    return response
 
 # UPDATE (Modify a document by ID)
 @app.route('/api/posts/update/<id>', methods=['PUT'])

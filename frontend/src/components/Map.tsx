@@ -21,6 +21,8 @@ import TopicMarkerIcon from './markers/TopicMarkerIcon';
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 const MONOCHROME_MAP = import.meta.env.VITE_MONOCHROME_MAP;
 
+const getPostImageUrl = (postId: string) => `/api/posts/${encodeURIComponent(postId)}/image`;
+
 interface MapProps {
   posts: Post[];
   onMapClick: (coordinates: [number, number], event: React.MouseEvent<HTMLDivElement>) => void;
@@ -95,6 +97,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
     }
   }, []);
   const [popupInfo, setPopupInfo] = useState<Post | null>(null);
+  const [isPopupImageLoading, setIsPopupImageLoading] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [modalImageSrc, setModalImageSrc] = useState('');
   const [modalImageAlt, setModalImageAlt] = useState('');
@@ -568,6 +571,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
               onClick={e => {
                 e.originalEvent.stopPropagation();
                 setPopupInfo(post);
+                setIsPopupImageLoading(Boolean(post.content.image));
                 const popupBounds = getPopupBounds(isMobileViewport);
                 const nextPopupSize = { width: popupBounds.defaultW, height: popupBounds.defaultH };
                 setPopupSize(nextPopupSize);
@@ -624,6 +628,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
             className="map-popup-story"
             onClose={() => {
               setPopupInfo(null);
+              setIsPopupImageLoading(false);
               cleanupResizeSession();
             }}
             maxWidth="none"
@@ -641,18 +646,23 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
               <div className="map-popup-body">
                 <p className="map-popup-description">{popupInfo.content.description}</p>
                 {popupInfo.content.image && (
-                  <img 
-                    src={popupInfo.content.image} 
-                    alt={popupInfo.title} 
-                    className="map-popup-image" 
-                    onClick={() => {
-                      setModalImageSrc(popupInfo.content.image!);
-                      setModalImageAlt(popupInfo.title);
-                      setIsImageModalOpen(true);
-                    }}
-                    style={{ cursor: 'pointer' }}
-                    title="Click to view full size"
-                  />
+                  <div className="map-popup-image-frame" aria-busy={isPopupImageLoading}>
+                    {isPopupImageLoading && <span className="map-popup-image-loader" aria-label="Loading image" />}
+                    <img
+                      src={getPostImageUrl(popupInfo._id)}
+                      alt={popupInfo.title}
+                      className={`map-popup-image ${isPopupImageLoading ? 'loading' : ''}`}
+                      onLoad={() => setIsPopupImageLoading(false)}
+                      onError={() => setIsPopupImageLoading(false)}
+                      onClick={() => {
+                        setModalImageSrc(getPostImageUrl(popupInfo._id));
+                        setModalImageAlt(popupInfo.title);
+                        setIsImageModalOpen(true);
+                      }}
+                      style={{ cursor: 'pointer' }}
+                      title="Click to view full size"
+                    />
+                  </div>
                 )}
               </div>
               <div className="map-popup-footer">
