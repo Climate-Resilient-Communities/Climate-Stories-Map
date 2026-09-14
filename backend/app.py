@@ -245,9 +245,11 @@ def upload_image_to_imgbb(image_file):
         
         def send_upload(upload_data):
             image_file.seek(0)
+            upload_filename = image_file.filename or 'upload'
+            upload_mimetype = image_file.mimetype or 'application/octet-stream'
             response = requests.post(
                 cdn_url,
-                files={'image': image_file},
+                files={'image': (upload_filename, image_file.stream, upload_mimetype)},
                 data=upload_data,
                 timeout=20,
             )
@@ -277,8 +279,8 @@ def upload_image_to_imgbb(image_file):
         print(f"ImgBB upload failed: {error_message}")
         return None, error_message
     except Exception as e:
-        print(f"Error uploading image: {e}")
-        return None, 'Unable to reach the image hosting service.'
+        print(f"Error uploading image ({type(e).__name__}): {e}")
+        return None, f'Image hosting request failed ({type(e).__name__}).'
 
 # CREATE (Insert a new document)
 # Route to create a new post document
