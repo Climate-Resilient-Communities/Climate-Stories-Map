@@ -3,6 +3,7 @@ import Map, { Marker, Popup, NavigationControl } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 import './Map.css';
+import './Map.mobile.css';
 import './MapPopup.css';
 import { MdMyLocation } from 'react-icons/md';
 import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
@@ -20,6 +21,8 @@ import TopicMarkerIcon from './markers/TopicMarkerIcon';
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 const MONOCHROME_MAP = import.meta.env.VITE_MONOCHROME_MAP;
 
+const getPostImageUrl = (postId: string) => `/api/posts/${encodeURIComponent(postId)}/image`;
+
 interface MapProps {
   posts: Post[];
   onMapClick: (coordinates: [number, number], event: React.MouseEvent<HTMLDivElement>) => void;
@@ -30,6 +33,10 @@ interface MapProps {
 }
 
 const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskbarVisible = true, isCreatePostMode = false }) => {
+  const [isMobileViewport, setIsMobileViewport] = useState(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return false;
+    return window.matchMedia('(max-width: 768px) and (orientation: portrait)').matches;
+  });
   const [canadaGeoJSON, setCanadaGeoJSON] = useState<any | null>(null);
   const [viewState, setViewState] = useState({
     longitude: -96.8283,  // Center of Canada
@@ -42,6 +49,30 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
   const mapRef = useRef<any>(null);
   const geocoderContainerRef = useRef<HTMLDivElement | null>(null);
   const geocoderRef = useRef<any | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+
+    const mediaQuery = window.matchMedia('(max-width: 768px) and (orientation: portrait)');
+
+    const applyViewportMode = (isMobile: boolean) => {
+      setIsMobileViewport(isMobile);
+      if (isMobile) {
+        setIsGeocoderExpanded(true);
+      }
+    };
+
+    applyViewportMode(mediaQuery.matches);
+
+    const handleViewportChange = (event: MediaQueryListEvent) => {
+      applyViewportMode(event.matches);
+    };
+
+    mediaQuery.addEventListener('change', handleViewportChange);
+    return () => {
+      mediaQuery.removeEventListener('change', handleViewportChange);
+    };
+  }, []);
 
   const getMapStyle = () => {
     return MONOCHROME_MAP;
@@ -66,22 +97,51 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
     }
   }, []);
   const [popupInfo, setPopupInfo] = useState<Post | null>(null);
+  const [isPopupImageLoading, setIsPopupImageLoading] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [modalImageSrc, setModalImageSrc] = useState('');
   const [modalImageAlt, setModalImageAlt] = useState('');
 
-  const POPUP_MIN_W = 280;
-  const POPUP_MIN_H = 240;
-  const POPUP_MAX_W = 820;
-  const POPUP_MAX_H = 700;
-  const POPUP_DEFAULT_W = 350;
-  const POPUP_DEFAULT_H = 400;
+  const getPopupBounds = (isMobile: boolean) => {
+    if (!isMobile || typeof window === 'undefined') {
+      return {
+        minW: 280,
+        minH: 240,
+        maxW: 820,
+        maxH: 700,
+        defaultW: 350,
+        defaultH: 400,
+      };
+    }
+
+    const viewportW = window.innerWidth;
+    const viewportH = window.innerHeight;
+    const minW = 220;
+    const minH = 170;
+    const maxW = Math.max(minW, Math.min(320, viewportW - 36));
+    const maxH = Math.max(minH, Math.min(420, Math.floor(viewportH * 0.56)));
+    const defaultW = Math.max(minW, Math.min(285, maxW));
+    const defaultH = Math.max(minH, Math.min(300, maxH));
+
+    return {
+      minW,
+      minH,
+      maxW,
+      maxH,
+      defaultW,
+      defaultH,
+    };
+  };
 
   const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
-  const [popupSize, setPopupSize] = useState<{ width: number; height: number }>({
-    width: POPUP_DEFAULT_W,
-    height: POPUP_DEFAULT_H,
+  const [popupSize, setPopupSize] = useState<{ width: number; height: number }>(() => {
+    const initialIsMobile = typeof window !== 'undefined' && !!window.matchMedia?.('(max-width: 768px) and (orientation: portrait)').matches;
+    const initialBounds = getPopupBounds(initialIsMobile);
+    return {
+      width: initialBounds.defaultW,
+      height: initialBounds.defaultH,
+    };
   });
 
   const resizeSessionRef = useRef<null | {
@@ -160,10 +220,12 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
     const session = resizeSessionRef.current;
     if (!session) return;
 
-    const nextWidth = clamp(session.startW + (event.clientX - session.startX), POPUP_MIN_W, POPUP_MAX_W);
-    const nextHeight = clamp(session.startH + (event.clientY - session.startY), POPUP_MIN_H, POPUP_MAX_H);
+    const bounds = getPopupBounds(isMobileViewport);
+
+    const nextWidth = clamp(session.startW + (event.clientX - session.startX), bounds.minW, bounds.maxW);
+    const nextHeight = clamp(session.startH + (event.clientY - session.startY), bounds.minH, bounds.maxH);
     setPopupSize({ width: nextWidth, height: nextHeight });
-  }, []);
+  }, [isMobileViewport]);
 
   const onResizeEnd = React.useCallback(() => {
     resizeSessionRef.current = null;
@@ -208,6 +270,16 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
       cleanupResizeSession();
     };
   }, [cleanupResizeSession]);
+
+  useEffect(() => {
+    if (!popupInfo) return;
+
+    const bounds = getPopupBounds(isMobileViewport);
+    setPopupSize((prev) => ({
+      width: clamp(prev.width, bounds.minW, bounds.maxW),
+      height: clamp(prev.height, bounds.minH, bounds.maxH),
+    }));
+  }, [isMobileViewport, popupInfo]);
 
   const startResize = (event: React.PointerEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -346,7 +418,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
   }, []);
 
   useEffect(() => {
-    if (!isGeocoderExpanded) return;
+    if (!isGeocoderExpanded || isMobileViewport) return;
 
     const handlePointerDown = (event: PointerEvent) => {
       const targetNode = event.target as Node | null;
@@ -371,7 +443,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
       document.removeEventListener('pointerdown', handlePointerDown, true);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isGeocoderExpanded]);
+  }, [isGeocoderExpanded, isMobileViewport]);
 
   const focusGeocoderInput = () => {
     const input = geocoderContainerRef.current?.querySelector<HTMLInputElement>('input');
@@ -400,13 +472,16 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
   };
 
   return (
-    <div className={`map-container ${taskbarVisible ? '' : 'taskbar-hidden'}${isCreatePostMode ? ' create-post-mode' : ''}`} style={{ position: 'relative' }}>
+    <div className={`map-container map-canvas ${taskbarVisible ? '' : 'taskbar-hidden'}${isCreatePostMode ? ' create-post-mode' : ''}`}>
       {/* Location Search */}
       <div
-        className={`map-geocoder ${isGeocoderExpanded ? 'expanded' : 'collapsed'} theme-${theme}`}
+        className={`map-geocoder ${(isMobileViewport || isGeocoderExpanded) ? 'expanded' : 'collapsed'} theme-${theme}`}
         ref={geocoderContainerRef}
-        onMouseEnter={() => setIsGeocoderExpanded(true)}
+        onMouseEnter={() => {
+          if (!isMobileViewport) setIsGeocoderExpanded(true);
+        }}
         onMouseLeave={() => {
+          if (isMobileViewport) return;
           const isFocusedWithin = !!geocoderContainerRef.current?.contains(document.activeElement);
           if (!isFocusedWithin) setIsGeocoderExpanded(false);
         }}
@@ -496,11 +571,14 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
               onClick={e => {
                 e.originalEvent.stopPropagation();
                 setPopupInfo(post);
-                setPopupSize({ width: POPUP_DEFAULT_W, height: POPUP_DEFAULT_H });
+                setIsPopupImageLoading(Boolean(post.content.image));
+                const popupBounds = getPopupBounds(isMobileViewport);
+                const nextPopupSize = { width: popupBounds.defaultW, height: popupBounds.defaultH };
+                setPopupSize(nextPopupSize);
                 cleanupResizeSession();
 
                 // Center the story popup and pan so the marker sits under it.
-                centerMapForPopup(post, { width: POPUP_DEFAULT_W, height: POPUP_DEFAULT_H });
+                centerMapForPopup(post, nextPopupSize);
               }}
             >
               <div
@@ -550,6 +628,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
             className="map-popup-story"
             onClose={() => {
               setPopupInfo(null);
+              setIsPopupImageLoading(false);
               cleanupResizeSession();
             }}
             maxWidth="none"
@@ -567,18 +646,23 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
               <div className="map-popup-body">
                 <p className="map-popup-description">{popupInfo.content.description}</p>
                 {popupInfo.content.image && (
-                  <img 
-                    src={popupInfo.content.image} 
-                    alt={popupInfo.title} 
-                    className="map-popup-image" 
-                    onClick={() => {
-                      setModalImageSrc(popupInfo.content.image!);
-                      setModalImageAlt(popupInfo.title);
-                      setIsImageModalOpen(true);
-                    }}
-                    style={{ cursor: 'pointer' }}
-                    title="Click to view full size"
-                  />
+                  <div className="map-popup-image-frame" aria-busy={isPopupImageLoading}>
+                    {isPopupImageLoading && <span className="map-popup-image-loader" aria-label="Loading image" />}
+                    <img
+                      src={getPostImageUrl(popupInfo._id)}
+                      alt={popupInfo.title}
+                      className={`map-popup-image ${isPopupImageLoading ? 'loading' : ''}`}
+                      onLoad={() => setIsPopupImageLoading(false)}
+                      onError={() => setIsPopupImageLoading(false)}
+                      onClick={() => {
+                        setModalImageSrc(getPostImageUrl(popupInfo._id));
+                        setModalImageAlt(popupInfo.title);
+                        setIsImageModalOpen(true);
+                      }}
+                      style={{ cursor: 'pointer' }}
+                      title="Click to view full size"
+                    />
+                  </div>
                 )}
               </div>
               <div className="map-popup-footer">
@@ -612,6 +696,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
                 className="map-popup-resize-handle"
                 role="separator"
                 aria-label="Resize popup"
+                style={{ display: isMobileViewport ? 'none' : 'block' }}
                 onPointerDown={startResize}
               />
             </div>

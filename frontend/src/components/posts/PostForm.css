@@ -389,3 +389,102 @@
     font-size: 11px !important;
   }
 }
+
+@media screen and (max-width: 768px) and (orientation: portrait) {
+  .post-form-modal {
+    width: min(92vw, 360px);
+    max-height: calc(100dvh - 72px);
+    border-radius: 12px;
+    background: var(--post-form-modal) !important;
+  }
+
+  .post-form-modal .modal-close-button {
+    top: 14px;
+    right: 12px;
+    color: var(--primary-color);
+    font-size: 30px;
+  }
+
+  .post-form-modal .modal-close-button:hover {
+    color: var(--primary-hover);
+    background: transparent;
+  }
+
+  [data-theme] .post-form-modal .post-form {
+    width: 100%;
+    max-width: none !important;
+    max-height: calc(100dvh - 72px) !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    background: var(--post-form-modal) !important;
+    border-radius: 12px;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  [data-theme] .post-form-modal .post-form-left {
+    width: calc(100% - 28px) !important;
+    height: 134px !important;
+    min-height: 134px !important;
+    margin: 50px 14px 0;
+    border-radius: 0;
+    align-self: auto;
+    background-size: cover;
+    background-position: center;
+  }
+
+  [data-theme] .post-form-modal .post-form-right {
+    min-height: 0;
+    padding: 6px 14px 16px !important;
+    gap: 8px !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+  }
+
+  [data-theme] .post-form-modal .post-form-title {
+    margin: 0 !important;
+    padding: 0 !important;
+    color: var(--primary-color);
+    font-size: 16px !important;
+    line-height: 1.2;
+  }
+
+  [data-theme] .post-form-modal .post-form input,
+  [data-theme] .post-form-modal .post-form textarea,
+  [data-theme] .post-form-modal .post-form select {
+    border: 1px solid var(--text-secondary);
+    background: var(--tag-filter-grid);
+    color: var(--text-primary);
+  }
+
+  [data-theme] .post-form-modal .post-form textarea {
+    min-height: 88px !important;
+    max-height: 150px !important;
+  }
+
+  .post-form-modal .image-upload-content {
+    display: block;
+  }
+
+  .post-form-modal .image-upload-input {
+    width: 100%;
+  }
+
+  [data-theme] .post-form-modal .checkbox-container {
+    background: var(--tag-filter-grid);
+    border-color: var(--text-secondary);
+  }
+
+  .post-form-modal .form-buttons {
+    position: sticky;
+    bottom: -16px;
+    margin: 0 -14px -16px !important;
+    padding: 10px 14px 14px;
+    background: var(--post-form-modal);
+  }
+
+  .post-form-modal .form-buttons .captcha-container {
+    min-width: 0;
+    overflow: hidden;
+  }
+}

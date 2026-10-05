@@ -351,11 +351,12 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
             return;
           }
 
-          throw new Error('Failed to submit post');
+          throw new Error(responseJson?.error || responseJson?.message || 'Failed to submit post');
         }
       } catch (error) {
         console.error('Error submitting post:', error);
-        showNotification('There was an error submitting your post. Please try again.', true);
+        const message = error instanceof Error ? error.message : 'There was an error submitting your post. Please try again.';
+        showNotification(message, true);
         return;
       }
     } else {
@@ -393,7 +394,7 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
         className="post-form-left"
         style={{ 
           backgroundImage: `url("/themes/${theme}/Share your climate story.png")`,
-          backgroundColor: '#000000' // fallback color if image doesn't load
+          backgroundColor: 'var(--post-form-modal)'
         }}
       ></div>
       <div className="post-form-right">

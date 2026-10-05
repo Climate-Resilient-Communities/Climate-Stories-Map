@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import './PageLayout.css';
 import { useTheme } from '../../themes/ThemeContext';
+import { CaretDown, X } from 'phosphor-react';
+import { useNavigate } from 'react-router-dom';
 
 interface FaqsProps {
   taskbarVisible?: boolean;
@@ -8,7 +10,9 @@ interface FaqsProps {
 
 const Faqs: React.FC<FaqsProps> = ({ taskbarVisible = true }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   const { theme } = useTheme();
+  const navigate = useNavigate();
   
   const faqItems = [
     {
@@ -41,6 +45,34 @@ const Faqs: React.FC<FaqsProps> = ({ taskbarVisible = true }) => {
     <div className={`page-container ${taskbarVisible ? '' : 'taskbar-hidden'}`}>
       <div className="faq-page-content">
         <h1>FAQ's</h1>
+        <button
+          type="button"
+          className="faq-mobile-close"
+          onClick={() => navigate('/')}
+          aria-label="Close FAQs page"
+        >
+          <X size={24} weight="bold" />
+        </button>
+        <div className="faq-mobile-accordion">
+          {faqItems.map((item, index) => {
+            const isOpen = openFaqIndex === index;
+            return (
+              <section className={`faq-mobile-item ${isOpen ? 'open' : ''}`} key={item.question}>
+                <button
+                  type="button"
+                  className="faq-mobile-trigger"
+                  onClick={() => setOpenFaqIndex(isOpen ? null : index)}
+                  aria-expanded={isOpen}
+                >
+                  <img src={`/themes/${theme}/FAQ-Q${index + 1}.png`} alt="" aria-hidden="true" />
+                  <span>{item.question}</span>
+                  <CaretDown size={18} weight="bold" aria-hidden="true" />
+                </button>
+                {isOpen && <p className="faq-mobile-answer">{item.answer}</p>}
+              </section>
+            );
+          })}
+        </div>
         <div className="faq-layout">
           <div className="faq-nav-left">
             {currentIndex > 0 && (

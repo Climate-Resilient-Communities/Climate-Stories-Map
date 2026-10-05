@@ -22,18 +22,23 @@ const CreatePostInstructionsPopup: React.FC<CreatePostInstructionsPopupProps> = 
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="custom-600">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      size="custom-600"
+      contentClassName="create-post-instructions-modal"
+    >
       <div className="create-post-instructions-popup">
         <div className="instructions-content">
           <div className="instructions-icon">
-            <img 
-              src={`/themes/${theme}/Add your story.png`} 
-              alt="Add your story" 
+            <img
+              src={`/themes/${theme}/Add your story.png`}
+              alt="Add your story"
               className="instructions-image"
             />
           </div>
           <div className="instructions-text">
-            <h2>Add your Story</h2>
+            <h2>Add your story</h2>
             <ul>
               <li>Click the location of your story on the map.</li>
               <li>Share your story in the box below.</li>

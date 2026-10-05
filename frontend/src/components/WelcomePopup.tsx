@@ -2,6 +2,7 @@
 import React from 'react';
 import WelcomeModal from './WelcomeModal';
 import './WelcomePopup.css';
+import './WelcomePopup.mobile.css';
 
 interface WelcomePopupProps {
   isOpen: boolean;

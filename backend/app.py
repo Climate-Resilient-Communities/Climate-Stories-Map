@@ -1,6 +1,6 @@
 import requests
 import datetime
-from flask import Flask, jsonify, request, session, send_from_directory
+from flask import Flask, jsonify, request, session, send_from_directory, Response
 from swagger import init_swagger
 from flask_pymongo import PyMongo
 from bson.objectid import ObjectId
@@ -10,6 +10,7 @@ import os
 import json
 import hashlib
 from typing import Optional
+from urllib.parse import urlparse
 
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 
@@ -71,6 +72,8 @@ def _get_int_env(name: str, default: int) -> int:
         return default
 
 captcha_grace_seconds = max(0, _get_int_env('CAPTCHA_GRACE_SECONDS', 300))
+MAX_IMAGE_BYTES = 5 * 1024 * 1024
+ALLOWED_IMAGE_HOSTS = {'i.ibb.co'}
 
 # Configure MongoDB and Flask session
 app.config["MONGO_URI"] = mongo_uri
@@ -234,9 +237,8 @@ tag_schema = TagSchema()
 # Swagger definition for Post
 
 def upload_image_to_imgbb(image_file):
-    """Upload image to ImgBB and return the URL"""
+    """Upload an image to ImgBB and return its URL or a safe error message."""
     try:
-        files = {'image': image_file}
         data = {'key': cdn_key}
         
         # Extract album ID from URL if needed
@@ -244,22 +246,44 @@ def upload_image_to_imgbb(image_file):
         if album_id and album_id.startswith('https://ibb.co/album/'):
             album_id = album_id.split('/')[-1]
         
+        def send_upload(upload_data):
+            image_file.seek(0)
+            upload_filename = image_file.filename or 'upload'
+            upload_mimetype = image_file.mimetype or 'application/octet-stream'
+            response = requests.post(
+                cdn_url,
+                files={'image': (upload_filename, image_file.stream, upload_mimetype)},
+                data=upload_data,
+                timeout=20,
+            )
+            try:
+                result = response.json()
+            except ValueError:
+                return None, f"ImgBB returned HTTP {response.status_code}."
+
+            if response.ok and result.get('success') and result.get('data', {}).get('url'):
+                return result['data']['url'], None
+
+            error = result.get('error', {})
+            message = error.get('message') if isinstance(error, dict) else str(error)
+            return None, message or f"ImgBB returned HTTP {response.status_code}."
+
         if album_id:
-            data['album'] = album_id
-        
-        response = requests.post(cdn_url, files=files, data=data)
-        result = response.json()
-        
-        print(f"ImgBB response: {result}")
-        
-        if result.get('success'):
-            return result['data']['url']
-        else:
-            print(f"ImgBB upload failed: {result.get('error', 'Unknown error')}")
-            return None
+            url, error_message = send_upload({**data, 'album': album_id})
+            if url:
+                return url, None
+
+            print(f"ImgBB album upload failed: {error_message}. Retrying without album.")
+
+        url, error_message = send_upload(data)
+        if url:
+            return url, None
+
+        print(f"ImgBB upload failed: {error_message}")
+        return None, error_message
     except Exception as e:
-        print(f"Error uploading image: {e}")
-        return None
+        print(f"Error uploading image ({type(e).__name__}): {e}")
+        return None, f'Image hosting request failed ({type(e).__name__}).'
 
 # CREATE (Insert a new document)
 # Route to create a new post document
@@ -348,14 +372,14 @@ def create():
                     return jsonify({'error': 'File too large. Maximum size is 5MB.'}), 400
                 
                 if not cdn_key:
-                    print("CDN_KEY not configured, skipping image upload")
+                    return jsonify({'error': 'Image uploads are not configured.'}), 503
                 else:
-                    image_url = upload_image_to_imgbb(image_file)
+                    image_url, upload_error = upload_image_to_imgbb(image_file)
                     if image_url:
                         data['content']['image'] = image_url
                         print("Image uploaded successfully")
                     else:
-                        print("Failed to upload image to ImgBB, continuing without image")
+                        return jsonify({'error': f'Image upload failed: {upload_error}'}), 502
 
         data['created_at'] = datetime.datetime.now(datetime.timezone.utc)
         data['status'] = 'approved' #TODO Temporary for alpha testing
@@ -466,6 +490,58 @@ def get_posts():
 
     except ValidationError as err:
         return jsonify({'errors': err.messages}), 400
+
+@app.route('/api/posts/<post_id>/image', methods=['GET'])
+def get_post_image(post_id):
+    """Serve a post's hosted image with a browser cache lifetime."""
+    if not ObjectId.is_valid(post_id):
+        return jsonify({'error': 'Invalid post ID'}), 400
+
+    post = collection.find_one(
+        {'_id': ObjectId(post_id), 'status': 'approved'},
+        {'content.image': 1},
+    )
+    image_url = post.get('content', {}).get('image') if post else None
+    if not image_url:
+        return jsonify({'error': 'Image not found'}), 404
+
+    parsed_url = urlparse(image_url)
+    if parsed_url.scheme != 'https' or parsed_url.hostname not in ALLOWED_IMAGE_HOSTS:
+        return jsonify({'error': 'Image host is not allowed'}), 502
+
+    try:
+        with requests.get(
+            image_url,
+            timeout=(5, 20),
+            stream=True,
+            allow_redirects=False,
+        ) as image_response:
+            if image_response.status_code != 200:
+                return jsonify({'error': 'Image is temporarily unavailable'}), 502
+
+            content_type = image_response.headers.get('Content-Type', 'application/octet-stream')
+            if not content_type.lower().split(';', 1)[0].startswith('image/'):
+                return jsonify({'error': 'Hosted file is not an image'}), 502
+
+            content_length = image_response.headers.get('Content-Length')
+            if content_length and int(content_length) > MAX_IMAGE_BYTES:
+                return jsonify({'error': 'Hosted image is too large'}), 413
+
+            image_data = bytearray()
+            for chunk in image_response.iter_content(chunk_size=64 * 1024):
+                image_data.extend(chunk)
+                if len(image_data) > MAX_IMAGE_BYTES:
+                    return jsonify({'error': 'Hosted image is too large'}), 413
+    except requests.RequestException:
+        return jsonify({'error': 'Image is temporarily unavailable'}), 502
+    except ValueError:
+        return jsonify({'error': 'Hosted image has an invalid size'}), 502
+
+    response = Response(bytes(image_data), content_type=content_type)
+    response.headers['Cache-Control'] = 'public, max-age=86400'
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['Cross-Origin-Resource-Policy'] = 'same-origin'
+    return response
 
 # UPDATE (Modify a document by ID)
 @app.route('/api/posts/update/<id>', methods=['PUT'])

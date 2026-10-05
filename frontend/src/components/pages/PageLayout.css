@@ -427,6 +427,10 @@ body {
   object-fit: contain;
 }
 
+.about-mobile-close {
+  display: none;
+}
+
 /* Responsive breakpoints for better text handling */
 @media screen and (max-width: 1200px) {
   .about-page-content,
@@ -920,5 +924,404 @@ body {
 
   .moderation-blackbox p {
     font-size: 0.85rem;
+  }
+}
+
+.faq-mobile-accordion,
+.faq-mobile-close,
+.moderation-mobile-content {
+  display: none;
+}
+
+/* FAQ accordion layout is intentionally limited to portrait phones. */
+@media screen and (max-width: 768px) and (orientation: portrait) {
+  .page-container:has(.faq-mobile-accordion) {
+    width: min(86vw, 320px);
+    height: calc(100dvh - 136px);
+    min-height: min(460px, calc(100dvh - 136px));
+    max-height: 620px;
+    margin: auto;
+    border-radius: 12px;
+    background: var(--post-form-modal);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.2);
+    overflow-y: auto;
+  }
+
+  .page-container.taskbar-hidden:has(.faq-mobile-accordion) {
+    width: min(86vw, 320px);
+    height: calc(100dvh - 32px);
+    min-height: min(460px, calc(100dvh - 32px));
+    margin: auto;
+  }
+
+  .faq-page-content {
+    position: relative;
+    height: 100%;
+    padding: 54px 12px 20px;
+    justify-content: flex-start;
+  }
+
+  .faq-page-content h1 {
+    margin: 0 0 10px;
+    padding-bottom: 2px;
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
+    font-size: 18px;
+    line-height: 1.2;
+    text-align: center;
+  }
+
+  .faq-mobile-close {
+    position: absolute;
+    top: 20px;
+    right: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--primary-color);
+    cursor: pointer;
+  }
+
+  .faq-mobile-accordion {
+    display: grid;
+    gap: 10px;
+  }
+
+  .faq-mobile-item {
+    overflow: hidden;
+    border-radius: 6px;
+    background: var(--tag-filter-grid);
+  }
+
+  .faq-mobile-trigger {
+    width: 100%;
+    min-height: 44px;
+    padding: 7px 10px;
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) 18px;
+    align-items: center;
+    gap: 7px;
+    border: none;
+    background: transparent;
+    color: var(--primary-color);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.2;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .faq-mobile-trigger:hover {
+    border-color: transparent;
+  }
+
+  .faq-mobile-trigger:focus,
+  .faq-mobile-trigger:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: -2px;
+  }
+
+  .faq-mobile-trigger img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+  }
+
+  .faq-mobile-trigger svg {
+    transition: transform 0.2s ease;
+  }
+
+  .faq-mobile-item.open .faq-mobile-trigger svg {
+    transform: rotate(180deg);
+  }
+
+  .faq-mobile-answer {
+    margin: 0;
+    padding: 6px 14px 16px 45px;
+    color: var(--text-primary);
+    font-size: 13px;
+    line-height: 1.45;
+    text-align: left;
+  }
+
+  .faq-layout {
+    display: none;
+  }
+}
+
+/* Moderation card layout is intentionally limited to portrait phones. */
+@media screen and (max-width: 768px) and (orientation: portrait) {
+  .page-container:has(.moderation-mobile-content) {
+    width: min(86vw, 320px);
+    height: calc(100dvh - 136px);
+    min-height: min(490px, calc(100dvh - 136px));
+    max-height: 620px;
+    margin: auto;
+    border-radius: 12px;
+    background: var(--post-form-modal);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+  }
+
+  .page-container.taskbar-hidden:has(.moderation-mobile-content) {
+    width: min(86vw, 320px);
+    height: calc(100dvh - 32px);
+    min-height: min(490px, calc(100dvh - 32px));
+    margin: auto;
+  }
+
+  .moderation-page-content {
+    position: relative;
+    height: 100%;
+    padding: 50px 12px 12px;
+    justify-content: flex-start;
+  }
+
+  .moderation-page-content > h1,
+  .moderation-layout {
+    display: none;
+  }
+
+  .moderation-mobile-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .moderation-mobile-slides {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    transition: transform 0.3s ease;
+  }
+
+  .moderation-mobile-page {
+    flex: 0 0 100%;
+    width: 100%;
+    min-height: 0;
+  }
+
+  .moderation-mobile-close {
+    position: absolute;
+    top: 20px;
+    right: 10px;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--primary-color);
+    cursor: pointer;
+  }
+
+  .moderation-mobile-image {
+    display: block;
+    width: min(58%, 165px);
+    height: 130px;
+    margin: 16px auto 4px;
+    object-fit: contain;
+  }
+
+  .moderation-mobile-intro {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: 4px 2px;
+    gap: 12px;
+  }
+
+  .moderation-mobile-intro h2,
+  .moderation-mobile-rule h2 {
+    margin: 0;
+    color: var(--primary-color);
+    font-size: 16px;
+    line-height: 1.2;
+  }
+
+  .moderation-mobile-intro p,
+  .moderation-mobile-rule p {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 13px;
+    line-height: 1.32;
+    white-space: pre-line;
+  }
+
+  .moderation-mobile-guidelines {
+    min-height: 0;
+    padding: 2px 2px 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+
+  .moderation-mobile-rule {
+    margin-bottom: 14px;
+  }
+
+  .moderation-mobile-rule h2 {
+    margin-bottom: 3px;
+    font-size: 14px;
+  }
+
+  .moderation-mobile-contact {
+    margin: 6px 0 2px;
+    padding: 12px;
+    border-radius: 3px;
+    background: #333;
+    color: #fff;
+    text-align: center;
+  }
+
+  .moderation-mobile-contact h3 {
+    margin: 0 0 7px;
+    font-size: 13px;
+  }
+
+  .moderation-mobile-contact p {
+    margin: 0;
+    color: #fff;
+    font-size: 12px;
+    line-height: 1.3;
+  }
+
+  .moderation-mobile-contact a {
+    color: var(--primary-color);
+  }
+
+  .moderation-mobile-pagination {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin-top: auto;
+    padding-top: 12px;
+  }
+
+  .moderation-mobile-pagination button {
+    width: 9px;
+    min-width: 9px;
+    height: 9px;
+    min-height: 9px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: var(--tag-filter-pagination);
+    cursor: pointer;
+  }
+
+  .moderation-mobile-pagination button.active {
+    background: var(--primary-color);
+  }
+}
+
+/* About card layout is intentionally limited to portrait phones. */
+@media screen and (max-width: 768px) and (orientation: portrait) {
+  .page-container:has(.about-page-content) {
+    width: min(86vw, 320px);
+    height: calc(100dvh - 118px);
+    min-height: min(520px, calc(100dvh - 118px));
+    max-height: 720px;
+    margin: auto;
+    border-radius: 12px;
+    background: var(--post-form-modal);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.2);
+    overflow-y: auto;
+  }
+
+  .page-container.taskbar-hidden:has(.about-page-content) {
+    width: min(86vw, 320px);
+    height: calc(100dvh - 32px);
+    min-height: min(520px, calc(100dvh - 32px));
+    max-height: 720px;
+    margin: auto;
+  }
+
+  .about-page-content {
+    position: relative;
+    height: 100%;
+    min-height: 0;
+    padding: 56px 14px 28px;
+    display: grid;
+    grid-template-rows: minmax(190px, 0.9fr) auto minmax(0, 1fr);
+    gap: 12px;
+    overflow: visible;
+  }
+
+  .about-mobile-close {
+    position: absolute;
+    top: 20px;
+    right: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--primary-color);
+    cursor: pointer;
+  }
+
+  .about-page-content h1 {
+    order: 2;
+    margin: 0;
+    color: var(--primary-color);
+    font-size: 17px;
+    line-height: 1.2;
+    text-align: left;
+  }
+
+  .about-layout {
+    order: 1;
+    display: contents;
+  }
+
+  .about-image-section {
+    order: 1;
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+  }
+
+  .about-page-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    object-fit: contain;
+  }
+
+  .about-text-section {
+    order: 3;
+    max-width: none;
+    text-align: left;
+    align-self: stretch;
+  }
+
+  .about-text-section p {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.38;
+  }
+
+  .about-text-section p + p {
+    margin-top: 14px;
   }
 }
