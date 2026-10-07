@@ -58,15 +58,32 @@ const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect,
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
+    let lastY = 0;
+    const recordTouchStart = (event: TouchEvent) => {
+      lastY = event.touches[0].clientY;
+    };
     const blockTouchMove = (event: TouchEvent) => {
+      const currentY = event.touches[0].clientY;
+      const deltaY = currentY - lastY;
+      lastY = currentY;
+
       const target = event.target as HTMLElement | null;
       const page = target?.closest('.carousel-page') as HTMLElement | null;
-      if (!page || page.scrollHeight <= page.clientHeight) event.preventDefault();
+      if (!page || page.scrollHeight <= page.clientHeight) {
+        event.preventDefault();
+        return;
+      }
+      // Stop scroll chaining to the browser at the list edges.
+      const atTop = page.scrollTop <= 0;
+      const atBottom = page.scrollTop + page.clientHeight >= page.scrollHeight - 1;
+      if ((atTop && deltaY > 0) || (atBottom && deltaY < 0)) event.preventDefault();
     };
+    document.addEventListener('touchstart', recordTouchStart, { passive: true });
     document.addEventListener('touchmove', blockTouchMove, { passive: false });
 
     return () => {
       document.body.style.overflow = previousOverflow;
+      document.removeEventListener('touchstart', recordTouchStart);
       document.removeEventListener('touchmove', blockTouchMove);
     };
   }, [isMobileModalOpen]);
