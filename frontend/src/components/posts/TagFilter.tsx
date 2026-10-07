@@ -57,6 +57,7 @@ const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect,
     if (!isMobileModalOpen) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
+    document.documentElement.classList.add('tag-filter-scroll-lock');
 
     let lastY = 0;
     const recordTouchStart = (event: TouchEvent) => {
@@ -83,6 +84,7 @@ const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect,
 
     return () => {
       document.body.style.overflow = previousOverflow;
+      document.documentElement.classList.remove('tag-filter-scroll-lock');
       document.removeEventListener('touchstart', recordTouchStart);
       document.removeEventListener('touchmove', blockTouchMove);
     };
