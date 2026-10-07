@@ -50,6 +50,27 @@ const TagFilter: React.FC<TagFilterProps> = ({ posts, selectedTags, onTagSelect,
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const isMobileModalOpen = isMobile && (isOpen || !showToggle);
+
+  // Lock background scroll while the mobile modal is open; iOS ignores overflow:hidden, so block touchmove outside the scrollable pages.
+  React.useEffect(() => {
+    if (!isMobileModalOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const blockTouchMove = (event: TouchEvent) => {
+      const target = event.target as HTMLElement | null;
+      const page = target?.closest('.carousel-page') as HTMLElement | null;
+      if (!page || page.scrollHeight <= page.clientHeight) event.preventDefault();
+    };
+    document.addEventListener('touchmove', blockTouchMove, { passive: false });
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('touchmove', blockTouchMove);
+    };
+  }, [isMobileModalOpen]);
+
   const legacyTags = React.useMemo(() => {
     const storyPromptSet = new Set<string>(STORY_PROMPTS);
     const tagSet = new Set<string>();
