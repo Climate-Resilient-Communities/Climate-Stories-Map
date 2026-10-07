@@ -1,4 +1,4 @@
-@media screen and (max-width: 768px) and (orientation: portrait) {
+﻿@media screen and (max-width: 768px) and (orientation: portrait) {
   .map-geocoder {
     position: fixed;
     top: 80px;
@@ -16,6 +16,7 @@
     left: 12px;
     right: 12px;
     height: calc(100vh - 137px);
+    height: calc(100dvh - 137px);
     border-radius: 12px;
     overflow: hidden;
     margin: 0;
@@ -129,6 +130,7 @@
       left: 12px;
       right: 12px;
       height: calc(100vh - 137px);
+      height: calc(100dvh - 137px);
     }
 
     .map-geocoder {
