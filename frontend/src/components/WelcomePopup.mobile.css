@@ -1,4 +1,4 @@
-@media screen and (max-width: 768px) {
+﻿@media screen and (max-width: 768px) {
   .modal-overlay {
     background: rgba(0, 0, 0, 0.52);
     backdrop-filter: blur(3px);
@@ -31,6 +31,7 @@
     width: 100%;
     max-width: 340px;
     max-height: calc(100vh - 24px);
+    max-height: calc(100dvh - 24px);
     padding: 38px 16px 18px 16px;
     border-radius: 16px;
     border: none;
@@ -93,5 +94,6 @@
 @media screen and (max-height: 700px) {
   .welcome-popup {
     max-height: calc(100vh - 20px);
+    max-height: calc(100dvh - 20px);
   }
 }

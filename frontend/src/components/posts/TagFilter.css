@@ -1,4 +1,4 @@
-.tag-filter-dropdown {
+﻿.tag-filter-dropdown {
   position: fixed;
   top: 240px;
   left: 40px;
@@ -49,6 +49,7 @@
   border-radius: 4px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
   max-height: calc(100vh - 260px);
+  max-height: calc(100dvh - 260px);
   overflow-y: auto;
   z-index: 1002;
   display: grid;
