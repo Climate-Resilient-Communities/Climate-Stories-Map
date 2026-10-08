@@ -7,12 +7,16 @@ interface CreatePostInstructionsPopupProps {
   isOpen: boolean;
   onClose: () => void;
   onNext: (dontShowAgain: boolean) => void;
+  onTermsOfUseClick?: () => void;
+  onPrivacyPolicyClick?: () => void;
 }
 
 const CreatePostInstructionsPopup: React.FC<CreatePostInstructionsPopupProps> = ({ 
   isOpen, 
   onClose, 
-  onNext 
+  onNext,
+  onTermsOfUseClick,
+  onPrivacyPolicyClick
 }) => {
   const [dontShowAgain, setDontShowAgain] = useState(false);
   const { theme } = useTheme();
@@ -45,7 +49,7 @@ const CreatePostInstructionsPopup: React.FC<CreatePostInstructionsPopupProps> = 
               <li>Click the Add button.</li>
             </ul>
             <div className="agreement-text">
-              By submitting I agree to the <a href="#">Terms of Use</a> and <a href="#">Privacy Policy</a>.
+              By submitting I agree to the <a href="#" onClick={(e) => { e.preventDefault(); onTermsOfUseClick?.(); }}>Terms of Use</a> and <a href="#" onClick={(e) => { e.preventDefault(); onPrivacyPolicyClick?.(); }}>Privacy Policy</a>.
             </div>
             <div className="instructions-bottom">
               <div className="checkbox-container">
