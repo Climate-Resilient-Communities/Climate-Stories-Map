@@ -136,6 +136,14 @@ const AppContent: React.FC = () => {
                 onClose={() => setIsWelcomePopupOpen(false)}
               />
 
+              <CreatePostInstructionsPopup
+                isOpen={isInstructionsPopupOpen}
+                onClose={() => setIsInstructionsPopupOpen(false)}
+                onNext={handleInstructionsNext}
+                onTermsOfUseClick={openTermsOfUsePopup}
+                onPrivacyPolicyClick={openPrivacyPolicyPopup}
+              />
+              {/* Rendered after the instructions popup so they stack on top of it */}
               <TermsOfUsePopUp
                 isOpen={isTermsOfUsePopupOpen}
                 onClose={closeTermsOfUsePopup}
@@ -143,11 +151,6 @@ const AppContent: React.FC = () => {
               <PrivacyPolicyPopup
                 isOpen={isPrivacyPolicyPopupOpen}
                 onClose={closePrivacyPolicyPopup}
-              />
-              <CreatePostInstructionsPopup
-                isOpen={isInstructionsPopupOpen}
-                onClose={() => setIsInstructionsPopupOpen(false)}
-                onNext={handleInstructionsNext}
               />
               <Routes>
                 <Route

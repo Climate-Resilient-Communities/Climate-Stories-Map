@@ -78,23 +78,24 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
     return MONOCHROME_MAP;
   };
 
+  // Center on the user at load; some browsers (notably iOS Safari) may withhold the prompt without a tap, so the locate button remains the fallback.
   useEffect(() => {
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { longitude, latitude } = position.coords;
-          setViewState(prev => ({
-            ...prev,
-            longitude,
-            latitude,
-            zoom: 10
-          }));
-        },
-        (error) => {
-          console.log("Geolocation error or permission denied:", String(error).replace(/[\r\n\t]/g, ' '));
-        }
-      );
-    }
+    if (!("geolocation" in navigator) || !window.isSecureContext) return;
+    const center = ({ coords }: GeolocationPosition) => {
+      setViewState(prev => ({ ...prev, longitude: coords.longitude, latitude: coords.latitude, zoom: 10 }));
+    };
+    navigator.geolocation.getCurrentPosition(
+      center,
+      (error) => {
+        if (error.code === 1) return;
+        navigator.geolocation.getCurrentPosition(center, () => {}, {
+          enableHighAccuracy: false,
+          timeout: 15000,
+          maximumAge: 300000
+        });
+      },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+    );
   }, []);
   const [popupInfo, setPopupInfo] = useState<Post | null>(null);
   const [isPopupImageLoading, setIsPopupImageLoading] = useState(false);
@@ -499,19 +500,20 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
       <button
         className={`location-button theme-${theme}`}
         onClick={() => {
+          if (!window.isSecureContext) {
+            showNotification('Location requires a secure (HTTPS) connection.', true);
+            return;
+          }
           if ("geolocation" in navigator) {
-            navigator.geolocation.getCurrentPosition(
-              (position) => {
-                const { longitude, latitude } = position.coords;
-                if (mapRef.current) {
-                  mapRef.current.flyTo({
-                    center: [longitude, latitude],
-                    zoom: 12,
-                    duration: 2000
-                  });
-                }
-              },
-              (error) => {
+            const onSuccess = (position: GeolocationPosition) => {
+              const { longitude, latitude } = position.coords;
+              mapRef.current?.flyTo({
+                center: [longitude, latitude],
+                zoom: 12,
+                duration: 2000
+              });
+            };
+            const onError = (error: GeolocationPositionError) => {
                 if (error.code === 1) { // PERMISSION_DENIED
                   showNotification('Location access denied. Please enable location permissions in your browser settings and refresh the page.', true);
                 } else if (error.code === 2) { // POSITION_UNAVAILABLE
@@ -521,7 +523,22 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
                 } else {
                   showNotification('Unable to access location. Please enable location permissions.', true);
                 }
-              }
+            };
+            // Retry with low accuracy if high accuracy fails (GPS off, indoors, timeout).
+            navigator.geolocation.getCurrentPosition(
+              onSuccess,
+              (error) => {
+                if (error.code === 1) {
+                  onError(error);
+                  return;
+                }
+                navigator.geolocation.getCurrentPosition(onSuccess, onError, {
+                  enableHighAccuracy: false,
+                  timeout: 15000,
+                  maximumAge: 300000
+                });
+              },
+              { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
             );
           } else {
             showNotification('Geolocation is not supported by this browser.', true);
