@@ -4,7 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import './Map.css';
 import './Map.mobile.css';
 import './MapPopup.css';
-import { MdClose, MdMyLocation, MdSearch } from 'react-icons/md';
+import { MdClose, MdLocationOn, MdMyLocation, MdSearch } from 'react-icons/md';
 import { Post } from './posts/types';
 import { isPointInPolygon } from '../utils/map-utils';
 import { useNotification } from './common/NotificationContext';
@@ -63,6 +63,11 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
   const [isRetrievingSuggestion, setIsRetrievingSuggestion] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [searchAttribution, setSearchAttribution] = useState('');
+  const [searchedLocation, setSearchedLocation] = useState<{
+    coordinates: [number, number];
+    name: string;
+    context?: string;
+  } | null>(null);
   const { showNotification } = useNotification();
   const { theme } = useTheme();
   const mapRef = useRef<any>(null);
@@ -491,6 +496,11 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
         zoom: suggestion.feature_type === 'poi' || suggestion.feature_type === 'address' ? 15 : 10,
         duration: 1500
       });
+      setSearchedLocation({
+        coordinates: center,
+        name: suggestion.name,
+        context: suggestion.place_formatted
+      });
       setSearchQuery('');
       setSearchSuggestions([]);
       setActiveSuggestionIndex(-1);
@@ -544,6 +554,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
             value={searchQuery}
             onChange={(event) => {
               setSearchQuery(event.target.value);
+              setSearchedLocation(null);
               setSearchSuggestions([]);
               setSearchAttribution('');
               setSearchError(null);
@@ -688,6 +699,36 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
         ]}
       >
         <NavigationControl />
+        {searchedLocation && (
+          <Marker
+            longitude={searchedLocation.coordinates[0]}
+            latitude={searchedLocation.coordinates[1]}
+            anchor="bottom"
+          >
+            <div
+              className="searched-location-marker"
+              title={searchedLocation.context
+                ? `${searchedLocation.name}, ${searchedLocation.context}`
+                : searchedLocation.name}
+            >
+              <div className="searched-location-label">
+                <span className="searched-location-name">{searchedLocation.name}</span>
+                <button
+                  className="searched-location-dismiss"
+                  type="button"
+                  aria-label={`Remove ${searchedLocation.name} marker`}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setSearchedLocation(null);
+                  }}
+                >
+                  <MdClose aria-hidden="true" />
+                </button>
+              </div>
+              <MdLocationOn className="searched-location-pin" aria-hidden="true" />
+            </div>
+          </Marker>
+        )}
         {posts.map((post) => {
           // Use the stored color from colorMapRef if available, otherwise calculate it
           // This ensures colors stay consistent when filtering
