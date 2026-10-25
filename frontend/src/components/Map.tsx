@@ -34,6 +34,11 @@ const createSearchSessionToken = () =>
 
 const getPostImageUrl = (postId: string) => `/api/posts/${encodeURIComponent(postId)}/image`;
 
+const isMobileViewportMatch = () =>
+  typeof window !== 'undefined' &&
+  !!window.matchMedia &&
+  window.matchMedia('(max-width: 768px) and (orientation: portrait)').matches;
+
 interface MapProps {
   posts: Post[];
   onMapClick: (coordinates: [number, number], event: React.MouseEvent<HTMLDivElement>) => void;
@@ -44,17 +49,13 @@ interface MapProps {
 }
 
 const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskbarVisible = true, isCreatePostMode = false }) => {
-  const [isMobileViewport, setIsMobileViewport] = useState(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return false;
-    return window.matchMedia('(max-width: 768px) and (orientation: portrait)').matches;
-  });
+  const [isMobileViewport, setIsMobileViewport] = useState(isMobileViewportMatch);
   const [canadaGeoJSON, setCanadaGeoJSON] = useState<any | null>(null);
   const [viewState, setViewState] = useState({
     longitude: -96.8283,  // Center of Canada
     latitude: 62.3947,
     zoom: 4
   });
-  const [isGeocoderExpanded, setIsGeocoderExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchSuggestions, setSearchSuggestions] = useState<SearchSuggestion[]>([]);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
@@ -72,24 +73,12 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
     if (typeof window === 'undefined' || !window.matchMedia) return;
 
     const mediaQuery = window.matchMedia('(max-width: 768px) and (orientation: portrait)');
-
-    const applyViewportMode = (isMobile: boolean) => {
-      setIsMobileViewport(isMobile);
-      if (isMobile) {
-        setIsGeocoderExpanded(true);
-      }
-    };
-
-    applyViewportMode(mediaQuery.matches);
-
     const handleViewportChange = (event: MediaQueryListEvent) => {
-      applyViewportMode(event.matches);
+      setIsMobileViewport(event.matches);
     };
 
     mediaQuery.addEventListener('change', handleViewportChange);
-    return () => {
-      mediaQuery.removeEventListener('change', handleViewportChange);
-    };
+    return () => mediaQuery.removeEventListener('change', handleViewportChange);
   }, []);
 
   const getMapStyle = () => {
@@ -433,20 +422,19 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
   }, [searchQuery]);
 
   useEffect(() => {
-    if (!isGeocoderExpanded || isMobileViewport) return;
-
+    if (searchSuggestions.length === 0) return;
     const handlePointerDown = (event: PointerEvent) => {
       const targetNode = event.target as Node | null;
       if (!targetNode) return;
 
       if (!geocoderContainerRef.current?.contains(targetNode)) {
-        setIsGeocoderExpanded(false);
+        setSearchSuggestions([]);
       }
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        setIsGeocoderExpanded(false);
+        setSearchSuggestions([]);
         (document.activeElement as HTMLElement | null)?.blur?.();
       }
     };
@@ -458,7 +446,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
       document.removeEventListener('pointerdown', handlePointerDown, true);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isGeocoderExpanded, isMobileViewport]);
+  }, [searchSuggestions.length]);
 
   const focusGeocoderInput = () => {
     const input = geocoderContainerRef.current?.querySelector<HTMLInputElement>('.map-search-input');
@@ -506,7 +494,6 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
       setSearchQuery('');
       setSearchSuggestions([]);
       setActiveSuggestionIndex(-1);
-      setIsGeocoderExpanded(false);
       searchSessionTokenRef.current = createSearchSessionToken();
     } catch (error) {
       console.error('Could not retrieve the selected location:', error);
@@ -538,82 +525,61 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
     <div className={`map-container map-canvas ${taskbarVisible ? '' : 'taskbar-hidden'}${isCreatePostMode ? ' create-post-mode' : ''}`}>
       {/* Location Search */}
       <div
-        className={`map-geocoder ${(isMobileViewport || isGeocoderExpanded) ? 'expanded' : 'collapsed'} theme-${theme}`}
+        className={`map-geocoder expanded theme-${theme}`}
         ref={geocoderContainerRef}
-        onMouseEnter={() => {
-          if (!isMobileViewport) setIsGeocoderExpanded(true);
-        }}
-        onMouseLeave={() => {
-          if (isMobileViewport) return;
-          const isFocusedWithin = !!geocoderContainerRef.current?.contains(document.activeElement);
-          if (!isFocusedWithin) setIsGeocoderExpanded(false);
-        }}
-        onClick={() => {
-          if (!isGeocoderExpanded) {
-            setIsGeocoderExpanded(true);
-            requestAnimationFrame(focusGeocoderInput);
-          }
-        }}
-        onFocusCapture={() => setIsGeocoderExpanded(true)}
         aria-label="Search for a location"
       >
-        {isGeocoderExpanded ? (
-          <div className="map-search-control">
-            <MdSearch className="map-search-icon" aria-hidden="true" />
-            <input
-              className="map-search-input"
-              type="search"
-              role="combobox"
-              aria-label="Search for a location in Canada"
-              aria-autocomplete="list"
-              aria-controls="map-search-suggestions"
-              aria-activedescendant={activeSuggestionIndex >= 0 ? `map-search-suggestion-${activeSuggestionIndex}` : undefined}
-              aria-expanded={searchSuggestions.length > 0}
-              placeholder="Search locations, landmarks, or buildings"
-              value={searchQuery}
-              onChange={(event) => {
-                setSearchQuery(event.target.value);
+        <div className="map-search-control">
+          <MdSearch className="map-search-icon" aria-hidden="true" />
+          <input
+            className="map-search-input"
+            type="search"
+            role="combobox"
+            aria-label="Search for a location in Canada"
+            aria-autocomplete="list"
+            aria-controls="map-search-suggestions"
+            aria-activedescendant={activeSuggestionIndex >= 0 ? `map-search-suggestion-${activeSuggestionIndex}` : undefined}
+            aria-expanded={searchSuggestions.length > 0}
+            placeholder="Search locations, landmarks, or buildings"
+            value={searchQuery}
+            onChange={(event) => {
+              setSearchQuery(event.target.value);
+              setSearchSuggestions([]);
+              setSearchAttribution('');
+              setSearchError(null);
+              setActiveSuggestionIndex(-1);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === 'ArrowDown' && searchSuggestions.length > 0) {
+                event.preventDefault();
+                setActiveSuggestionIndex((index) => Math.min(index + 1, searchSuggestions.length - 1));
+              } else if (event.key === 'ArrowUp' && searchSuggestions.length > 0) {
+                event.preventDefault();
+                setActiveSuggestionIndex((index) => Math.max(index - 1, 0));
+              } else if (event.key === 'Enter' && activeSuggestionIndex >= 0) {
+                event.preventDefault();
+                void selectSearchSuggestion(searchSuggestions[activeSuggestionIndex]);
+              } else if (event.key === 'Escape') {
                 setSearchSuggestions([]);
-                setSearchAttribution('');
                 setSearchError(null);
-                setActiveSuggestionIndex(-1);
+              }
+            }}
+          />
+          {searchQuery && (
+            <button
+              className="map-search-clear"
+              type="button"
+              aria-label="Clear search"
+              onClick={() => {
+                setSearchQuery('');
+                setSearchError(null);
+                focusGeocoderInput();
               }}
-              onKeyDown={(event) => {
-                if (event.key === 'ArrowDown' && searchSuggestions.length > 0) {
-                  event.preventDefault();
-                  setActiveSuggestionIndex((index) => Math.min(index + 1, searchSuggestions.length - 1));
-                } else if (event.key === 'ArrowUp' && searchSuggestions.length > 0) {
-                  event.preventDefault();
-                  setActiveSuggestionIndex((index) => Math.max(index - 1, 0));
-                } else if (event.key === 'Enter' && activeSuggestionIndex >= 0) {
-                  event.preventDefault();
-                  void selectSearchSuggestion(searchSuggestions[activeSuggestionIndex]);
-                } else if (event.key === 'Escape') {
-                  setSearchSuggestions([]);
-                  setSearchError(null);
-                }
-              }}
-            />
-            {searchQuery && (
-              <button
-                className="map-search-clear"
-                type="button"
-                aria-label="Clear search"
-                onClick={() => {
-                  setSearchQuery('');
-                  setSearchError(null);
-                  focusGeocoderInput();
-                }}
-              >
-                <MdClose aria-hidden="true" />
-              </button>
-            )}
-          </div>
-        ) : (
-          <button className="map-search-toggle" type="button" aria-label="Search for a location">
-            <MdSearch aria-hidden="true" />
-          </button>
-        )}
+            >
+              <MdClose aria-hidden="true" />
+            </button>
+          )}
+        </div>
         {searchSuggestions.length > 0 && (
           <ul className="map-search-suggestions" id="map-search-suggestions" role="listbox">
             {searchSuggestions.map((suggestion, index) => (

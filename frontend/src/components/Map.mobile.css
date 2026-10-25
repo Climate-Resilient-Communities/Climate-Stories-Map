@@ -30,8 +30,7 @@
     z-index: 1000;
   }
 
-  .map-geocoder.expanded,
-  .map-geocoder.collapsed {
+  .map-geocoder.expanded {
     width: calc(100% - 24px);
     height: 40px;
   }
