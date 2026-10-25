@@ -4,7 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import './Map.css';
 import './Map.mobile.css';
 import './MapPopup.css';
-import { MdClose, MdLocationOn, MdMyLocation, MdSearch } from 'react-icons/md';
+import { MdClose, MdLocationOn, MdMyLocation, MdSearch, MdZoomIn, MdZoomOut } from 'react-icons/md';
 import { Post } from './posts/types';
 import { isPointInPolygon } from '../utils/map-utils';
 import { useNotification } from './common/NotificationContext';
@@ -677,6 +677,30 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
       >
         <MdMyLocation size={20} />
       </button>
+      <div className="map-zoom-control mapboxgl-ctrl mapboxgl-ctrl-group" role="group" aria-label="Map zoom controls">
+        <button
+          type="button"
+          aria-label="Zoom in"
+          title="Zoom in"
+          onClick={(event) => {
+            event.stopPropagation();
+            mapRef.current?.zoomIn();
+          }}
+        >
+          <MdZoomIn aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          aria-label="Zoom out"
+          title="Zoom out"
+          onClick={(event) => {
+            event.stopPropagation();
+            mapRef.current?.zoomOut();
+          }}
+        >
+          <MdZoomOut aria-hidden="true" />
+        </button>
+      </div>
       <Map
         ref={mapRef}
         {...viewState}
@@ -698,7 +722,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
           [-52.620281, 83.110626]   // Northeast coordinates
         ]}
       >
-        <NavigationControl />
+        <NavigationControl showZoom={false} />
         {searchedLocation && (
           <Marker
             longitude={searchedLocation.coordinates[0]}

@@ -79,6 +79,17 @@
     right: 6px;
   }
 
+  .map-zoom-control {
+    top: 50px;
+    right: 16px;
+  }
+
+  .map-zoom-control svg {
+    width: 16px;
+    height: 16px;
+    color: #333;
+  }
+
   .mapboxgl-ctrl-bottom-right {
     display: none !important;
   }
@@ -94,13 +105,17 @@
   .mapboxgl-ctrl-group button {
     width: 28px !important;
     height: 28px !important;
+    min-width: 28px !important;
+    min-height: 28px !important;
     padding: 0 !important;
     font-size: 12px !important;
     line-height: 28px !important;
+    background-color: transparent;
+    border-radius: 0;
   }
 
   .mapboxgl-ctrl-group button:not(:last-child) {
-    border-bottom: 1px solid #ccc;
+    border-bottom: 0;
   }
 
   .mapboxgl-ctrl {

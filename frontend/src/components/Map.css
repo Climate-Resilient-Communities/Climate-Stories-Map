@@ -10,6 +10,45 @@
   will-change: width, left;
 }
 
+.map-zoom-control {
+  position: absolute;
+  top: 45px;
+  right: 10px;
+  z-index: 1001;
+}
+
+.map-zoom-control.mapboxgl-ctrl-group button {
+  width: 29px;
+  height: 29px;
+  min-width: 29px;
+  min-height: 29px;
+  padding: 0;
+  color: #333;
+  background-color: transparent;
+  border: 0;
+  border-radius: 0;
+  outline: none;
+  transition: none;
+}
+
+.map-zoom-control.mapboxgl-ctrl-group button:hover {
+  border-color: transparent;
+}
+
+.map-zoom-control.mapboxgl-ctrl-group button:focus-visible {
+  box-shadow: 0 0 2px 2px rgb(0 150 255 / 100%);
+}
+
+.map-zoom-control.mapboxgl-ctrl-group button:focus:not(:focus-visible) {
+  box-shadow: none;
+}
+
+.map-zoom-control svg {
+  width: 18px;
+  height: 18px;
+  color: #333;
+}
+
 /* Location search */
 .map-geocoder {
   position: absolute;
