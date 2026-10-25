@@ -4,7 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import './Map.css';
 import './Map.mobile.css';
 import './MapPopup.css';
-import { MdClose, MdLocationOn, MdMyLocation, MdSearch, MdZoomIn, MdZoomOut } from 'react-icons/md';
+import { MdAdd, MdClose, MdLocationOn, MdMyLocation, MdSearch, MdZoomIn, MdZoomOut } from 'react-icons/md';
 import { Post } from './posts/types';
 import { isPointInPolygon } from '../utils/map-utils';
 import { useNotification } from './common/NotificationContext';
@@ -46,9 +46,19 @@ interface MapProps {
   selectedTags?: string[];
   taskbarVisible?: boolean;
   isCreatePostMode?: boolean;
+  onMobileCreatePost?: () => void;
+  onCancelCreatePost?: () => void;
 }
 
-const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskbarVisible = true, isCreatePostMode = false }) => {
+const CRCMap: React.FC<MapProps> = ({
+  posts,
+  onMapClick,
+  onMapRightClick,
+  taskbarVisible = true,
+  isCreatePostMode = false,
+  onMobileCreatePost,
+  onCancelCreatePost
+}) => {
   const [isMobileViewport, setIsMobileViewport] = useState(isMobileViewportMatch);
   const [canadaGeoJSON, setCanadaGeoJSON] = useState<any | null>(null);
   const [viewState, setViewState] = useState({
@@ -539,6 +549,12 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
         ref={geocoderContainerRef}
         aria-label="Search for a location"
       >
+        {isMobileViewport && isCreatePostMode && (
+          <div className={`mobile-create-post-prompt theme-${theme}`} role="status">
+            <span>Tap the map to choose a story location</span>
+            <button type="button" onClick={onCancelCreatePost}>Cancel</button>
+          </div>
+        )}
         <div className="map-search-control">
           <MdSearch className="map-search-icon" aria-hidden="true" />
           <input
@@ -625,9 +641,22 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
         )}
       </div>
 
-      {/* My Location Button */}
-      <button
-        className={`location-button theme-${theme}`}
+      <div className="map-mobile-actions">
+        {isMobileViewport && !isCreatePostMode && (
+          <button
+            className={`mobile-add-story-button theme-${theme}`}
+            type="button"
+            onClick={onMobileCreatePost}
+            aria-label="Add a story"
+          >
+            <MdAdd aria-hidden="true" />
+            <span>Add story</span>
+          </button>
+        )}
+
+        {/* My Location Button */}
+        <button
+          className={`location-button theme-${theme}`}
         onClick={() => {
           if (!window.isSecureContext) {
             showNotification('Location requires a secure (HTTPS) connection.', true);
@@ -673,10 +702,11 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
             showNotification('Geolocation is not supported by this browser.', true);
           }
         }}
-        title="Go to my location"
-      >
-        <MdMyLocation size={20} />
-      </button>
+          title="Go to my location"
+        >
+          <MdMyLocation size={20} />
+        </button>
+      </div>
       <div className="map-zoom-control mapboxgl-ctrl mapboxgl-ctrl-group" role="group" aria-label="Map zoom controls">
         <button
           type="button"

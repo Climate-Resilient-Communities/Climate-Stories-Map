@@ -10,6 +10,10 @@
   will-change: width, left;
 }
 
+.map-mobile-actions {
+  display: contents;
+}
+
 .map-zoom-control {
   position: absolute;
   top: 45px;

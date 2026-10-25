@@ -12,6 +12,7 @@ interface MapWithFormProps {
   taskbarVisible?: boolean;
   createPostTrigger?: boolean;
   onCreatePostTriggered?: () => void;
+  onMobileCreatePost: () => void;
   selectedTags?: string[];
 }
 
@@ -20,6 +21,7 @@ const MapWithForm: React.FC<MapWithFormProps> = ({
   taskbarVisible = true,
   createPostTrigger,
   onCreatePostTriggered,
+  onMobileCreatePost,
   selectedTags: externalSelectedTags,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -90,6 +92,8 @@ const MapWithForm: React.FC<MapWithFormProps> = ({
       <CRCMap 
         onMapClick={handleMapClick} 
         onMapRightClick={handleMapRightClick} 
+        onMobileCreatePost={onMobileCreatePost}
+        onCancelCreatePost={() => setIsCreatePostMode(false)}
         posts={filteredPosts} 
         selectedTags={selectedTags}
         taskbarVisible={taskbarVisible}

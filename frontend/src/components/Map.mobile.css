@@ -23,16 +23,103 @@
     z-index: 100;
   }
   
-  .location-button {
+  .map-mobile-actions {
     position: absolute;
-    bottom: 12px;
     right: 12px;
-    z-index: 1000;
+    bottom: 12px;
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .map-mobile-actions .location-button {
+    position: static;
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    margin: 0;
+    box-sizing: border-box;
   }
 
   .map-geocoder.expanded {
     width: calc(100% - 24px);
     height: 40px;
+  }
+
+  .mobile-add-story-button {
+    position: static;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0 !important;
+    min-height: 44px !important;
+    height: 44px !important;
+    padding: 0 12px !important;
+    box-sizing: border-box;
+    color: var(--primary-color, #4a90a4);
+    background: var(--surface-color, #fff);
+    border: 2px solid var(--primary-color, #4a90a4);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+
+  .mobile-add-story-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  .mobile-add-story-button svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .mobile-create-post-prompt {
+    position: relative;
+    width: 100%;
+    height: 40px;
+    z-index: 1011;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 40px;
+    padding: 0 6px 0 10px;
+    color: var(--text-primary, #333);
+    background: var(--surface-color, #fff);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    font-size: 13px;
+    font-weight: 600;
+    box-sizing: border-box;
+  }
+
+  .mobile-create-post-prompt button {
+    min-width: 0 !important;
+    min-height: 32px !important;
+    padding: 4px 10px !important;
+    color: var(--text-primary, #333);
+    background: transparent;
+    border: 1px solid var(--primary-color, #1e498a);
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .map-canvas.create-post-mode .map-geocoder .map-search-control,
+  .map-canvas.create-post-mode .map-geocoder .map-search-suggestions,
+  .map-canvas.create-post-mode .map-geocoder .map-search-status,
+  .map-canvas.create-post-mode .location-button,
+  .map-canvas.create-post-mode .map-zoom-control,
+  .map-canvas.create-post-mode .mapboxgl-ctrl-top-right {
+    display: none !important;
   }
 
   .map-search-control {

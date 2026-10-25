@@ -174,6 +174,7 @@ const AppContent: React.FC = () => {
                   selectedTags={selectedTags}
                   createPostTrigger={isCreatePostMode}
                   onCreatePostTriggered={resetCreatePostMode}
+                  onMobileCreatePost={handleCreatePost}
                 />} />
               </Routes>
             </main>
