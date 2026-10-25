@@ -10,108 +10,149 @@
   will-change: width, left;
 }
 
-/* Location search (Mapbox Geocoder) */
+/* Location search */
 .map-geocoder {
   position: absolute;
   top: 20px;
   left: 20px;
   z-index: 1002;
   width: min(360px, calc(100% - 40px));
+  color: var(--text-primary, #333);
 }
 
-.map-geocoder .mapboxgl-ctrl-geocoder {
-  min-width: 100%;
-  width: 100%;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  border-radius: 10px;
-  transition: width 160ms ease, min-width 160ms ease;
-}
-
-/* Collapsed state: icon-only */
-.map-geocoder.collapsed {
-  width: 36px;
-  height: 36px;
-}
-
-.map-geocoder.collapsed .mapboxgl-ctrl-geocoder {
-  width: 36px;
-  height: 36px;
-  min-width: 36px;
-  max-width: 36px;
-  padding: 0;
-  margin: 0;
-  cursor: pointer;
-  background: #fff;
-  border: 2px solid rgba(0,0,0,0.1);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+.map-search-control {
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;
-}
-
-.map-geocoder.collapsed .mapboxgl-ctrl-geocoder--input,
-.map-geocoder.collapsed .mapboxgl-ctrl-geocoder--button,
-.map-geocoder.collapsed .suggestions {
-  display: none;
-}
-
-.map-geocoder.collapsed .mapboxgl-ctrl-geocoder--icon-search {
-  margin: 0;
-  position: static;
-  width: 20px;
-  height: 20px;
-  color: inherit;
-  fill: currentColor;
-  stroke: currentColor;
-}
-
-/* Force the magnifying glass SVG to follow theme color (Mapbox ships hard-coded fills) */
-.map-geocoder.collapsed .mapboxgl-ctrl-geocoder--icon-search,
-.map-geocoder.collapsed .mapboxgl-ctrl-geocoder--icon-search * {
-  fill: currentColor !important;
-  stroke: currentColor !important;
-}
-
-/* Expanded state: normal search bar */
-.map-geocoder.expanded {
-  width: min(360px, calc(100% - 40px));
-}
-
-/* Theme the expanded search bar + dropdown */
-.map-geocoder.expanded .mapboxgl-ctrl-geocoder {
-  background: #fff;
-  border: 2px solid rgba(0,0,0,0.1);
-  color: #333;
-}
-
-/* Make geocoder icons follow theme colors in expanded mode */
-.map-geocoder.expanded .mapboxgl-ctrl-geocoder--icon-search,
-.map-geocoder.expanded .mapboxgl-ctrl-geocoder--icon-close,
-.map-geocoder.expanded .mapboxgl-ctrl-geocoder--icon-search *,
-.map-geocoder.expanded .mapboxgl-ctrl-geocoder--icon-close * {
-  fill: currentColor !important;
-  stroke: currentColor !important;
-}
-
-.map-geocoder.expanded .mapboxgl-ctrl-geocoder--input {
-  color: inherit;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.map-geocoder.expanded .mapboxgl-ctrl-geocoder--input::placeholder {
-  color: rgba(0, 0, 0, 0.55);
-}
-
-.map-geocoder.expanded .suggestions {
+  width: 100%;
+  height: 44px;
+  background: var(--surface-color, #fff);
+  border: 2px solid var(--primary-color, #4a90a4);
   border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.map-geocoder.collapsed .map-search-control {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
   overflow: hidden;
 }
 
-.map-geocoder.expanded .suggestions li a {
+.map-search-icon {
+  position: absolute;
+  left: 12px;
+  width: 20px;
+  height: 20px;
+  color: var(--primary-color, #4a90a4);
+  pointer-events: none;
+}
+
+.map-search-input {
+  width: 100%;
+  height: 100%;
+  padding: 0 42px 0 40px;
   color: inherit;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  background: transparent;
+  border: 0;
+  outline: 0;
+}
+
+.map-search-input::placeholder {
+  color: var(--text-secondary, #666);
+  opacity: 1;
+}
+
+.map-search-toggle,
+.map-search-clear {
+  display: grid;
+  place-items: center;
+  color: var(--primary-color, #4a90a4);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.map-search-toggle {
+  width: 100%;
+  height: 100%;
+  font-size: 20px;
+}
+
+.map-search-clear {
+  position: absolute;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  font-size: 18px;
+}
+
+.map-search-suggestions,
+.map-search-status {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 100%;
+  background: var(--surface-color, #fff);
+  border: 1px solid var(--border-color-dark, rgba(0,0,0,0.2));
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.map-search-suggestions {
+  z-index: 1;
+  margin: 0;
+  padding: 4px 0 0;
+  overflow: hidden;
+  list-style: none;
+}
+
+.map-search-suggestion {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 9px 12px;
+  color: var(--text-primary, #333);
+  text-align: left;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.map-search-suggestion:hover,
+.map-search-suggestion.active {
+  background: color-mix(in srgb, var(--primary-color, #4a90a4) 12%, transparent);
+}
+
+.map-search-suggestion-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.map-search-suggestion-context {
+  margin-top: 2px;
+  color: var(--text-secondary, #666);
+  font-size: 12px;
+}
+
+.map-search-attribution {
+  padding: 6px 10px;
+  color: var(--text-secondary, #666);
+  font-size: 10px;
+  text-align: right;
+  border-top: 1px solid var(--border-color, #ddd);
+}
+
+.map-search-status {
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.map-search-status.error {
+  color: var(--error-color, #b91c1c);
 }
 
 @media screen and (max-width: 768px) {
@@ -121,10 +162,6 @@
     width: calc(100% - 20px);
   }
 
-  .map-geocoder.collapsed {
-    width: 36px;
-    height: 36px;
-  }
 }
 
 .map-container.taskbar-hidden {
@@ -243,4 +280,3 @@
     width: auto;
   }
 }
-
