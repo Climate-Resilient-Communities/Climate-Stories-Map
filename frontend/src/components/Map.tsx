@@ -81,6 +81,7 @@ const CRCMap: React.FC<MapProps> = ({
   const { showNotification } = useNotification();
   const { theme } = useTheme();
   const mapRef = useRef<any>(null);
+  const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const geocoderContainerRef = useRef<HTMLDivElement | null>(null);
   const searchSessionTokenRef = useRef(createSearchSessionToken());
 
@@ -371,6 +372,31 @@ const CRCMap: React.FC<MapProps> = ({
   }, [taskbarVisible]);
 
   useEffect(() => {
+    const container = mapContainerRef.current;
+    if (!container) return;
+
+    let animationFrameId: number | null = null;
+    const resizeObserver = new ResizeObserver(() => {
+      if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
+      }
+
+      animationFrameId = requestAnimationFrame(() => {
+        mapRef.current?.resize();
+        animationFrameId = null;
+      });
+    });
+
+    resizeObserver.observe(container);
+    return () => {
+      resizeObserver.disconnect();
+      if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     const query = searchQuery.trim();
     if (query.length < 2) {
       setSearchSuggestions([]);
@@ -542,7 +568,10 @@ const CRCMap: React.FC<MapProps> = ({
   };
 
   return (
-    <div className={`map-container map-canvas ${taskbarVisible ? '' : 'taskbar-hidden'}${isCreatePostMode ? ' create-post-mode' : ''}`}>
+    <div
+      ref={mapContainerRef}
+      className={`map-container map-canvas ${taskbarVisible ? '' : 'taskbar-hidden'}${isCreatePostMode ? ' create-post-mode' : ''}`}
+    >
       {/* Location Search */}
       <div
         className={`map-geocoder expanded theme-${theme}`}
