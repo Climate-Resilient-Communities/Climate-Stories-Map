@@ -17,6 +17,48 @@ import TopicMarkerIcon from './markers/TopicMarkerIcon';
 // Replace this with your actual Mapbox access token
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 const MONOCHROME_MAP = import.meta.env.VITE_MONOCHROME_MAP;
+const MAP_VIEW_STORAGE_KEY = 'climateStories.mapView.v1';
+
+interface StoredMapViewState {
+  longitude: number;
+  latitude: number;
+  zoom: number;
+}
+
+const readStoredMapViewState = (): StoredMapViewState | null => {
+  try {
+    const stored = sessionStorage.getItem(MAP_VIEW_STORAGE_KEY);
+    if (!stored) return null;
+
+    const viewState = JSON.parse(stored) as Partial<StoredMapViewState>;
+    if (
+      typeof viewState.longitude === 'number' &&
+      Number.isFinite(viewState.longitude) &&
+      typeof viewState.latitude === 'number' &&
+      Number.isFinite(viewState.latitude) &&
+      typeof viewState.zoom === 'number' &&
+      Number.isFinite(viewState.zoom)
+    ) {
+      return {
+        longitude: viewState.longitude,
+        latitude: viewState.latitude,
+        zoom: viewState.zoom,
+      };
+    }
+  } catch (error) {
+    console.error('Could not restore the saved map view:', error);
+  }
+
+  return null;
+};
+
+const saveMapViewState = (viewState: StoredMapViewState) => {
+  try {
+    sessionStorage.setItem(MAP_VIEW_STORAGE_KEY, JSON.stringify(viewState));
+  } catch (error) {
+    console.error('Could not save the current map view:', error);
+  }
+};
 
 interface SearchSuggestion {
   mapbox_id: string;
@@ -48,6 +90,7 @@ interface MapProps {
   isCreatePostMode?: boolean;
   onMobileCreatePost?: () => void;
   onCancelCreatePost?: () => void;
+  focusedPost?: Post | null;
 }
 
 const CRCMap: React.FC<MapProps> = ({
@@ -57,15 +100,21 @@ const CRCMap: React.FC<MapProps> = ({
   taskbarVisible = true,
   isCreatePostMode = false,
   onMobileCreatePost,
-  onCancelCreatePost
+  onCancelCreatePost,
+  focusedPost = null,
 }) => {
   const [isMobileViewport, setIsMobileViewport] = useState(isMobileViewportMatch);
   const [canadaGeoJSON, setCanadaGeoJSON] = useState<any | null>(null);
-  const [viewState, setViewState] = useState({
-    longitude: -96.8283,  // Center of Canada
+  const initialViewStateRef = useRef<StoredMapViewState | null>(null);
+  if (initialViewStateRef.current === null) {
+    initialViewStateRef.current = readStoredMapViewState();
+  }
+  const [viewState, setViewState] = useState(() => initialViewStateRef.current ?? ({
+    longitude: -96.8283,
     latitude: 62.3947,
-    zoom: 4
-  });
+    zoom: 4,
+  }));
+  const [isMapReady, setIsMapReady] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchSuggestions, setSearchSuggestions] = useState<SearchSuggestion[]>([]);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
@@ -103,6 +152,7 @@ const CRCMap: React.FC<MapProps> = ({
 
   // Center on the user at load; some browsers (notably iOS Safari) may withhold the prompt without a tap, so the locate button remains the fallback.
   useEffect(() => {
+    if (initialViewStateRef.current) return;
     if (!("geolocation" in navigator) || !window.isSecureContext) return;
     const center = ({ coords }: GeolocationPosition) => {
       setViewState(prev => ({ ...prev, longitude: coords.longitude, latitude: coords.latitude, zoom: 10 }));
@@ -179,6 +229,7 @@ const CRCMap: React.FC<MapProps> = ({
 
   const popupInfoRef = useRef<Post | null>(null);
   const popupSizeRef = useRef(popupSize);
+  const lastFocusedPostIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     popupInfoRef.current = popupInfo;
@@ -294,6 +345,35 @@ const CRCMap: React.FC<MapProps> = ({
       cleanupResizeSession();
     };
   }, [cleanupResizeSession]);
+
+  useEffect(() => {
+    if (!focusedPost || !isMapReady || lastFocusedPostIdRef.current === focusedPost._id) return;
+
+    const map = mapRef.current?.getMap?.();
+    if (!map) return;
+
+    const focusPost = () => {
+      if (lastFocusedPostIdRef.current === focusedPost._id) return;
+      lastFocusedPostIdRef.current = focusedPost._id;
+
+      const bounds = getPopupBounds(isMobileViewport);
+      const nextPopupSize = { width: bounds.defaultW, height: bounds.defaultH };
+      setPopupSize(nextPopupSize);
+      setPopupInfo(focusedPost);
+      setIsPopupImageLoading(Boolean(focusedPost.content.image));
+      cleanupResizeSession();
+
+      map.easeTo({
+        center: focusedPost.location.coordinates,
+        zoom: Math.max(map.getZoom(), 12),
+        duration: 1000,
+        essential: true,
+      });
+      map.once('moveend', () => centerMapForPopup(focusedPost, nextPopupSize));
+    };
+
+    focusPost();
+  }, [centerMapForPopup, cleanupResizeSession, focusedPost, isMapReady, isMobileViewport]);
 
   useEffect(() => {
     if (!popupInfo) return;
@@ -764,6 +844,11 @@ const CRCMap: React.FC<MapProps> = ({
         ref={mapRef}
         {...viewState}
         onMove={evt => setViewState(evt.viewState)}
+        onMoveEnd={evt => {
+          const { longitude, latitude, zoom } = evt.viewState;
+          saveMapViewState({ longitude, latitude, zoom });
+        }}
+        onLoad={() => setIsMapReady(true)}
         style={{ width: '100%', height: '100%' }}
         mapStyle={getMapStyle()}
         mapboxAccessToken={MAPBOX_TOKEN}
@@ -841,7 +926,7 @@ const CRCMap: React.FC<MapProps> = ({
               }}
             >
               <div
-                className="topic-marker"
+                className={`topic-marker${post.status === 'pending' ? ' topic-marker--pending' : ''}`}
                 style={{ ['--marker-color' as any]: color } as React.CSSProperties}
                 aria-label={
                   `${post.title}. ` +
@@ -901,6 +986,11 @@ const CRCMap: React.FC<MapProps> = ({
             >
               <div className="map-popup-header">
                 <h3 className="map-popup-title">{popupInfo.title}</h3>
+                {popupInfo.status === 'pending' && (
+                  <p className="map-popup-pending-note">
+                    Pending moderator review · visible only on this device
+                  </p>
+                )}
               </div>
               <div className="map-popup-body">
                 <p className="map-popup-description">{popupInfo.content.description}</p>
@@ -908,13 +998,17 @@ const CRCMap: React.FC<MapProps> = ({
                   <div className="map-popup-image-frame" aria-busy={isPopupImageLoading}>
                     {isPopupImageLoading && <span className="map-popup-image-loader" aria-label="Loading image" />}
                     <img
-                      src={getPostImageUrl(popupInfo._id)}
+                      src={popupInfo.status && popupInfo.status !== 'approved' && popupInfo.content.image
+                        ? popupInfo.content.image
+                        : getPostImageUrl(popupInfo._id)}
                       alt={popupInfo.title}
                       className={`map-popup-image ${isPopupImageLoading ? 'loading' : ''}`}
                       onLoad={() => setIsPopupImageLoading(false)}
                       onError={() => setIsPopupImageLoading(false)}
                       onClick={() => {
-                        setModalImageSrc(getPostImageUrl(popupInfo._id));
+                        setModalImageSrc(popupInfo.status && popupInfo.status !== 'approved' && popupInfo.content.image
+                          ? popupInfo.content.image
+                          : getPostImageUrl(popupInfo._id));
                         setModalImageAlt(popupInfo.title);
                         setIsImageModalOpen(true);
                       }}

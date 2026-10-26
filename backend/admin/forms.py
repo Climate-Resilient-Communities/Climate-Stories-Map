@@ -73,7 +73,8 @@ class PostForm(form.Form):
     status = fields.SelectField('Status', choices=[
         ('pending', 'Pending'),
         ('approved', 'Approved'),
-        ('rejected', 'Rejected')
+        ('rejected', 'Rejected'),
+        ('withdrawn', 'Withdrawn')
     ])
 
 class UserForm(form.Form):
@@ -99,4 +100,3 @@ class EditUserForm(form.Form):
     role = fields.SelectField('Role', choices=[('admin', 'Admin'), ('moderator', 'Moderator')], validators=[validators.DataRequired()])
     firstname = fields.StringField('First Name', [validators.DataRequired(), validators.Length(min=1, max=50)])
     lastname = fields.StringField('Last Name', [validators.DataRequired(), validators.Length(min=1, max=50)])
-

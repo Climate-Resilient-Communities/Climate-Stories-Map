@@ -9,6 +9,7 @@ import PrivacyPolicyPopup from '../PrivacyPolicyPopup';
 import TermsOfUsePopUp from '../TermsOfUsePopUp';
 import ImageModal from '../common/ImageModal';
 import { STORY_PROMPTS } from '../../utils/story-prompts';
+import { trackSubmission } from '../../services/submissionTracking';
 
 interface PostFormProps {
   onClose: () => void;
@@ -313,7 +314,22 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
           }));
           captchaRef.current?.resetCaptcha();
 
-          const successMessage = 'Your post has been submitted for review with our moderators!';
+          const postId = typeof responseJson?.post_id === 'string' ? responseJson.post_id : null;
+          const accessToken = typeof responseJson?.submission_access_token === 'string'
+            ? responseJson.submission_access_token
+            : null;
+          let successMessage = 'Your story was submitted, but this browser could not save a private status tracker.';
+          if (postId && accessToken) {
+            try {
+              trackSubmission(postId, accessToken);
+              successMessage = 'Your story is waiting for moderator review. You can check its status later from My submissions on this device.';
+            } catch (error) {
+              console.error('Could not save the private submission tracker:', error);
+              successMessage = `Your story was submitted, but this browser could not save its private tracker. Keep this reference for moderators: ${postId}`;
+            }
+          } else {
+            console.error('Submission response did not include the private tracking credentials.');
+          }
 
           // Clear any previous captcha token so it can't be reused across posts.
           setFormData(prevData => ({

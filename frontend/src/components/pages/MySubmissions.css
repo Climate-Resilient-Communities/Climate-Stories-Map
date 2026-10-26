@@ -1,0 +1,370 @@
+.my-submissions-page {
+  position: relative;
+  width: 100%;
+  min-height: 100%;
+  padding: clamp(24px, 5vw, 64px);
+  overflow: visible;
+  color: var(--text-primary, #252525);
+  background: var(--background-color, #fff);
+}
+
+@media screen and (min-width: 769px) {
+  .page-container.my-submissions-container {
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-color: var(--primary-color) transparent;
+    scrollbar-width: thin;
+  }
+
+  .page-container.my-submissions-container.is-empty {
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  .page-container.my-submissions-container.is-empty::-webkit-scrollbar {
+    display: none;
+  }
+
+  .page-container.my-submissions-container::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .page-container.my-submissions-container::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .page-container.my-submissions-container::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border: 2px solid transparent;
+    border-radius: 8px;
+    background-clip: padding-box;
+  }
+
+  .page-container.my-submissions-container::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
+    background-clip: padding-box;
+  }
+}
+
+.my-submissions-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.my-submissions-eyebrow {
+  margin: 0 0 8px;
+  color: var(--primary-color, #286d84);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.my-submissions-header h1 {
+  margin: 0;
+  font-size: clamp(28px, 4vw, 42px);
+  line-height: 1.15;
+}
+
+.my-submissions-header p:last-child {
+  max-width: 650px;
+  margin: 10px 0 0;
+  color: var(--text-secondary, #5c5c5c);
+  line-height: 1.5;
+}
+
+.my-submissions-refresh,
+.my-submissions-empty button {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 14px;
+  color: var(--text-primary, #333);
+  background: var(--surface-color, #fff);
+  border: 1px solid var(--border-color, #d5d5d5);
+  border-radius: 8px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+
+.my-submissions-refresh:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.my-submissions-privacy {
+  margin: 26px 0;
+  padding: 13px 16px;
+  color: var(--text-secondary, #555);
+  background: var(--surface-color, #f5f7f8);
+  border-left: 4px solid var(--primary-color, #286d84);
+  border-radius: 4px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.my-submissions-error,
+.my-submission-error {
+  color: #8a1f1f;
+}
+
+.my-submissions-error {
+  margin: 16px 0;
+  padding: 12px 14px;
+  background: #fff1f0;
+  border: 1px solid #e3aaaa;
+  border-radius: 8px;
+}
+
+.my-submissions-list {
+  display: grid;
+  gap: 14px;
+}
+
+.my-submission-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px;
+  background: var(--surface-color, #fff);
+  border: 1px solid var(--border-color, #d5d5d5);
+  border-radius: 12px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+}
+
+.my-submission-main {
+  min-width: 0;
+}
+
+.my-submission-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.my-submission-title-row h2 {
+  margin: 0;
+  font-size: 19px;
+}
+
+.my-submission-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.my-submission-status.pending {
+  color: #704b00;
+  background: #fff2c2;
+}
+
+.my-submission-status.approved {
+  color: #14532d;
+  background: #dcfce7;
+}
+
+.my-submission-status.rejected {
+  color: #842029;
+  background: #f8d7da;
+}
+
+.my-submission-status.expired {
+  color: #414141;
+  background: #e5e7eb;
+}
+
+.my-submission-card p {
+  margin: 10px 0 0;
+  color: var(--text-secondary, #5c5c5c);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.my-submission-card .my-submission-description {
+  max-width: 760px;
+  color: var(--text-primary, #333);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.my-submission-card .my-submission-prompt,
+.my-submission-card .my-submission-tags {
+  font-size: 13px;
+}
+
+.my-submission-image {
+  display: block;
+  max-width: min(100%, 420px);
+  max-height: 260px;
+  margin-top: 12px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.my-submission-reference code {
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+
+.my-submission-card .my-submission-approved {
+  color: #14532d;
+}
+
+.my-submission-card .my-submission-declined,
+.my-submission-card .my-submission-error {
+  color: #842029;
+}
+
+.my-submission-card .my-submission-cancelled {
+  color: var(--text-secondary, #555);
+}
+
+.my-submission-status.withdrawn {
+  color: #414141;
+  background: #e5e7eb;
+}
+
+.my-submission-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.my-submission-cancel {
+  min-height: 36px;
+  padding: 4px 9px;
+  color: #842029;
+  background: #fff;
+  border: 1px solid #d7a1a5;
+  border-radius: 7px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.my-submission-go-to-post {
+  min-height: 36px;
+  padding: 4px 9px;
+  color: var(--text-primary, #333);
+  background: var(--surface-color, #fff);
+  border: 1px solid var(--border-color, #d5d5d5);
+  border-radius: 7px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.my-submission-go-to-post:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.my-submission-cancel:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.my-submission-forget {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 4px 9px;
+  color: var(--text-secondary, #555);
+  background: transparent;
+  border: 1px solid var(--border-color, #d5d5d5);
+  border-radius: 7px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+}
+
+.my-submissions-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 540px;
+  margin: 52px auto;
+  padding: 32px;
+  text-align: center;
+  background: var(--surface-color, #fff);
+  border: 1px solid var(--border-color, #d5d5d5);
+  border-radius: 14px;
+}
+
+.my-submissions-empty > svg {
+  color: var(--primary-color, #286d84);
+}
+
+.my-submissions-empty h2 {
+  margin: 12px 0 0;
+}
+
+.my-submissions-empty p {
+  margin: 10px 0 18px;
+  color: var(--text-secondary, #5c5c5c);
+  line-height: 1.5;
+}
+
+.spinning {
+  animation: submission-refresh-spin 0.9s linear infinite;
+}
+
+@keyframes submission-refresh-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media screen and (max-width: 768px) {
+  .page-container.my-submissions-container {
+    display: block;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .my-submissions-page {
+    min-height: 100%;
+    padding: 72px 16px 22px;
+  }
+
+  .my-submissions-header {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .my-submissions-refresh {
+    align-self: flex-start;
+  }
+
+  .my-submissions-privacy {
+    margin: 18px 0;
+  }
+
+  .my-submission-card {
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .my-submission-actions {
+    align-self: flex-end;
+    align-items: flex-end;
+  }
+}

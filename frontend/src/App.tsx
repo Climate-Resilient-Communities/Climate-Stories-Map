@@ -18,6 +18,7 @@ import Moderation from './components/pages/Moderation';
 import TermsOfUsePopUp from './components/TermsOfUsePopUp';
 import PrivacyPolicyPopup from './components/PrivacyPolicyPopup';
 import CreatePostInstructionsPopup from './components/CreatePostInstructionsPopup';
+import MySubmissions from './components/pages/MySubmissions';
 
 const AppContent: React.FC = () => {
   const location = useLocation();
@@ -32,7 +33,7 @@ const AppContent: React.FC = () => {
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const [isCreatePostMode, setIsCreatePostMode] = useState(false);
   const isMapPage = location.pathname === '/';
-  const isOtherPage = ['/about', '/faqs', '/moderation'].includes(location.pathname);
+  const isOtherPage = ['/about', '/faqs', '/moderation', '/my-submissions'].includes(location.pathname);
   const [isInstructionsPopupOpen, setIsInstructionsPopupOpen] = useState(false);
 
   const loadPosts = useCallback(async () => {
@@ -91,8 +92,8 @@ const AppContent: React.FC = () => {
   };
 
   const handleGoBackToMap = () => {
+    setIsCreatePostMode(false);
     navigate('/');
-    setIsCreatePostMode(true);
   };
 
   const handleInstructionsNext = (dontShowAgain: boolean) => {
@@ -167,6 +168,7 @@ const AppContent: React.FC = () => {
                 <Route path="/about" element={<About taskbarVisible={isTaskbarVisible} />} />
                 <Route path="/faqs" element={<Faqs taskbarVisible={isTaskbarVisible} />} />
                 <Route path="/moderation" element={<Moderation taskbarVisible={isTaskbarVisible} />} />
+                <Route path="/my-submissions" element={<MySubmissions taskbarVisible={isTaskbarVisible} />} />
                 <Route path="/" element={<MapWithForm 
                   posts={posts} 
                   onPostSubmit={handlePostSubmit}
