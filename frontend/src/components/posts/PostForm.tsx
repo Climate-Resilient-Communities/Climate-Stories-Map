@@ -19,6 +19,21 @@ interface PostFormProps {
 
 const CAPTCHA_SITE_KEY = import.meta.env.VITE_CAPTCHA_SITE_KEY || "10000000-ffff-ffff-ffff-000000000001";
 
+const MOBILE_QUERY = '(max-width: 768px)';
+
+// Mobile wizard steps: 0 prompt (optional), 1 title, 2 story, 3 photo (optional), 4 emotion, 5 topic, 6 agree + submit
+const LAST_STEP = 6;
+const STEP_HEADINGS = [
+  'Choose a story prompt',
+  'Write a title',
+  'Write your story',
+  'Add a photo',
+  'How does it feel?',
+  'Choose a topic',
+  'Review and submit',
+];
+const OPTIONAL_STEPS = [0, 3];
+
 const CAPTCHA_GRACE_TOKEN_KEY = 'captchaGraceToken';
 const CAPTCHA_GRACE_EXPIRES_AT_KEY = 'captchaGraceExpiresAt';
 
@@ -79,10 +94,19 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState<boolean>(() => window.matchMedia(MOBILE_QUERY).matches);
+  const [step, setStep] = useState(0);
   const [hasCaptchaGrace, setHasCaptchaGrace] = useState<boolean>(() => !!getStoredCaptchaGraceToken());
   const [captchaGraceExpiresAtMs, setCaptchaGraceExpiresAtMs] = useState<number | null>(() => getStoredCaptchaGraceExpiresAtMs());
 
   const hasValidCaptchaGrace = !!getStoredCaptchaGraceToken();
+
+  React.useEffect(() => {
+    const mql = window.matchMedia(MOBILE_QUERY);
+    const onChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mql.addEventListener('change', onChange);
+    return () => mql.removeEventListener('change', onChange);
+  }, []);
 
   React.useEffect(() => {
     if (!captchaGraceExpiresAtMs) return;
@@ -254,6 +278,10 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isMobile && step < LAST_STEP) {
+      if (isStepValid(step)) setStep(step + 1);
+      return;
+    }
     if (!isAgreedToAll) {
       showNotification('Please agree to the Privacy Policy and Terms of Use before submitting.', true);
       return;
@@ -401,11 +429,48 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
 
   const formValid = isFormValid();
 
+  const isStepValid = (s: number) => {
+    switch (s) {
+      case 0: return !!formData.storyPrompt;
+      case 3: return !!selectedImage;
+      case 1: return formData.title.trim() !== '';
+      case 2: return formData.content.description.trim() !== '';
+      case 4: return formData.tag !== '-';
+      case 5: return !!formData.optionalTags?.length;
+      default: return true;
+    }
+  };
+
+  // On desktop every section shows; on mobile only the current step does.
+  const show = (s: number) => !isMobile || step === s;
+  const isLastStep = !isMobile || step === LAST_STEP;
+
   const titlePlaceholder = 'Title *';
   const descriptionPlaceholder = formData.storyPrompt ? `Prompt: ${formData.storyPrompt} *` : 'Description *';
 
+  const renderChoices = (
+    options: readonly string[],
+    selected: string | undefined,
+    onPick: (value: string) => void,
+  ) => (
+    <div className="wizard-choices" role="radiogroup">
+      {options.map((option) => (
+        <button
+          key={option}
+          type="button"
+          role="radio"
+          aria-checked={selected === option}
+          className={`wizard-choice${selected === option ? ' selected' : ''}`}
+          onClick={() => onPick(option)}
+        >
+          {option}
+        </button>
+      ))}
+    </div>
+  );
+
   const renderForm = () => (
-    <form className="post-form" onSubmit={handleSubmit}>
+    <form className={`post-form${isMobile ? ' post-form-wizard' : ''}`} onSubmit={handleSubmit}>
       <div 
         className="post-form-left"
         style={{ 
@@ -416,6 +481,29 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
       <div className="post-form-right">
         <h2 className="post-form-title">Share your Climate Story</h2>
 
+        {isMobile && (
+          <div className="wizard-progress" aria-live="polite">
+            <div className="wizard-progress-text">
+              Step {step + 1} of {LAST_STEP + 1}
+              {OPTIONAL_STEPS.includes(step) ? ' (optional)' : ''}
+            </div>
+            <div className="wizard-progress-bar">
+              <div
+                className="wizard-progress-fill"
+                style={{ width: `${((step + 1) / (LAST_STEP + 1)) * 100}%` }}
+              />
+            </div>
+            <h3 className="wizard-step-heading">{STEP_HEADINGS[step]}</h3>
+          </div>
+        )}
+
+        <div className="wizard-body">
+        {show(0) && isMobile && renderChoices(
+          STORY_PROMPTS,
+          formData.storyPrompt,
+          (prompt) => setFormData(prev => ({ ...prev, storyPrompt: prompt })),
+        )}
+        {show(0) && !isMobile && (
         <div className="post-form-select">
           <select
             name="storyPrompt"
@@ -430,7 +518,9 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
             ))}
           </select>
         </div>
+        )}
 
+        {show(1) && (
         <input
           type="text"
           name="title"
@@ -439,7 +529,13 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
           onChange={handleChange}
           required
         />
+        )}
         
+        {show(2) && (
+        <>
+        {isMobile && formData.storyPrompt && (
+          <p className="wizard-prompt-hint">Prompt: {formData.storyPrompt}</p>
+        )}
         <textarea
           name="description"
           placeholder={descriptionPlaceholder}
@@ -447,7 +543,10 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
           onChange={handleChange}
           required
         />
+        </>
+        )}
         
+        {show(3) && (
         <div className="image-upload-section">
           <label htmlFor="image-upload" className="image-upload-label">
             Upload Image (Optional)
@@ -488,7 +587,14 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
             )}
           </div>
         </div>
+        )}
 
+        {show(4) && isMobile && renderChoices(
+          MAIN_TAGS,
+          formData.tag,
+          (tag) => setFormData(prev => ({ ...prev, tag: tag as PostFormData['tag'] })),
+        )}
+        {show(4) && !isMobile && (
         <div className="post-form-select">
           <select name="tag" value={formData.tag} onChange={handleChange} required>
             <option value="-" disabled>
@@ -501,7 +607,14 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
             ))}
           </select>
         </div>
+        )}
 
+        {show(5) && isMobile && renderChoices(
+          TOPIC_TAGS,
+          formData.optionalTags[0],
+          (topic) => setFormData(prev => ({ ...prev, optionalTags: [topic] })),
+        )}
+        {show(5) && !isMobile && (
         <div className="post-form-select">
           <select
             name="topicTag"
@@ -519,7 +632,9 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
             ))}
           </select>
         </div>
+        )}
 
+        {show(6) && (
         <div className="checkbox-container">
           <div className="checkbox-row">
             <label className="checkbox-label">
@@ -537,9 +652,45 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
             <li>I have read and agreed to the <a href="#" onClick={openTermsOfUse}>Terms of Use</a></li>
           </ul>
         </div>
+        )}
+        </div>
 
         <div className="form-buttons">
-          <button type="button" onClick={handleModalClose}>Cancel</button>
+          {isMobile && step > 0 ? (
+            <button type="button" onClick={() => setStep(step - 1)}>Back</button>
+          ) : (
+            <button type="button" onClick={handleModalClose}>Cancel</button>
+          )}
+          {isMobile && OPTIONAL_STEPS.includes(step) && (
+            <button
+              type="button"
+              onClick={() => {
+                if (step === 0) {
+                  setFormData(prev => ({ ...prev, storyPrompt: undefined }));
+                }
+                if (step === 3) {
+                  setSelectedImage(null);
+                  setImagePreview('');
+                  if (fileInputRef.current) fileInputRef.current.value = '';
+                }
+                setStep(step + 1);
+              }}
+            >
+              Skip
+            </button>
+          )}
+          {isMobile && step < LAST_STEP && (
+            <button
+              type="button"
+              className="wizard-next-btn"
+              disabled={!isStepValid(step)}
+              onClick={() => setStep(step + 1)}
+            >
+              Next
+            </button>
+          )}
+          {isLastStep && (
+          <>
           <div className="captcha-container">
             {!hasValidCaptchaGrace && isActive && (
               <HCaptcha
@@ -573,6 +724,8 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
           <span className="tooltip-wrapper" title={formValid ? '' : 'Fill up required fields *'}>
             <button type="submit" disabled={!formValid}>Add</button>
           </span>
+          </>
+          )}
         </div>
       </div>
     </form>
