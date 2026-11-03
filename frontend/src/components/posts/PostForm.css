@@ -671,6 +671,43 @@
   display: contents;
 }
 
+@media screen and (max-width: 768px) {
+  .wizard-review {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    font-size: 17px;
+    line-height: 1.4;
+    color: var(--text-primary);
+  }
+
+  .wizard-review-label {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--primary-color);
+    margin-bottom: 2px;
+  }
+
+  .wizard-review-story {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .wizard-review-image {
+    max-width: 100%;
+    max-height: 180px;
+    border-radius: 8px;
+    object-fit: cover;
+  }
+
+  .wizard-review-hint {
+    margin: 0;
+    font-size: 15px;
+    color: var(--text-secondary);
+  }
+}
+
 /* Taskbar.css hides all type="button" buttons in .post-form; the wizard needs them */
 [data-theme] .post-form.post-form-wizard button[type="button"] {
   display: inline-block;

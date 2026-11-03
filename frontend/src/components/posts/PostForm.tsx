@@ -21,8 +21,8 @@ const CAPTCHA_SITE_KEY = import.meta.env.VITE_CAPTCHA_SITE_KEY || "10000000-ffff
 
 const MOBILE_QUERY = '(max-width: 768px)';
 
-// Mobile wizard steps: 0 prompt (optional), 1 title, 2 story, 3 photo (optional), 4 emotion, 5 topic, 6 agree + submit
-const LAST_STEP = 6;
+// Mobile wizard steps: 0 prompt (optional), 1 title, 2 story, 3 photo (optional), 4 emotion, 5 topic, 6 review, 7 agree + submit
+const LAST_STEP = 7;
 const STEP_HEADINGS = [
   'Choose a story prompt',
   'Write a title',
@@ -30,7 +30,8 @@ const STEP_HEADINGS = [
   'Add a photo',
   'How does it feel?',
   'Choose a topic',
-  'Review and submit',
+  'Review your story',
+  'Agree and submit',
 ];
 const OPTIONAL_STEPS = [0, 3];
 
@@ -634,7 +635,41 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
         </div>
         )}
 
-        {show(6) && (
+        {show(6) && isMobile && (
+          <div className="wizard-review">
+            {formData.storyPrompt && (
+              <div className="wizard-review-item">
+                <div className="wizard-review-label">Prompt</div>
+                <div>{formData.storyPrompt}</div>
+              </div>
+            )}
+            <div className="wizard-review-item">
+              <div className="wizard-review-label">Title</div>
+              <div>{formData.title}</div>
+            </div>
+            <div className="wizard-review-item">
+              <div className="wizard-review-label">Story</div>
+              <div className="wizard-review-story">{formData.content.description}</div>
+            </div>
+            {imagePreview && (
+              <div className="wizard-review-item">
+                <div className="wizard-review-label">Photo</div>
+                <img src={imagePreview} alt="Your selected photo" className="wizard-review-image" />
+              </div>
+            )}
+            <div className="wizard-review-item">
+              <div className="wizard-review-label">Feeling</div>
+              <div>{formData.tag}</div>
+            </div>
+            <div className="wizard-review-item">
+              <div className="wizard-review-label">Topic</div>
+              <div>{formData.optionalTags[0]}</div>
+            </div>
+            <p className="wizard-review-hint">Need to change something? Use Back.</p>
+          </div>
+        )}
+
+        {show(7) && (
         <div className="checkbox-container">
           <div className="checkbox-row">
             <label className="checkbox-label">
