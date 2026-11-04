@@ -35,5 +35,4 @@ export interface PostFormData {
   tag: '-' | MainTagType;
   storyPrompt?: string;
   captchaToken: string;
-  captchaGraceToken?: string;
 }

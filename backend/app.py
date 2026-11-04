@@ -10,10 +10,8 @@ import os
 import json
 import hashlib
 import secrets
-from typing import Optional
 from urllib.parse import urlparse
 
-from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 
 from admin.auth import init_auth
 from admin import init_admin
@@ -52,7 +50,7 @@ elif debug_mode:
         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     )
 
-# Your hCaptcha secret key (keep this secure and never expose it on the client side)
+# Your Cloudflare Turnstile secret key (keep this secure and never expose it on the client side)
 captcha_secret_key = os.getenv('CAPTCHA_SECRET_KEY')
 
 # Now retrieve the MongoDB URI
@@ -62,17 +60,6 @@ cdn_key = os.getenv('CDN_KEY')
 cdn_url = os.getenv('CDN_API')
 captcha_url = os.getenv('CAPTCHA_URL')
 
-# After one successful CAPTCHA, allow a short grace period to reduce re-prompts.
-def _get_int_env(name: str, default: int) -> int:
-    raw = os.getenv(name)
-    if raw is None or raw == '':
-        return default
-    try:
-        return int(raw)
-    except ValueError:
-        return default
-
-captcha_grace_seconds = max(0, _get_int_env('CAPTCHA_GRACE_SECONDS', 300))
 MAX_IMAGE_BYTES = 5 * 1024 * 1024
 ALLOWED_IMAGE_HOSTS = {'i.ibb.co'}
 
@@ -90,37 +77,6 @@ app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(minutes=60)  # Opt
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = os.getenv('SESSION_COOKIE_SAMESITE', 'Lax')
 app.config['SESSION_COOKIE_SECURE'] = os.getenv('SESSION_COOKIE_SECURE', 'True' if not debug_mode else 'False').lower() == 'true'
-
-captcha_grace_serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'], salt='captcha-grace-v1')
-
-def _get_client_ip() -> str:
-    # Prefer the first IP in X-Forwarded-For when behind a proxy.
-    forwarded_for = request.headers.get('X-Forwarded-For', '')
-    if forwarded_for:
-        return forwarded_for.split(',')[0].strip()
-    return request.remote_addr or ''
-
-def _get_user_agent_hash() -> str:
-    ua = request.headers.get('User-Agent', '')
-    return hashlib.sha256(ua.encode('utf-8')).hexdigest()
-
-def _make_captcha_grace_token() -> str:
-    payload = {
-        'ip': _get_client_ip(),
-        'ua': _get_user_agent_hash(),
-    }
-    return captcha_grace_serializer.dumps(payload)
-
-def _is_valid_captcha_grace_token(token: Optional[str]) -> bool:
-    if not token or captcha_grace_seconds <= 0:
-        return False
-
-    try:
-        payload = captcha_grace_serializer.loads(token, max_age=captcha_grace_seconds)
-    except (SignatureExpired, BadSignature):
-        return False
-
-    return payload.get('ip') == _get_client_ip() and payload.get('ua') == _get_user_agent_hash()
 
 def _submission_access_hash(token: str) -> str:
     return hashlib.sha256(token.encode('utf-8')).hexdigest()
@@ -223,8 +179,7 @@ class PostSchema(Schema):
     )
     optionalTags = fields.List(fields.Str(), required=False, load_default=[]) # Make optional for backward compatibility
     storyPrompt = fields.Str(required=False, allow_none=True, load_default=None, validate=validate.OneOf(STORY_PROMPTS))
-    captchaToken = fields.Str(required=False, allow_none=True, load_default=None)  # Required unless a grace token is provided
-    captchaGraceToken = fields.Str(required=False, allow_none=True, load_default=None)
+    captchaToken = fields.Str(required=False, allow_none=True, load_default=None)
     createdAt = fields.DateTime()
     status = fields.Str(required=False)
 
@@ -345,44 +300,29 @@ def create():
         # Validate and deserialize the post data
         data = post_schema.load(post_data)
         hcaptcha_response = data.pop('captchaToken', None)
-        captcha_grace_token = data.pop('captchaGraceToken', None)
 
         # Skip CAPTCHA verification only in debug mode.
         # Do not use request.host for this decision; Host can be spoofed by non-browser clients.
         is_localhost = debug_mode
 
-        # Only mint a new grace token when the user actually completes hCaptcha on this request.
-        verified_via_captcha = False
-
-        grace_token_provided = bool(captcha_grace_token)
-        captcha_passed = is_localhost or _is_valid_captcha_grace_token(captcha_grace_token)
-
-        if not captcha_passed:
+        if not is_localhost:
             if not hcaptcha_response:
-                if grace_token_provided:
-                    return jsonify({
-                        'success': False,
-                        'message': 'CAPTCHA grace period expired',
-                        'errorCode': 'captcha_grace_expired',
-                    }), 400
                 return jsonify({'success': False, 'message': 'CAPTCHA token missing', 'errorCode': 'captcha_required'}), 400
 
-            # Verify the hCaptcha token
+            # Verify the Turnstile token
             verification_response = requests.post(
                 captcha_url,
                 data={
                     'secret': captcha_secret_key,
                     'response': hcaptcha_response
-                }
+                },
+                timeout=10,
             )
 
             verification_result = verification_response.json()
             if not verification_result.get('success'):
                 print(f"CAPTCHA verification failed: {verification_result}")
                 return jsonify({'success': False, 'message': 'CAPTCHA verification failed'}), 400
-
-            captcha_passed = True
-            verified_via_captcha = True
 
         # Handle image upload if present
         if 'image' in request.files:
@@ -428,9 +368,6 @@ def create():
             'post_id': str(result.inserted_id),
             'submission_access_token': submission_access_token,
         }
-        if not is_localhost and captcha_grace_seconds > 0 and verified_via_captcha:
-            response_payload['captchaGraceToken'] = _make_captcha_grace_token()
-            response_payload['captchaGraceExpiresInSeconds'] = captcha_grace_seconds
 
         return jsonify(response_payload), 201
     
@@ -727,13 +664,14 @@ def update_post(id):
         if not hcaptcha_response:
             return jsonify({'success': False, 'message': 'CAPTCHA token missing'}), 400
 
-        # Verify the hCaptcha token with the hCaptcha verification endpoint
+        # Verify the Turnstile token with Cloudflare's verification endpoint
         verification_response = requests.post(
-            captcha_url or 'https://hcaptcha.com/siteverify',
+            captcha_url,
             data={
                 'secret': captcha_secret_key,
                 'response': hcaptcha_response
-            }
+            },
+            timeout=10,
         )
 
         verification_result = verification_response.json()

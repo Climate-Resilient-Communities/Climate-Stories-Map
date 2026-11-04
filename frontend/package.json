@@ -13,7 +13,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@hcaptcha/react-hcaptcha": "^1.11.0",
+    "@marsidev/react-turnstile": "^1.6.3",
     "@turf/boolean-point-in-polygon": "^6.5.0",
     "@turf/helpers": "^6.5.0",
     "@types/mapbox-gl": "^2.7.19",

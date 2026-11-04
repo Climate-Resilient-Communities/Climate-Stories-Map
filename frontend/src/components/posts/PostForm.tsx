@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { MAIN_TAGS, TOPIC_TAGS } from '../../utils/tag-constants';
-import HCaptcha from '@hcaptcha/react-hcaptcha';
+import { Turnstile, TurnstileInstance } from '@marsidev/react-turnstile';
 import { PostFormData } from './types';
 import './PostForm.css';
 import { useNotification } from '../common/NotificationContext';
@@ -35,56 +35,8 @@ const STEP_HEADINGS = [
 ];
 const OPTIONAL_STEPS = [0, 3];
 
-const CAPTCHA_GRACE_TOKEN_KEY = 'captchaGraceToken';
-const CAPTCHA_GRACE_EXPIRES_AT_KEY = 'captchaGraceExpiresAt';
-
-function getStoredCaptchaGraceExpiresAtMs(): number | null {
-  try {
-    const expiresAtRaw = localStorage.getItem(CAPTCHA_GRACE_EXPIRES_AT_KEY);
-    const expiresAt = expiresAtRaw ? Number(expiresAtRaw) : 0;
-    if (!expiresAt || Number.isNaN(expiresAt)) return null;
-    return expiresAt;
-  } catch {
-    return null;
-  }
-}
-
-function getStoredCaptchaGraceToken(): string | null {
-  try {
-    const token = localStorage.getItem(CAPTCHA_GRACE_TOKEN_KEY);
-    const expiresAtRaw = localStorage.getItem(CAPTCHA_GRACE_EXPIRES_AT_KEY);
-    const expiresAt = expiresAtRaw ? Number(expiresAtRaw) : 0;
-    if (!token || !expiresAt) return null;
-    if (Number.isNaN(expiresAt) || Date.now() >= expiresAt) return null;
-    return token;
-  } catch {
-    return null;
-  }
-}
-
-function storeCaptchaGraceToken(token: string, expiresInSeconds: number) {
-  try {
-    const expiresAtMs = Date.now() + expiresInSeconds * 1000;
-    localStorage.setItem(CAPTCHA_GRACE_TOKEN_KEY, token);
-    localStorage.setItem(CAPTCHA_GRACE_EXPIRES_AT_KEY, String(expiresAtMs));
-    return expiresAtMs;
-  } catch {
-    // Ignore storage failures (private mode, etc.)
-    return null;
-  }
-}
-
-function clearCaptchaGraceToken() {
-  try {
-    localStorage.removeItem(CAPTCHA_GRACE_TOKEN_KEY);
-    localStorage.removeItem(CAPTCHA_GRACE_EXPIRES_AT_KEY);
-  } catch {
-    // Ignore
-  }
-}
-
 const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0], onSubmitted }) => {
-  const captchaRef = React.useRef<HCaptcha>(null);
+  const captchaRef = React.useRef<TurnstileInstance>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isActive, setIsActive] = useState(true);
   const { showNotification } = useNotification();
@@ -97,47 +49,12 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [isMobile, setIsMobile] = useState<boolean>(() => window.matchMedia(MOBILE_QUERY).matches);
   const [step, setStep] = useState(0);
-  const [hasCaptchaGrace, setHasCaptchaGrace] = useState<boolean>(() => !!getStoredCaptchaGraceToken());
-  const [captchaGraceExpiresAtMs, setCaptchaGraceExpiresAtMs] = useState<number | null>(() => getStoredCaptchaGraceExpiresAtMs());
-
-  const hasValidCaptchaGrace = !!getStoredCaptchaGraceToken();
-
   React.useEffect(() => {
     const mql = window.matchMedia(MOBILE_QUERY);
     const onChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
     mql.addEventListener('change', onChange);
     return () => mql.removeEventListener('change', onChange);
   }, []);
-
-  React.useEffect(() => {
-    if (!captchaGraceExpiresAtMs) return;
-
-    const msUntilExpiry = captchaGraceExpiresAtMs - Date.now();
-    if (msUntilExpiry <= 0) {
-      clearCaptchaGraceToken();
-      setHasCaptchaGrace(false);
-      setCaptchaGraceExpiresAtMs(null);
-      setFormData(prevData => ({
-        ...prevData,
-        captchaToken: '',
-      }));
-      captchaRef.current?.resetCaptcha();
-      return;
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      clearCaptchaGraceToken();
-      setHasCaptchaGrace(false);
-      setCaptchaGraceExpiresAtMs(null);
-      setFormData(prevData => ({
-        ...prevData,
-        captchaToken: '',
-      }));
-      captchaRef.current?.resetCaptcha();
-    }, msUntilExpiry + 50);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [captchaGraceExpiresAtMs]);
 
   const handleAgreementCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsAgreedToAll(e.target.checked);
@@ -167,11 +84,6 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
     };
   }, []);
 
-  React.useEffect(() => {
-    if (hasCaptchaGrace && !hasValidCaptchaGrace) {
-      setHasCaptchaGrace(false);
-    }
-  }, [hasCaptchaGrace, hasValidCaptchaGrace]);
   
   // Updated formData to include mandatory Tag
   const [formData, setFormData] = useState<PostFormData>({
@@ -296,19 +208,9 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
       return;
     }
     
-    const graceToken = getStoredCaptchaGraceToken();
-    const canSkipCaptcha = !!graceToken;
-
-    if (formData.captchaToken || canSkipCaptcha) {
+    if (formData.captchaToken) {
       try {
-        const payload: PostFormData = {
-          ...formData,
-          // If we have a grace token, do not send a captchaToken.
-          // Otherwise a previously-solved captcha token could be reused and effectively
-          // keep extending the grace window.
-          captchaToken: canSkipCaptcha ? '' : formData.captchaToken,
-          captchaGraceToken: canSkipCaptcha ? graceToken ?? undefined : undefined,
-        };
+        const payload: PostFormData = { ...formData };
 
         const submitData = new FormData();
         submitData.append('postData', JSON.stringify(payload));
@@ -329,19 +231,12 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
             // Response might be empty; ignore.
           }
 
-          if (responseJson?.captchaGraceToken && typeof responseJson?.captchaGraceExpiresInSeconds === 'number') {
-            const expiresAtMs = storeCaptchaGraceToken(responseJson.captchaGraceToken, responseJson.captchaGraceExpiresInSeconds);
-            setHasCaptchaGrace(true);
-            if (expiresAtMs) setCaptchaGraceExpiresAtMs(expiresAtMs);
-          }
-
-          // Always clear any old captcha token after a successful submit.
-          // This prevents an old captcha token from "bridging" an expired grace period.
+          // Turnstile tokens are single-use, so clear it after a successful submit.
           setFormData(prevData => ({
             ...prevData,
             captchaToken: '',
           }));
-          captchaRef.current?.resetCaptcha();
+          captchaRef.current?.reset();
 
           const postId = typeof responseJson?.post_id === 'string' ? responseJson.post_id : null;
           const accessToken = typeof responseJson?.submission_access_token === 'string'
@@ -365,7 +260,7 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
             ...prevData,
             captchaToken: '',
           }));
-          captchaRef.current?.resetCaptcha();
+          captchaRef.current?.reset();
 
           if (onSubmitted) {
             onSubmitted(successMessage);
@@ -384,17 +279,9 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
             // ignore
           }
 
-          // If grace token was rejected/expired, fall back to hCaptcha (keep form data).
-          if (canSkipCaptcha && (responseJson?.errorCode === 'captcha_grace_expired' || responseJson?.errorCode === 'captcha_required')) {
-            clearCaptchaGraceToken();
-            setHasCaptchaGrace(false);
-            setCaptchaGraceExpiresAtMs(null);
-          }
-
-          if (responseJson?.errorCode === 'captcha_grace_expired') {
-            showNotification('Your hCaptcha grace period expired. Please complete the hCaptcha to submit.', true);
-            return;
-          }
+          // A failed attempt consumes the single-use token, so get a fresh one for the retry.
+          setFormData(prevData => ({ ...prevData, captchaToken: '' }));
+          captchaRef.current?.reset();
 
           throw new Error(responseJson?.error || responseJson?.message || 'Failed to submit post');
         }
@@ -405,7 +292,7 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
         return;
       }
     } else {
-      showNotification('Please complete the hCaptcha.', true);
+      showNotification('Please complete the security check.', true);
     }
   };
 
@@ -425,7 +312,7 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
            formData.tag !== '-' &&
            !!formData.optionalTags?.length &&
            isAgreedToAll &&
-           (formData.captchaToken !== '' || !!getStoredCaptchaGraceToken());
+           formData.captchaToken !== '';
   }, [formData, isAgreedToAll]);
 
   const formValid = isFormValid();
@@ -727,27 +614,22 @@ const PostForm: React.FC<PostFormProps> = ({ onClose, initialCoordinates = [0, 0
           {isLastStep && (
           <>
           <div className="captcha-container">
-            {!hasValidCaptchaGrace && isActive && (
-              <HCaptcha
+            {isActive && (
+              <Turnstile
                 ref={captchaRef}
-                sitekey={CAPTCHA_SITE_KEY}
-                onVerify={handleVerificationSuccess}
+                siteKey={CAPTCHA_SITE_KEY}
+                options={{ size: 'flexible' }}
+                onSuccess={handleVerificationSuccess}
                 onExpire={() => {
                   setFormData(prevData => ({
                     ...prevData,
                     captchaToken: '',
                   }));
+                  captchaRef.current?.reset();
                 }}
                 onError={(err) => {
                   const errorMsg = typeof err === 'string' ? err : 'Unknown error';
-                  console.warn('hCaptcha Error:', errorMsg.replace(/[\r\n\t<>"'&]/g, ' '));
-                }}
-                onClose={() => {
-                  // If a user cancels/closes the challenge, keep the widget visible.
-                  // Resetting allows them to try again without reloading the form.
-                  captchaRef.current?.resetCaptcha();
-
-                  // Closing/canceling should NOT count as a successful CAPTCHA.
+                  console.warn('Turnstile Error:', errorMsg.replace(/[\r\n\t<>"'&]/g, ' '));
                   setFormData(prevData => ({
                     ...prevData,
                     captchaToken: '',
