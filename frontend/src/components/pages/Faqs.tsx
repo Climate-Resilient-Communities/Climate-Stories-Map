@@ -17,7 +17,7 @@ const Faqs: React.FC<FaqsProps> = ({ taskbarVisible = true }) => {
   const faqItems = [
     {
       question: "Why can't I see my post on the map?",
-      answer: "Every submission goes through a moderation process before it appears on the map. This helps us ensure content follows our guidelines and keeps the platform safe for everyone. We receive a lot of submissions, so it might take some time for yours to be reviewed. If it's been more than a week and your post still isn't visible, feel free to reach out to us at info@crcgreen.com."
+      answer: "Every submission is reviewed by a moderator before it appears on the map. Open My submissions from the menu on the same browser and device to check whether it is waiting for review, approved, or declined. Pending submissions are tracked for up to 30 days, and a decision remains visible for 7 days. If you need help, contact info@crcgreen.com and include the story reference shown there."
     },
     {
       question: "Can I delete my post?",

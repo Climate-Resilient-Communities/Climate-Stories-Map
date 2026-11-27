@@ -3,6 +3,7 @@ from flask_admin.contrib.pymongo.filters import FilterEqual, FilterNotEqual, Fil
 from markupsafe import Markup
 from .forms import PostForm
 from flask import session, redirect, url_for
+import datetime
 
 class PostView(ModelView):
     def is_accessible(self):
@@ -80,7 +81,12 @@ class PostView(ModelView):
     def __init__(self, collection, name=None, category=None, endpoint=None, url=None, static_folder=None):
         super(PostView, self).__init__(collection, name, category, endpoint, url, static_folder)
 
-    def on_model_change(self, form, model, is_created):        
+    def on_model_change(self, form, model, is_created):
+        if not is_created and model.get('_id'):
+            existing_model = self.get_one(model['_id'])
+            if existing_model and existing_model.get('status') != model.get('status'):
+                model['status_changed_at'] = datetime.datetime.now(datetime.timezone.utc)
+
         # Handle optionalTags - convert from string to list
         if 'optionalTags' in model and isinstance(model['optionalTags'], str):
             model['optional_tags'] = [tag_item.strip() for tag_item in model['optionalTags'].split(',') if tag_item.strip()]

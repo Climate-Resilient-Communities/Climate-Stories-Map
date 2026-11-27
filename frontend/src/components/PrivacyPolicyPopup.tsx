@@ -92,7 +92,7 @@ const PrivacyPolicyPopup: React.FC<PrivacyPolicyPopupProps> = ({ isOpen, onClose
           Third party service/s include: 
           <ul>
             <li>Mapbox</li>
-            <li>HCaptcha</li>
+            <li>Cloudflare Turnstile</li>
             <li>GeoJson</li>
           </ul>
           </p>

@@ -19,6 +19,7 @@ export interface Post {
   optionalTags: string[];
   storyPrompt?: string;
   createdAt: string;
+  status?: 'pending' | 'approved' | 'rejected' | 'withdrawn';
 }
 
 export interface PostFormData {
@@ -34,5 +35,4 @@ export interface PostFormData {
   tag: '-' | MainTagType;
   storyPrompt?: string;
   captchaToken: string;
-  captchaGraceToken?: string;
 }

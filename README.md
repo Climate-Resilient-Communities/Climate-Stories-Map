@@ -41,6 +41,5 @@ The frontend makes API calls to `/api/...` endpoints, which are handled by the F
 Make sure to set these environment variables in your deployment platform:
 - `MONGODB_URI`
 - `SECRET_KEY`
-- `CAPTCHA_SECRET_KEY`
-- `CAPTCHA_URL`
-- `CAPTCHA_GRACE_SECONDS` (optional, default: 300)
+- `CAPTCHA_SECRET_KEY` (Cloudflare Turnstile secret key)
+- `CAPTCHA_URL` (Turnstile verification URL)

@@ -1,13 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Map, { Marker, Popup, NavigationControl } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 import './Map.css';
 import './Map.mobile.css';
 import './MapPopup.css';
-import { MdMyLocation } from 'react-icons/md';
-import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
-import mapboxgl from 'mapbox-gl';
+import { MdAdd, MdClose, MdLocationOn, MdMyLocation, MdSearch, MdZoomIn, MdZoomOut } from 'react-icons/md';
 import { Post } from './posts/types';
 import { isPointInPolygon } from '../utils/map-utils';
 import { useNotification } from './common/NotificationContext';
@@ -20,8 +17,69 @@ import TopicMarkerIcon from './markers/TopicMarkerIcon';
 // Replace this with your actual Mapbox access token
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 const MONOCHROME_MAP = import.meta.env.VITE_MONOCHROME_MAP;
+const MAP_VIEW_STORAGE_KEY = 'climateStories.mapView.v1';
+
+interface StoredMapViewState {
+  longitude: number;
+  latitude: number;
+  zoom: number;
+}
+
+const readStoredMapViewState = (): StoredMapViewState | null => {
+  try {
+    const stored = sessionStorage.getItem(MAP_VIEW_STORAGE_KEY);
+    if (!stored) return null;
+
+    const viewState = JSON.parse(stored) as Partial<StoredMapViewState>;
+    if (
+      typeof viewState.longitude === 'number' &&
+      Number.isFinite(viewState.longitude) &&
+      typeof viewState.latitude === 'number' &&
+      Number.isFinite(viewState.latitude) &&
+      typeof viewState.zoom === 'number' &&
+      Number.isFinite(viewState.zoom)
+    ) {
+      return {
+        longitude: viewState.longitude,
+        latitude: viewState.latitude,
+        zoom: viewState.zoom,
+      };
+    }
+  } catch (error) {
+    console.error('Could not restore the saved map view:', error);
+  }
+
+  return null;
+};
+
+const saveMapViewState = (viewState: StoredMapViewState) => {
+  try {
+    sessionStorage.setItem(MAP_VIEW_STORAGE_KEY, JSON.stringify(viewState));
+  } catch (error) {
+    console.error('Could not save the current map view:', error);
+  }
+};
+
+interface SearchSuggestion {
+  mapbox_id: string;
+  name: string;
+  place_formatted?: string;
+  feature_type: string;
+}
+
+const createSearchSessionToken = () =>
+  globalThis.crypto?.randomUUID?.() ??
+  'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (character) => {
+    const random = Math.random() * 16 | 0;
+    return (character === 'x' ? random : (random & 0x3 | 0x8)).toString(16);
+  });
 
 const getPostImageUrl = (postId: string) => `/api/posts/${encodeURIComponent(postId)}/image`;
+
+const isMobileViewportMatch = () =>
+  typeof window !== 'undefined' &&
+  !!window.matchMedia &&
+  window.matchMedia('(max-width: 768px) and (orientation: portrait)').matches;
 
 interface MapProps {
   posts: Post[];
@@ -30,48 +88,62 @@ interface MapProps {
   selectedTags?: string[];
   taskbarVisible?: boolean;
   isCreatePostMode?: boolean;
+  onMobileCreatePost?: () => void;
+  onCancelCreatePost?: () => void;
+  focusedPost?: Post | null;
 }
 
-const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskbarVisible = true, isCreatePostMode = false }) => {
-  const [isMobileViewport, setIsMobileViewport] = useState(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return false;
-    return window.matchMedia('(max-width: 768px) and (orientation: portrait)').matches;
-  });
+const CRCMap: React.FC<MapProps> = ({
+  posts,
+  onMapClick,
+  onMapRightClick,
+  taskbarVisible = true,
+  isCreatePostMode = false,
+  onMobileCreatePost,
+  onCancelCreatePost,
+  focusedPost = null,
+}) => {
+  const [isMobileViewport, setIsMobileViewport] = useState(isMobileViewportMatch);
   const [canadaGeoJSON, setCanadaGeoJSON] = useState<any | null>(null);
-  const [viewState, setViewState] = useState({
-    longitude: -96.8283,  // Center of Canada
+  const initialViewStateRef = useRef<StoredMapViewState | null>(null);
+  if (initialViewStateRef.current === null) {
+    initialViewStateRef.current = readStoredMapViewState();
+  }
+  const [viewState, setViewState] = useState(() => initialViewStateRef.current ?? ({
+    longitude: -96.8283,
     latitude: 62.3947,
-    zoom: 4
-  });
-  const [isGeocoderExpanded, setIsGeocoderExpanded] = useState(false);
+    zoom: 4,
+  }));
+  const [isMapReady, setIsMapReady] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchSuggestions, setSearchSuggestions] = useState<SearchSuggestion[]>([]);
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
+  const [isRetrievingSuggestion, setIsRetrievingSuggestion] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [searchAttribution, setSearchAttribution] = useState('');
+  const [searchedLocation, setSearchedLocation] = useState<{
+    coordinates: [number, number];
+    name: string;
+    context?: string;
+  } | null>(null);
   const { showNotification } = useNotification();
   const { theme } = useTheme();
   const mapRef = useRef<any>(null);
+  const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const geocoderContainerRef = useRef<HTMLDivElement | null>(null);
-  const geocoderRef = useRef<any | null>(null);
+  const searchSessionTokenRef = useRef(createSearchSessionToken());
 
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return;
 
     const mediaQuery = window.matchMedia('(max-width: 768px) and (orientation: portrait)');
-
-    const applyViewportMode = (isMobile: boolean) => {
-      setIsMobileViewport(isMobile);
-      if (isMobile) {
-        setIsGeocoderExpanded(true);
-      }
-    };
-
-    applyViewportMode(mediaQuery.matches);
-
     const handleViewportChange = (event: MediaQueryListEvent) => {
-      applyViewportMode(event.matches);
+      setIsMobileViewport(event.matches);
     };
 
     mediaQuery.addEventListener('change', handleViewportChange);
-    return () => {
-      mediaQuery.removeEventListener('change', handleViewportChange);
-    };
+    return () => mediaQuery.removeEventListener('change', handleViewportChange);
   }, []);
 
   const getMapStyle = () => {
@@ -80,6 +152,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
 
   // Center on the user at load; some browsers (notably iOS Safari) may withhold the prompt without a tap, so the locate button remains the fallback.
   useEffect(() => {
+    if (initialViewStateRef.current) return;
     if (!("geolocation" in navigator) || !window.isSecureContext) return;
     const center = ({ coords }: GeolocationPosition) => {
       setViewState(prev => ({ ...prev, longitude: coords.longitude, latitude: coords.latitude, zoom: 10 }));
@@ -156,6 +229,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
 
   const popupInfoRef = useRef<Post | null>(null);
   const popupSizeRef = useRef(popupSize);
+  const lastFocusedPostIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     popupInfoRef.current = popupInfo;
@@ -273,6 +347,35 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
   }, [cleanupResizeSession]);
 
   useEffect(() => {
+    if (!focusedPost || !isMapReady || lastFocusedPostIdRef.current === focusedPost._id) return;
+
+    const map = mapRef.current?.getMap?.();
+    if (!map) return;
+
+    const focusPost = () => {
+      if (lastFocusedPostIdRef.current === focusedPost._id) return;
+      lastFocusedPostIdRef.current = focusedPost._id;
+
+      const bounds = getPopupBounds(isMobileViewport);
+      const nextPopupSize = { width: bounds.defaultW, height: bounds.defaultH };
+      setPopupSize(nextPopupSize);
+      setPopupInfo(focusedPost);
+      setIsPopupImageLoading(Boolean(focusedPost.content.image));
+      cleanupResizeSession();
+
+      map.easeTo({
+        center: focusedPost.location.coordinates,
+        zoom: Math.max(map.getZoom(), 12),
+        duration: 1000,
+        essential: true,
+      });
+      map.once('moveend', () => centerMapForPopup(focusedPost, nextPopupSize));
+    };
+
+    focusPost();
+  }, [centerMapForPopup, cleanupResizeSession, focusedPost, isMapReady, isMobileViewport]);
+
+  useEffect(() => {
     if (!popupInfo) return;
 
     const bounds = getPopupBounds(isMobileViewport);
@@ -349,90 +452,110 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
   }, [taskbarVisible]);
 
   useEffect(() => {
-    if (!MAPBOX_TOKEN) return;
+    const container = mapContainerRef.current;
+    if (!container) return;
 
-    let cancelled = false;
-
-    const attachGeocoder = () => {
-      if (cancelled) return;
-
-      const map = mapRef.current?.getMap?.();
-      if (!map || !geocoderContainerRef.current) {
-        requestAnimationFrame(attachGeocoder);
-        return;
+    let animationFrameId: number | null = null;
+    const resizeObserver = new ResizeObserver(() => {
+      if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
       }
 
-      if (geocoderRef.current) return;
-
-      const geocoder = new MapboxGeocoder({
-        accessToken: MAPBOX_TOKEN,
-        mapboxgl,
-        marker: false,
-        flyTo: false,
-        countries: 'ca',
-        placeholder: 'Search a location in Canada',
-        zoom: 10
+      animationFrameId = requestAnimationFrame(() => {
+        mapRef.current?.resize();
+        animationFrameId = null;
       });
+    });
 
-      geocoder.addTo(geocoderContainerRef.current);
-      geocoder.on('result', (event: any) => {
-        const center = event?.result?.center;
-        if (Array.isArray(center) && center.length === 2 && mapRef.current) {
-          mapRef.current.flyTo({
-            center,
-            zoom: 10,
-            duration: 1500
-          });
-
-          // Clear previous search so the next location search starts clean.
-          try {
-            geocoder.clear();
-          } catch {
-            // ignore
-          }
-
-          // Also clear/blur the underlying input and collapse the UI.
-          const input = geocoderContainerRef.current?.querySelector<HTMLInputElement>('input');
-          if (input) {
-            input.value = '';
-            input.blur();
-          }
-          setIsGeocoderExpanded(false);
-        }
-      });
-
-      geocoderRef.current = geocoder;
-    };
-
-    attachGeocoder();
-
+    resizeObserver.observe(container);
     return () => {
-      cancelled = true;
-      if (geocoderRef.current) {
-        geocoderRef.current.onRemove();
-        geocoderRef.current = null;
-      }
-      if (geocoderContainerRef.current) {
-        geocoderContainerRef.current.innerHTML = '';
+      resizeObserver.disconnect();
+      if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
       }
     };
   }, []);
 
   useEffect(() => {
-    if (!isGeocoderExpanded || isMobileViewport) return;
+    const query = searchQuery.trim();
+    if (query.length < 2) {
+      setSearchSuggestions([]);
+      setIsSearchLoading(false);
+      return;
+    }
 
+    if (!MAPBOX_TOKEN) {
+      setSearchError('Location search is not configured.');
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(async () => {
+      setIsSearchLoading(true);
+      setSearchError(null);
+
+      const params = new URLSearchParams({
+        q: query.slice(0, 256),
+        country: 'CA',
+        language: 'en',
+        limit: '6',
+        types: 'country,region,postcode,district,place,city,locality,neighborhood,block,street,address,poi',
+        session_token: searchSessionTokenRef.current,
+        access_token: MAPBOX_TOKEN
+      });
+
+      try {
+        const response = await fetch(
+          `https://api.mapbox.com/search/searchbox/v1/suggest?${params}`,
+          { signal: controller.signal }
+        );
+        if (response.status === 401 || response.status === 403) {
+          setSearchError('Mapbox denied location search. Check your token permissions for the Search Box API.');
+          setSearchSuggestions([]);
+          return;
+        }
+        if (!response.ok) {
+          throw new Error(`Search Box API request failed with status ${response.status}`);
+        }
+
+        const data: { suggestions?: SearchSuggestion[]; attribution?: string } = await response.json();
+        if (!controller.signal.aborted) {
+          setSearchSuggestions(data.suggestions ?? []);
+          setSearchAttribution(data.attribution ?? '');
+          setActiveSuggestionIndex(-1);
+        }
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          console.error('Location search failed:', error);
+          setSearchError('Location search is unavailable. Please try again.');
+          setSearchSuggestions([]);
+          setSearchAttribution('');
+        }
+      } finally {
+        if (!controller.signal.aborted) setIsSearchLoading(false);
+      }
+    }, 250);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, [searchQuery]);
+
+  useEffect(() => {
+    if (searchSuggestions.length === 0) return;
     const handlePointerDown = (event: PointerEvent) => {
       const targetNode = event.target as Node | null;
       if (!targetNode) return;
 
       if (!geocoderContainerRef.current?.contains(targetNode)) {
-        setIsGeocoderExpanded(false);
+        setSearchSuggestions([]);
       }
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        setIsGeocoderExpanded(false);
+        setSearchSuggestions([]);
         (document.activeElement as HTMLElement | null)?.blur?.();
       }
     };
@@ -444,13 +567,65 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
       document.removeEventListener('pointerdown', handlePointerDown, true);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isGeocoderExpanded, isMobileViewport]);
+  }, [searchSuggestions.length]);
 
   const focusGeocoderInput = () => {
-    const input = geocoderContainerRef.current?.querySelector<HTMLInputElement>('input');
+    const input = geocoderContainerRef.current?.querySelector<HTMLInputElement>('.map-search-input');
     if (input) {
       input.focus();
       input.select();
+    }
+  };
+
+  const selectSearchSuggestion = async (suggestion: SearchSuggestion) => {
+    if (!MAPBOX_TOKEN || isRetrievingSuggestion) return;
+
+    setIsRetrievingSuggestion(true);
+    setSearchError(null);
+    const params = new URLSearchParams({
+      session_token: searchSessionTokenRef.current,
+      access_token: MAPBOX_TOKEN
+    });
+
+    try {
+      const response = await fetch(
+        `https://api.mapbox.com/search/searchbox/v1/retrieve/${encodeURIComponent(suggestion.mapbox_id)}?${params}`
+      );
+      if (response.status === 401 || response.status === 403) {
+        setSearchError('Mapbox denied location search. Check your token permissions for the Search Box API.');
+        return;
+      }
+      if (!response.ok) {
+        throw new Error(`Search Box API retrieve failed with status ${response.status}`);
+      }
+
+      const data: {
+        features?: Array<{ geometry?: { coordinates?: [number, number] } }>;
+      } = await response.json();
+      const center = data.features?.[0]?.geometry?.coordinates;
+      if (!center || !Number.isFinite(center[0]) || !Number.isFinite(center[1])) {
+        throw new Error('Search Box API returned no valid coordinates');
+      }
+
+      mapRef.current?.flyTo({
+        center,
+        zoom: suggestion.feature_type === 'poi' || suggestion.feature_type === 'address' ? 15 : 10,
+        duration: 1500
+      });
+      setSearchedLocation({
+        coordinates: center,
+        name: suggestion.name,
+        context: suggestion.place_formatted
+      });
+      setSearchQuery('');
+      setSearchSuggestions([]);
+      setActiveSuggestionIndex(-1);
+      searchSessionTokenRef.current = createSearchSessionToken();
+    } catch (error) {
+      console.error('Could not retrieve the selected location:', error);
+      setSearchError('Could not load that location. Please try another result.');
+    } finally {
+      setIsRetrievingSuggestion(false);
     }
   };
 
@@ -473,32 +648,124 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
   };
 
   return (
-    <div className={`map-container map-canvas ${taskbarVisible ? '' : 'taskbar-hidden'}${isCreatePostMode ? ' create-post-mode' : ''}`}>
+    <div
+      ref={mapContainerRef}
+      className={`map-container map-canvas ${taskbarVisible ? '' : 'taskbar-hidden'}${isCreatePostMode ? ' create-post-mode' : ''}`}
+    >
       {/* Location Search */}
       <div
-        className={`map-geocoder ${(isMobileViewport || isGeocoderExpanded) ? 'expanded' : 'collapsed'} theme-${theme}`}
+        className={`map-geocoder expanded theme-${theme}`}
         ref={geocoderContainerRef}
-        onMouseEnter={() => {
-          if (!isMobileViewport) setIsGeocoderExpanded(true);
-        }}
-        onMouseLeave={() => {
-          if (isMobileViewport) return;
-          const isFocusedWithin = !!geocoderContainerRef.current?.contains(document.activeElement);
-          if (!isFocusedWithin) setIsGeocoderExpanded(false);
-        }}
-        onClick={() => {
-          if (!isGeocoderExpanded) {
-            setIsGeocoderExpanded(true);
-            requestAnimationFrame(focusGeocoderInput);
-          }
-        }}
-        onFocusCapture={() => setIsGeocoderExpanded(true)}
         aria-label="Search for a location"
-      />
+      >
+        {isMobileViewport && isCreatePostMode && (
+          <div className={`mobile-create-post-prompt theme-${theme}`} role="status">
+            <span>Tap the map to choose a story location</span>
+            <button type="button" onClick={onCancelCreatePost}>Cancel</button>
+          </div>
+        )}
+        <div className="map-search-control">
+          <MdSearch className="map-search-icon" aria-hidden="true" />
+          <input
+            className="map-search-input"
+            type="search"
+            role="combobox"
+            aria-label="Search for a location in Canada"
+            aria-autocomplete="list"
+            aria-controls="map-search-suggestions"
+            aria-activedescendant={activeSuggestionIndex >= 0 ? `map-search-suggestion-${activeSuggestionIndex}` : undefined}
+            aria-expanded={searchSuggestions.length > 0}
+            placeholder="Search locations, landmarks, or buildings"
+            value={searchQuery}
+            onChange={(event) => {
+              setSearchQuery(event.target.value);
+              setSearchedLocation(null);
+              setSearchSuggestions([]);
+              setSearchAttribution('');
+              setSearchError(null);
+              setActiveSuggestionIndex(-1);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === 'ArrowDown' && searchSuggestions.length > 0) {
+                event.preventDefault();
+                setActiveSuggestionIndex((index) => Math.min(index + 1, searchSuggestions.length - 1));
+              } else if (event.key === 'ArrowUp' && searchSuggestions.length > 0) {
+                event.preventDefault();
+                setActiveSuggestionIndex((index) => Math.max(index - 1, 0));
+              } else if (event.key === 'Enter' && activeSuggestionIndex >= 0) {
+                event.preventDefault();
+                void selectSearchSuggestion(searchSuggestions[activeSuggestionIndex]);
+              } else if (event.key === 'Escape') {
+                setSearchSuggestions([]);
+                setSearchError(null);
+              }
+            }}
+          />
+          {searchQuery && (
+            <button
+              className="map-search-clear"
+              type="button"
+              aria-label="Clear search"
+              onClick={() => {
+                setSearchQuery('');
+                setSearchError(null);
+                focusGeocoderInput();
+              }}
+            >
+              <MdClose aria-hidden="true" />
+            </button>
+          )}
+        </div>
+        {searchSuggestions.length > 0 && (
+          <ul className="map-search-suggestions" id="map-search-suggestions" role="listbox">
+            {searchSuggestions.map((suggestion, index) => (
+              <li key={suggestion.mapbox_id} role="presentation">
+                <button
+                  className={`map-search-suggestion${index === activeSuggestionIndex ? ' active' : ''}`}
+                  id={`map-search-suggestion-${index}`}
+                  type="button"
+                  role="option"
+                  aria-selected={index === activeSuggestionIndex}
+                  disabled={isRetrievingSuggestion}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => void selectSearchSuggestion(suggestion)}
+                >
+                  <span className="map-search-suggestion-name">{suggestion.name}</span>
+                  {suggestion.place_formatted && (
+                    <span className="map-search-suggestion-context">{suggestion.place_formatted}</span>
+                  )}
+                </button>
+              </li>
+            ))}
+            {searchAttribution && (
+              <li className="map-search-attribution">{searchAttribution}</li>
+            )}
+          </ul>
+        )}
+        {(isSearchLoading || isRetrievingSuggestion || searchError ||
+          (searchQuery.trim().length >= 2 && !isSearchLoading && searchSuggestions.length === 0)) && (
+          <div className={`map-search-status${searchError ? ' error' : ''}`} role={searchError ? 'alert' : 'status'}>
+            {searchError || (isRetrievingSuggestion ? 'Loading location…' : isSearchLoading ? 'Searching…' : 'No locations found.')}
+          </div>
+        )}
+      </div>
 
-      {/* My Location Button */}
-      <button
-        className={`location-button theme-${theme}`}
+      <div className="map-mobile-actions">
+        {isMobileViewport && !isCreatePostMode && (
+          <button
+            className={`mobile-add-story-button theme-${theme}`}
+            type="button"
+            onClick={onMobileCreatePost}
+            aria-label="Add a story"
+          >
+            <MdAdd aria-hidden="true" />
+            <span>Add story</span>
+          </button>
+        )}
+
+        {/* My Location Button */}
+        <button
+          className={`location-button theme-${theme}`}
         onClick={() => {
           if (!window.isSecureContext) {
             showNotification('Location requires a secure (HTTPS) connection.', true);
@@ -544,14 +811,44 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
             showNotification('Geolocation is not supported by this browser.', true);
           }
         }}
-        title="Go to my location"
-      >
-        <MdMyLocation size={20} />
-      </button>
+          title="Go to my location"
+        >
+          <MdMyLocation size={20} />
+        </button>
+      </div>
+      <div className="map-zoom-control mapboxgl-ctrl mapboxgl-ctrl-group" role="group" aria-label="Map zoom controls">
+        <button
+          type="button"
+          aria-label="Zoom in"
+          title="Zoom in"
+          onClick={(event) => {
+            event.stopPropagation();
+            mapRef.current?.zoomIn();
+          }}
+        >
+          <MdZoomIn aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          aria-label="Zoom out"
+          title="Zoom out"
+          onClick={(event) => {
+            event.stopPropagation();
+            mapRef.current?.zoomOut();
+          }}
+        >
+          <MdZoomOut aria-hidden="true" />
+        </button>
+      </div>
       <Map
         ref={mapRef}
         {...viewState}
         onMove={evt => setViewState(evt.viewState)}
+        onMoveEnd={evt => {
+          const { longitude, latitude, zoom } = evt.viewState;
+          saveMapViewState({ longitude, latitude, zoom });
+        }}
+        onLoad={() => setIsMapReady(true)}
         style={{ width: '100%', height: '100%' }}
         mapStyle={getMapStyle()}
         mapboxAccessToken={MAPBOX_TOKEN}
@@ -569,7 +866,37 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
           [-52.620281, 83.110626]   // Northeast coordinates
         ]}
       >
-        <NavigationControl />
+        <NavigationControl showZoom={false} />
+        {searchedLocation && (
+          <Marker
+            longitude={searchedLocation.coordinates[0]}
+            latitude={searchedLocation.coordinates[1]}
+            anchor="bottom"
+          >
+            <div
+              className="searched-location-marker"
+              title={searchedLocation.context
+                ? `${searchedLocation.name}, ${searchedLocation.context}`
+                : searchedLocation.name}
+            >
+              <div className="searched-location-label">
+                <span className="searched-location-name">{searchedLocation.name}</span>
+                <button
+                  className="searched-location-dismiss"
+                  type="button"
+                  aria-label={`Remove ${searchedLocation.name} marker`}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setSearchedLocation(null);
+                  }}
+                >
+                  <MdClose aria-hidden="true" />
+                </button>
+              </div>
+              <MdLocationOn className="searched-location-pin" aria-hidden="true" />
+            </div>
+          </Marker>
+        )}
         {posts.map((post) => {
           // Use the stored color from colorMapRef if available, otherwise calculate it
           // This ensures colors stay consistent when filtering
@@ -599,7 +926,7 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
               }}
             >
               <div
-                className="topic-marker"
+                className={`topic-marker${post.status === 'pending' ? ' topic-marker--pending' : ''}`}
                 style={{ ['--marker-color' as any]: color } as React.CSSProperties}
                 aria-label={
                   `${post.title}. ` +
@@ -659,6 +986,11 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
             >
               <div className="map-popup-header">
                 <h3 className="map-popup-title">{popupInfo.title}</h3>
+                {popupInfo.status === 'pending' && (
+                  <p className="map-popup-pending-note">
+                    Pending moderator review · visible only on this device
+                  </p>
+                )}
               </div>
               <div className="map-popup-body">
                 <p className="map-popup-description">{popupInfo.content.description}</p>
@@ -666,13 +998,17 @@ const CRCMap: React.FC<MapProps> = ({ posts, onMapClick, onMapRightClick, taskba
                   <div className="map-popup-image-frame" aria-busy={isPopupImageLoading}>
                     {isPopupImageLoading && <span className="map-popup-image-loader" aria-label="Loading image" />}
                     <img
-                      src={getPostImageUrl(popupInfo._id)}
+                      src={popupInfo.status && popupInfo.status !== 'approved' && popupInfo.content.image
+                        ? popupInfo.content.image
+                        : getPostImageUrl(popupInfo._id)}
                       alt={popupInfo.title}
                       className={`map-popup-image ${isPopupImageLoading ? 'loading' : ''}`}
                       onLoad={() => setIsPopupImageLoading(false)}
                       onError={() => setIsPopupImageLoading(false)}
                       onClick={() => {
-                        setModalImageSrc(getPostImageUrl(popupInfo._id));
+                        setModalImageSrc(popupInfo.status && popupInfo.status !== 'approved' && popupInfo.content.image
+                          ? popupInfo.content.image
+                          : getPostImageUrl(popupInfo._id));
                         setModalImageAlt(popupInfo.title);
                         setIsImageModalOpen(true);
                       }}

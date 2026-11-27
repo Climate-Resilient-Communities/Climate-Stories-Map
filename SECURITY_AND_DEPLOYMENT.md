@@ -19,13 +19,12 @@ Required for most deployments:
 
 - `SECRET_KEY` — Flask session signing key (must be long and random)
 - `MONGODB_URI` — Mongo connection string
-- `CAPTCHA_SECRET_KEY` — hCaptcha secret key (server-side)
-- `CAPTCHA_URL` — usually `https://hcaptcha.com/siteverify`
-- `CAPTCHA_GRACE_SECONDS` — optional, defaults to `300` (5 minutes); reduces how often users must solve hCaptcha
+- `CAPTCHA_SECRET_KEY` — Cloudflare Turnstile secret key (server-side)
+- `CAPTCHA_URL` — Turnstile verification URL (`https://challenges.cloudflare.com/turnstile/v0/siteverify`)
 
 Notes:
 
-- The grace period is granted after a successful hCaptcha and does **not** automatically extend on subsequent successful posts.
+- Every post submission requires a fresh Turnstile token (there is no grace period).
 - `CDN_KEY`, `CDN_API` — if using ImgBB uploads
 
 Security/ops knobs added by hardening:
@@ -71,7 +70,6 @@ Backend env:
 - `SECRET_KEY=...`
 - `MONGODB_URI=...`
 - `CAPTCHA_SECRET_KEY=...`
-- `CAPTCHA_URL=https://hcaptcha.com/siteverify`
 - (Optional) `SESSION_COOKIE_SECURE=true`
 - (Optional) `SESSION_COOKIE_SAMESITE=Lax`
 - Leave `ALLOWED_ORIGINS` **unset** (CORS is not needed)

@@ -255,6 +255,18 @@ const Taskbar: React.FC<TaskbarProps> = ({
           </div>
           <div className="taskbar-buttons">
             <Link
+              to="/my-submissions"
+              className={`taskbar-button ${location.pathname === '/my-submissions' ? 'active' : ''}`}
+              title="My submissions"
+              onClick={() => {
+                if (isFilterVisible && onToggleFilter) onToggleFilter();
+                closeSidebarOnMobile();
+              }}
+            >
+              <Notepad size={16} />
+              {isVisible && 'My submissions'}
+            </Link>
+            <Link
               to="/about"
               className={`taskbar-button ${location.pathname === '/about' ? 'active' : ''}`}
               title="About"

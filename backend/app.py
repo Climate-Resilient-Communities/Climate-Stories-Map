@@ -9,10 +9,9 @@ from flask_cors import CORS
 import os
 import json
 import hashlib
-from typing import Optional
+import secrets
 from urllib.parse import urlparse
 
-from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 
 from admin.auth import init_auth
 from admin import init_admin
@@ -51,7 +50,7 @@ elif debug_mode:
         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     )
 
-# Your hCaptcha secret key (keep this secure and never expose it on the client side)
+# Your Cloudflare Turnstile secret key (keep this secure and never expose it on the client side)
 captcha_secret_key = os.getenv('CAPTCHA_SECRET_KEY')
 
 # Now retrieve the MongoDB URI
@@ -61,17 +60,6 @@ cdn_key = os.getenv('CDN_KEY')
 cdn_url = os.getenv('CDN_API')
 captcha_url = os.getenv('CAPTCHA_URL')
 
-# After one successful CAPTCHA, allow a short grace period to reduce re-prompts.
-def _get_int_env(name: str, default: int) -> int:
-    raw = os.getenv(name)
-    if raw is None or raw == '':
-        return default
-    try:
-        return int(raw)
-    except ValueError:
-        return default
-
-captcha_grace_seconds = max(0, _get_int_env('CAPTCHA_GRACE_SECONDS', 300))
 MAX_IMAGE_BYTES = 5 * 1024 * 1024
 ALLOWED_IMAGE_HOSTS = {'i.ibb.co'}
 
@@ -90,39 +78,37 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = os.getenv('SESSION_COOKIE_SAMESITE', 'Lax')
 app.config['SESSION_COOKIE_SECURE'] = os.getenv('SESSION_COOKIE_SECURE', 'True' if not debug_mode else 'False').lower() == 'true'
 
-captcha_grace_serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'], salt='captcha-grace-v1')
+def _submission_access_hash(token: str) -> str:
+    return hashlib.sha256(token.encode('utf-8')).hexdigest()
 
-def _get_client_ip() -> str:
-    # Prefer the first IP in X-Forwarded-For when behind a proxy.
-    forwarded_for = request.headers.get('X-Forwarded-For', '')
-    if forwarded_for:
-        return forwarded_for.split(',')[0].strip()
-    return request.remote_addr or ''
+def _as_utc(value):
+    if not isinstance(value, datetime.datetime):
+        return None
+    if value.tzinfo is None:
+        return value.replace(tzinfo=datetime.timezone.utc)
+    return value.astimezone(datetime.timezone.utc)
 
-def _get_user_agent_hash() -> str:
-    ua = request.headers.get('User-Agent', '')
-    return hashlib.sha256(ua.encode('utf-8')).hexdigest()
-
-def _make_captcha_grace_token() -> str:
-    payload = {
-        'ip': _get_client_ip(),
-        'ua': _get_user_agent_hash(),
-    }
-    return captcha_grace_serializer.dumps(payload)
-
-def _is_valid_captcha_grace_token(token: Optional[str]) -> bool:
-    if not token or captcha_grace_seconds <= 0:
-        return False
-
-    try:
-        payload = captcha_grace_serializer.loads(token, max_age=captcha_grace_seconds)
-    except (SignatureExpired, BadSignature):
-        return False
-
-    return payload.get('ip') == _get_client_ip() and payload.get('ua') == _get_user_agent_hash()
 mongo = PyMongo(app)
 collection = mongo.db.stories
 user_collection = mongo.db.users
+
+SUBMISSION_TRACKING_DAYS = 30
+
+def _purge_expired_approved_access_hashes():
+    """Drop tracking hashes from approved posts once the tracking window has passed."""
+    cutoff = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=SUBMISSION_TRACKING_DAYS)
+    collection.update_many(
+        {
+            'status': 'approved',
+            'submission_access_hash': {'$exists': True},
+            '$or': [
+                {'status_changed_at': {'$lte': cutoff}},
+                {'status_changed_at': {'$exists': False}, 'updated_at': {'$lte': cutoff}},
+                {'status_changed_at': {'$exists': False}, 'updated_at': {'$exists': False}, 'created_at': {'$lte': cutoff}},
+            ],
+        },
+        {'$unset': {'submission_access_hash': ''}},
+    )
 
 # Initialize authentication and admin logic
 auth = init_auth(app, user_collection)
@@ -193,10 +179,9 @@ class PostSchema(Schema):
     )
     optionalTags = fields.List(fields.Str(), required=False, load_default=[]) # Make optional for backward compatibility
     storyPrompt = fields.Str(required=False, allow_none=True, load_default=None, validate=validate.OneOf(STORY_PROMPTS))
-    captchaToken = fields.Str(required=False, allow_none=True, load_default=None)  # Required unless a grace token is provided
-    captchaGraceToken = fields.Str(required=False, allow_none=True, load_default=None)
+    captchaToken = fields.Str(required=False, allow_none=True, load_default=None)
     createdAt = fields.DateTime()
-    status = fields.Str(required=False, load_default='pending')
+    status = fields.Str(required=False)
 
 # Define a schema for tag validation
 class TagSchema(Schema):
@@ -315,44 +300,29 @@ def create():
         # Validate and deserialize the post data
         data = post_schema.load(post_data)
         hcaptcha_response = data.pop('captchaToken', None)
-        captcha_grace_token = data.pop('captchaGraceToken', None)
 
         # Skip CAPTCHA verification only in debug mode.
         # Do not use request.host for this decision; Host can be spoofed by non-browser clients.
         is_localhost = debug_mode
 
-        # Only mint a new grace token when the user actually completes hCaptcha on this request.
-        verified_via_captcha = False
-
-        grace_token_provided = bool(captcha_grace_token)
-        captcha_passed = is_localhost or _is_valid_captcha_grace_token(captcha_grace_token)
-
-        if not captcha_passed:
+        if not is_localhost:
             if not hcaptcha_response:
-                if grace_token_provided:
-                    return jsonify({
-                        'success': False,
-                        'message': 'CAPTCHA grace period expired',
-                        'errorCode': 'captcha_grace_expired',
-                    }), 400
                 return jsonify({'success': False, 'message': 'CAPTCHA token missing', 'errorCode': 'captcha_required'}), 400
 
-            # Verify the hCaptcha token
+            # Verify the Turnstile token
             verification_response = requests.post(
                 captcha_url,
                 data={
                     'secret': captcha_secret_key,
                     'response': hcaptcha_response
-                }
+                },
+                timeout=10,
             )
 
             verification_result = verification_response.json()
             if not verification_result.get('success'):
                 print(f"CAPTCHA verification failed: {verification_result}")
                 return jsonify({'success': False, 'message': 'CAPTCHA verification failed'}), 400
-
-            captcha_passed = True
-            verified_via_captcha = True
 
         # Handle image upload if present
         if 'image' in request.files:
@@ -382,7 +352,9 @@ def create():
                         return jsonify({'error': f'Image upload failed: {upload_error}'}), 502
 
         data['created_at'] = datetime.datetime.now(datetime.timezone.utc)
-        data['status'] = 'approved' #TODO Temporary for alpha testing
+        data['status'] = 'pending'
+        submission_access_token = secrets.token_urlsafe(32)
+        data['submission_access_hash'] = _submission_access_hash(submission_access_token)
         data['optional_tags'] = data.pop('optionalTags', [])
         story_prompt = data.pop('storyPrompt', None)
         if story_prompt:
@@ -391,10 +363,11 @@ def create():
         # Insert the data into the collection
         result = collection.insert_one(data)
 
-        response_payload = {'message': 'Post created', 'post_id': str(result.inserted_id)}
-        if not is_localhost and captcha_grace_seconds > 0 and verified_via_captcha:
-            response_payload['captchaGraceToken'] = _make_captcha_grace_token()
-            response_payload['captchaGraceExpiresInSeconds'] = captcha_grace_seconds
+        response_payload = {
+            'message': 'Post created',
+            'post_id': str(result.inserted_id),
+            'submission_access_token': submission_access_token,
+        }
 
         return jsonify(response_payload), 201
     
@@ -462,7 +435,8 @@ def get_posts():
         elif len(and_filters) > 1:
             query['$and'] = and_filters
         
-        posts = list(collection.find(query))
+        _purge_expired_approved_access_hashes()
+        posts = list(collection.find(query, {'submission_access_hash': 0}))
         # Convert ObjectId to string to make it JSON serializable
         for post in posts:
             post['_id'] = str(post['_id'])
@@ -543,6 +517,115 @@ def get_post_image(post_id):
     response.headers['Cross-Origin-Resource-Policy'] = 'same-origin'
     return response
 
+@app.route('/api/posts/<post_id>/submission', methods=['GET', 'POST', 'DELETE'])
+def get_submission_status(post_id):
+    """Read, withdraw, or revoke a submission tracker using its private access token."""
+    if not ObjectId.is_valid(post_id):
+        return jsonify({'error': 'Submission not found'}), 404
+
+    authorization = request.headers.get('Authorization', '')
+    scheme, _, token = authorization.partition(' ')
+    if scheme.lower() != 'bearer' or not token:
+        return jsonify({'error': 'Submission not found'}), 404
+
+    post = collection.find_one(
+        {
+            '_id': ObjectId(post_id),
+            'submission_access_hash': _submission_access_hash(token),
+        },
+        {
+            'title': 1,
+            'content': 1,
+            'tag': 1,
+            'optional_tags': 1,
+            'story_prompt': 1,
+            'location': 1,
+            'status': 1,
+            'created_at': 1,
+            'status_changed_at': 1,
+            'updated_at': 1,
+        },
+    )
+    if not post:
+        return jsonify({'error': 'Submission not found'}), 404
+
+    if request.method == 'POST':
+        if post.get('status', 'pending') == 'withdrawn':
+            return jsonify({'status': 'withdrawn'}), 200
+        if post.get('status', 'pending') != 'pending':
+            return jsonify({'error': 'Only pending submissions can be cancelled.'}), 409
+
+        now = datetime.datetime.now(datetime.timezone.utc)
+        result = collection.update_one(
+            {
+                '_id': post['_id'],
+                'submission_access_hash': _submission_access_hash(token),
+                'status': {'$in': ['pending', None]},
+            },
+            {'$set': {'status': 'withdrawn', 'status_changed_at': now}},
+        )
+        if result.modified_count:
+            return jsonify({'status': 'withdrawn'}), 200
+
+        current_post = collection.find_one(
+            {
+                '_id': post['_id'],
+                'submission_access_hash': _submission_access_hash(token),
+            },
+            {'status': 1},
+        )
+        if current_post and current_post.get('status') == 'withdrawn':
+            return jsonify({'status': 'withdrawn'}), 200
+        if not current_post:
+            return jsonify({'error': 'Submission not found'}), 404
+        return jsonify({'error': 'This submission has already been reviewed and can no longer be cancelled.'}), 409
+
+    if request.method == 'DELETE':
+        collection.update_one(
+            {'_id': post['_id'], 'submission_access_hash': _submission_access_hash(token)},
+            {'$unset': {'submission_access_hash': ''}},
+        )
+        return '', 204
+
+    now = datetime.datetime.now(datetime.timezone.utc)
+    created_at = _as_utc(post.get('created_at'))
+    status = post.get('status', 'pending')
+    post_content = post.get('content')
+    post_content = post_content if isinstance(post_content, dict) else {}
+    image_url = post_content.get('image')
+    parsed_image_url = urlparse(image_url) if isinstance(image_url, str) else None
+    if not parsed_image_url or parsed_image_url.scheme != 'https' or parsed_image_url.hostname not in ALLOWED_IMAGE_HOSTS:
+        image_url = None
+    optional_tags = post.get('optional_tags', [])
+    optional_tags = optional_tags if isinstance(optional_tags, list) else []
+    if status in {'approved', 'rejected', 'withdrawn'}:
+        status_date = _as_utc(post.get('status_changed_at')) or _as_utc(post.get('updated_at')) or created_at
+        access_expired = status_date is not None and now >= status_date + datetime.timedelta(days=30)
+    else:
+        access_expired = created_at is not None and now >= created_at + datetime.timedelta(days=30)
+
+    if access_expired:
+        collection.update_one(
+            {'_id': post['_id'], 'submission_access_hash': _submission_access_hash(token)},
+            {'$unset': {'submission_access_hash': ''}},
+        )
+        return jsonify({'error': 'Submission tracking has expired'}), 410
+
+    response = jsonify({
+        'postId': str(post['_id']),
+        'title': post.get('title', 'Untitled story'),
+        'description': post_content.get('description', ''),
+        'imageUrl': image_url,
+        'tag': post.get('tag'),
+        'optionalTags': optional_tags,
+        'storyPrompt': post.get('story_prompt'),
+        'location': post.get('location'),
+        'status': status if status in {'pending', 'approved', 'rejected', 'withdrawn'} else 'pending',
+        'createdAt': created_at.isoformat() if created_at else None,
+    })
+    response.headers['Cache-Control'] = 'no-store'
+    return response, 200
+
 # UPDATE (Modify a document by ID)
 @app.route('/api/posts/update/<id>', methods=['PUT'])
 @auth['moderator_required']
@@ -581,19 +664,32 @@ def update_post(id):
         if not hcaptcha_response:
             return jsonify({'success': False, 'message': 'CAPTCHA token missing'}), 400
 
-        # Verify the hCaptcha token with the hCaptcha verification endpoint
+        # Verify the Turnstile token with Cloudflare's verification endpoint
         verification_response = requests.post(
-            captcha_url or 'https://hcaptcha.com/siteverify',
+            captcha_url,
             data={
                 'secret': captcha_secret_key,
                 'response': hcaptcha_response
-            }
+            },
+            timeout=10,
         )
 
         verification_result = verification_response.json()
         if not verification_result.get('success'):
             print(f"CAPTCHA verification failed: {verification_result}")
             return jsonify({'success': False, 'message': 'CAPTCHA verification failed'}), 400
+
+        existing_post = collection.find_one(
+            {'_id': ObjectId(id)},
+            {'status': 1},
+        )
+        if not existing_post:
+            return jsonify({'message': 'Post not found'}), 404
+
+        current_status = existing_post.get('status', 'pending')
+        next_status = data.get('status', current_status)
+        if next_status != current_status:
+            data['status_changed_at'] = datetime.datetime.now(datetime.timezone.utc)
 
         data['updated_at'] = datetime.datetime.now(datetime.timezone.utc)  # Add updated_at timestamp
         

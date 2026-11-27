@@ -488,3 +488,231 @@
     overflow: hidden;
   }
 }
+
+/* Mobile step-by-step wizard: one large, easy-to-read question per page */
+@media screen and (max-width: 768px) {
+  [data-theme] .post-form-modal .post-form.post-form-wizard {
+    max-height: calc(100dvh - 72px) !important;
+  }
+
+  [data-theme] .post-form-modal .post-form-wizard .post-form-left {
+    display: none !important;
+  }
+
+  [data-theme] .post-form-modal .post-form-wizard .post-form-right {
+    padding: 44px 16px 16px !important;
+    gap: 14px !important;
+    max-height: none !important;
+  }
+
+  [data-theme] .post-form-modal .post-form-wizard .post-form-title {
+    font-size: 14px !important;
+    text-align: left !important;
+  }
+
+  .wizard-progress-text {
+    font-size: 16px;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+  }
+
+  .wizard-progress-bar {
+    height: 8px;
+    border-radius: 4px;
+    background: var(--tag-filter-grid);
+    border: 1px solid var(--text-secondary);
+    overflow: hidden;
+  }
+
+  .wizard-progress-fill {
+    height: 100%;
+    background: var(--primary-color);
+    transition: width 0.2s ease;
+  }
+
+  .wizard-step-heading {
+    margin: 14px 0 0;
+    font-size: 22px;
+    line-height: 1.25;
+    color: var(--primary-color);
+  }
+
+  .wizard-prompt-hint {
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.4;
+    color: var(--text-primary);
+  }
+
+  [data-theme] .post-form-modal .post-form-wizard input[type="text"],
+  [data-theme] .post-form-modal .post-form-wizard select,
+  [data-theme] .post-form-modal .post-form-wizard textarea {
+    font-size: 18px !important;
+    padding: 12px !important;
+    min-height: 52px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  [data-theme] .post-form-modal .post-form-wizard textarea {
+    min-height: 200px !important;
+    max-height: 40dvh !important;
+  }
+
+  .post-form-wizard .image-upload-label {
+    font-size: 17px !important;
+  }
+
+  .post-form-wizard .image-preview img {
+    width: 120px !important;
+    height: 90px !important;
+  }
+
+  .post-form-wizard .checkbox-container {
+    font-size: 16px !important;
+    padding: 12px !important;
+  }
+
+  .post-form-wizard .agreement-list {
+    font-size: 15px !important;
+    line-height: 1.4 !important;
+  }
+
+  .post-form-wizard .checkbox-label input[type="checkbox"] {
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+  }
+
+  .post-form-modal .post-form-wizard .form-buttons {
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 10px !important;
+  }
+
+  .post-form-modal .post-form-wizard .form-buttons button {
+    font-size: 18px !important;
+    padding: 12px 20px !important;
+    min-height: 52px;
+  }
+
+  .post-form-modal .post-form-wizard .form-buttons .captcha-container {
+    flex-basis: 100%;
+    order: -1;
+  }
+
+  .wizard-next-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  [data-theme] .post-form-modal .post-form-wizard .post-form-right {
+    overflow: hidden !important;
+    flex: 1 1 auto;
+    min-height: 0;
+    padding-top: 40px !important;
+  }
+
+  .post-form-wizard .wizard-body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .post-form-modal .post-form-wizard .form-buttons {
+    position: static;
+    flex: 0 0 auto;
+    margin: 0 !important;
+    padding: 10px 0 0;
+  }
+
+  .wizard-choices {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  [data-theme] .post-form-modal .post-form-wizard .wizard-choice {
+    width: 100%;
+    text-align: left;
+    font-size: 18px !important;
+    line-height: 1.3;
+    padding: 14px !important;
+    min-height: 54px;
+    border-radius: 10px;
+    border: 2px solid var(--text-secondary);
+    background: var(--tag-filter-grid);
+    color: var(--text-primary);
+    white-space: normal;
+  }
+
+  [data-theme] .post-form-modal .post-form-wizard .wizard-choice.selected {
+    border-color: var(--primary-color);
+    background: var(--primary-color);
+    color: #fff;
+    font-weight: 600;
+  }
+
+  [data-theme] .post-form-modal .post-form-wizard .wizard-choice-clear {
+    background: transparent;
+    border: none;
+    color: var(--primary-color);
+    font-size: 16px !important;
+    text-decoration: underline;
+    padding: 8px !important;
+  }
+}
+
+.wizard-body {
+  display: contents;
+}
+
+@media screen and (max-width: 768px) {
+  .wizard-review {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    font-size: 17px;
+    line-height: 1.4;
+    color: var(--text-primary);
+  }
+
+  .wizard-review-label {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--primary-color);
+    margin-bottom: 2px;
+  }
+
+  .wizard-review-story {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .wizard-review-image {
+    max-width: 100%;
+    max-height: 180px;
+    border-radius: 8px;
+    object-fit: cover;
+  }
+
+  .wizard-review-hint {
+    margin: 0;
+    font-size: 15px;
+    color: var(--text-secondary);
+  }
+}
+
+/* Taskbar.css hides all type="button" buttons in .post-form; the wizard needs them */
+[data-theme] .post-form.post-form-wizard button[type="button"] {
+  display: inline-block;
+}
+
+[data-theme] .post-form.post-form-wizard button[type="button"].wizard-choice {
+  display: block;
+}
